@@ -246,4 +246,9 @@ Full citation information should be added here after publication or preprint rel
 
 ## Contact
 
-For questions about the datasets or analysis scripts, please contact the corresponding author of the associated manuscript.
+For questions about the datasets, analysis scripts, or generated output files, please contact the corresponding author of the associated manuscript.
+
+Questions and comments may also be submitted through GitHub Issues in this repository. Kento Momma may also be contacted through the GitHub profile associated with this repository or through the ORCID record below.
+
+- GitHub: [KentoYana](https://github.com/KentoYana)
+- ORCID: [Kento Momma](https://orcid.org/0009-0004-7481-1364)
