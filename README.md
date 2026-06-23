@@ -91,15 +91,6 @@ Main files:
 - `script_qSpot_test.R`: R script for importing SpotScanner results, calculating normalized spot-coverage ratios, beta-regression analysis, likelihood-ratio tests, slope comparisons, dose-wise comparisons, and figure generation.
 - `output/`: processed data, statistical summaries, target-specific output directories, and TikZ figure output.
 
-The target-specific dataset directories include:
-
-- `qSpot-mei-3`
-- `qSpot-mus-11`
-- `qSpot-mus-26-polh`
-- `qSpot-mus-9`
-- `qSpot-recQ`
-- `qSpot-uvs-2`
-
 Run from the repository root:
 
 ```sh
