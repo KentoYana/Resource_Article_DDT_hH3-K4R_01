@@ -1,7 +1,0 @@
-This repository uses separate licenses for code and data.
-
-Analysis scripts and shell scripts are licensed under the MIT License.
-See LICENSE-MIT.
-
-Datasets, processed output files, alignment files, figure source files, and documentation are licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0), unless otherwise noted.
-See LICENSE-CC-BY-4.0.
