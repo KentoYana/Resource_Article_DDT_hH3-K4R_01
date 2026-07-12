@@ -1,0 +1,31 @@
+
+> print(summary(killing_beta))
+
+Call:
+betareg(formula = Survival ~ UV_dose * genotype, data = expData_beta)
+
+Quantile residuals:
+    Min      1Q  Median      3Q     Max 
+-1.9713 -0.4705  0.3302  0.9665  2.2095 
+
+Coefficients (mean model with logit link):
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               3.352081   0.301546  11.116   <2e-16 ***
+UV_dose                  -0.012761   0.001226 -10.413   <2e-16 ***
+genotypehH3-K4R          -0.514161   0.398803  -1.289   0.1973    
+genotypeset-1 KO         -0.548467   0.396229  -1.384   0.1663    
+UV_dose:genotypehH3-K4R  -0.003332   0.001850  -1.801   0.0717 .  
+UV_dose:genotypeset-1 KO -0.001074   0.001760  -0.611   0.5415    
+
+Phi coefficients (precision model with identity link):
+      Estimate Std. Error z value Pr(>|z|)    
+(phi)   17.808      3.751   4.747 2.07e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+
+Type of estimator: ML (maximum likelihood)
+Log-likelihood: 70.57 on 7 Df
+Pseudo R-squared: 0.8977
+Number of iterations: 29 (BFGS) + 2 (Fisher scoring) 
+
+> sink()

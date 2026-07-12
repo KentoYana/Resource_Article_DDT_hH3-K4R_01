@@ -1,0 +1,6 @@
+candidate_id,left_start,left_end,right_start,right_end,stem_length,matches,mismatches,loop_length,span_length
+1,32,36,45,49,5,4,1,8,18
+2,32,36,44,48,5,4,1,7,17
+3,50,55,67,72,6,5,1,11,23
+4,61,66,75,80,6,5,1,8,20
+5,64,68,73,77,5,4,1,4,14

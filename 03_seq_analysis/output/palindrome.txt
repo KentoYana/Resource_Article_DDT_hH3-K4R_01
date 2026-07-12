@@ -1,0 +1,1245 @@
+Palindromes of:  WT 
+Sequence length is: 1369 
+Start at position: 1
+End at position: 1369
+Minimum length of Palindromes is: 5 
+Maximum length of Palindromes is: 15 
+Maximum gap between elements is: 10 
+Number of mismatches allowed in Palindrome: 1
+
+
+
+Palindromes:
+32       ggagg       36
+         ||| |
+49       ccttc       45
+
+32       ggagg       36
+         | |||
+48       cttcc       44
+
+43       ccctt       47
+         ||| |
+59       gggga       55
+
+61       accaat       66
+         || |||
+80       tgatta       75
+
+64       aattg       68
+         ||| |
+77       ttacc       73
+
+81       cctgc       85
+         || ||
+98       ggccg       94
+
+91       ggtgc       95
+         | |||
+107      ctacg      103
+
+98       gcggt      102
+         | |||
+115      ctcca      111
+
+147      gggat      151
+         ||| |
+163      cccca      159
+
+147      gggat      151
+         ||| |
+162      cccaa      158
+
+185      atgtg      189
+         || ||
+194      taaac      190
+
+224      tgggc      228
+         |||||
+238      acccg      234
+
+266      acacg      270
+         ||| |
+283      tgtac      279
+
+276      gtcca      280
+         || ||
+285      catgt      281
+
+292      ggcga      296
+         || ||
+306      ccact      302
+
+305      ccatga      310
+         || |||
+316      ggcact      311
+
+331      tcggc      335
+         |||||
+347      agccg      343
+
+333      ggcac      337
+         | |||
+344      cggtg      340
+
+337      cacgtg      342
+         | ||||
+354      gcgcac      349
+
+341      tggccg      346
+         || |||
+358      acgggc      353
+
+344      ccgag      348
+         ||| |
+355      ggcgc      351
+
+348      gcacg      352
+         || ||
+357      cgggc      353
+
+349      cacgc      353
+         || ||
+360      gtacg      356
+
+363      catga      367
+         || ||
+372      gtcct      368
+
+369      cctgg      373
+         || ||
+388      ggtcc      384
+
+374      tgggc      378
+         ||| |
+391      accgg      387
+
+376      ggcga      380
+         ||| |
+390      ccggt      386
+
+379      gacag      383
+         | |||
+389      cggtc      385
+
+381      cagcc      385
+         || ||
+397      gttgg      393
+
+384      cctgg      388
+         | |||
+393      gtacc      389
+
+396      tgctc      400
+         | |||
+413      aggag      409
+
+414      cacga      418
+         ||| |
+432      gtggt      428
+
+431      tggag      435
+         || ||
+449      acgtc      445
+
+460      gtggc      464
+         || ||
+473      catcg      469
+
+462      ggcgag      467
+         ||| ||
+478      ccgatc      473
+
+468      ggcta      472
+         |||||
+478      ccgat      474
+
+525      tctcaact      532
+         |||||| |
+550      agagttta      543
+
+536      ggtctc      541
+         | ||||
+552      caagag      547
+
+538      tctcta      543
+         |||| |
+550      agagtt      545
+
+617      tcaat      621
+         | |||
+636      actta      632
+
+686      aaaca      690
+         || ||
+702      ttcgt      698
+
+693      aacca      697
+         || ||
+702      ttcgt      698
+
+705      aggtcg      710
+         ||||||
+717      tccagc      712
+
+710      ggcga      714
+         || ||
+721      cccct      717
+
+772      cttcat      777
+         |||| |
+785      gaagaa      780
+
+782      gaaggc      787
+         || |||
+802      ctgccg      797
+
+785      ggccg      789
+         ||| |
+799      ccgcc      795
+
+787      ccgcg      791
+         | |||
+800      gccgc      796
+
+790      cgtgt      794
+         || ||
+809      gctca      805
+
+795      ccgccgtc      802
+         ||||| ||
+816      ggcggaag      809
+
+796      cgccgtc      802
+         ||||| |
+818      gcggcgg      812
+
+804      aactcg      809
+         | ||||
+825      tagagc      820
+
+812      ggcggc      817
+         || |||
+832      cccccg      827
+
+815      ggcgcc      820
+         || |||
+831      ccccgg      826
+
+823      gatggccc      830
+         |||||| |
+847      ctaccgcg      840
+
+823      gatgg      827
+         |||||
+838      ctacc      834
+
+823      gatgg      827
+         | |||
+835      ccacc      831
+
+838      ccgcg      842
+         | |||
+857      gccgc      853
+
+850      caccg      854
+         ||| |
+868      gtgcc      864
+
+868      gctcg      872
+         || ||
+884      cgggc      880
+
+879      tcggg      883
+         | |||
+894      acccc      890
+
+881      gggct      885
+         | |||
+898      cgcga      894
+
+882      ggctc      886
+         ||| |
+899      ccgcg      895
+
+891      cccagcgc      898
+         ||||| ||
+912      gggtcccg      905
+
+903      acgcc      907
+         | |||
+918      ttcgg      914
+
+904      cgccc      908
+         | |||
+914      gtggg      910
+
+965      gacgccc      971
+         |||| ||
+979      ctgccgg      973
+
+970      cctggcc      976
+         ||||| |
+983      ggacctg      977
+
+971      ctggcc      976
+         | ||||
+990      ggccgg      985
+
+975      ccgtcc      980
+         ||| ||
+990      ggccgg      985
+
+976      cgtcc      980
+         | |||
+986      ggagg      982
+
+988      cggtg      992
+         ||| |
+1001     gccgc      997
+
+1010     gaggc     1014
+         | |||
+1022     cgccg     1018
+
+1015     cgtgc     1019
+         | |||
+1025     ggacg     1021
+
+1018     gccgc     1022
+         |||||
+1035     cggcg     1031
+
+1018     gccgc     1022
+         ||| |
+1032     cggtg     1028
+
+1021     gcagg     1025
+         | |||
+1039     cttcc     1035
+
+1024     ggagg     1028
+         | |||
+1039     cttcc     1035
+
+1057     aatcccaa     1064
+         ||| ||||
+1075     ttacggtt     1068
+
+1064     accattg     1070
+         |||| ||
+1078     tggttac     1072
+
+1075     tggtgc     1080
+         | ||||
+1094     agcacg     1089
+
+1077     gtgctg     1082
+         |||| |
+1092     cacggc     1087
+
+1087     cggcac     1092
+         | ||||
+1108     gtcgtg     1103
+
+1088     ggcac     1092
+         | |||
+1099     cggtg     1095
+
+1089     gcacgag     1095
+         |||| ||
+1112     cgtggtc     1106
+
+1097     ggccag     1102
+         |||| |
+1117     ccggac     1112
+
+1118     gatat     1122
+         || ||
+1135     cttta     1131
+
+1123     gacggg     1128
+         | ||||
+1140     ccgccc     1135
+
+1125     cggggaa     1131
+         |||| ||
+1138     gcccttt     1132
+
+1136     ccgcc     1140
+         || ||
+1147     ggagg     1143
+
+1139     cctggg     1144
+         | ||||
+1159     gaaccc     1154
+
+1154     cccaa     1158
+         | |||
+1165     gtgtt     1161
+
+1158     agttt     1162
+         | |||
+1172     tgaaa     1168
+
+1160     tttgt     1164
+         ||| |
+1170     aaaaa     1166
+
+1210     gacgt     1214
+         ||| |
+1228     ctgaa     1224
+
+1224     aagtc     1228
+         || ||
+1241     ttgag     1237
+
+1231     gggcgg     1236
+         || |||
+1249     ccggcc     1244
+
+1232     ggcggga     1238
+         ||| |||
+1249     ccggcct     1243
+
+1241     tatcc     1245
+         ||| |
+1259     atacg     1255
+
+1331     tctgcc     1336
+         || |||
+1344     agtcgg     1339
+
+1332     ctgcc     1336
+         || ||
+1351     gaggg     1347
+
+
+
+
+Palindromes of:  B36 
+Sequence length is: 1369 
+Start at position: 1
+End at position: 1369
+Minimum length of Palindromes is: 5 
+Maximum length of Palindromes is: 15 
+Maximum gap between elements is: 10 
+Number of mismatches allowed in Palindrome: 1
+
+
+
+Palindromes:
+32       ggagg       36
+         ||| |
+49       ccttc       45
+
+32       ggagg       36
+         | |||
+48       cttcc       44
+
+43       ccctt       47
+         ||| |
+59       gggga       55
+
+61       accaat       66
+         || |||
+80       tgatta       75
+
+64       aattg       68
+         ||| |
+77       ttacc       73
+
+92       gtaccg       97
+         | ||||
+104      cgtggc       99
+
+98       gcggt      102
+         | |||
+115      ctcca      111
+
+147      gggat      151
+         ||| |
+163      cccca      159
+
+147      gggat      151
+         ||| |
+162      cccaa      158
+
+185      atgtg      189
+         || ||
+194      taaac      190
+
+224      tgggc      228
+         |||||
+238      acccg      234
+
+266      acacg      270
+         ||| |
+283      tgtac      279
+
+276      gtcca      280
+         || ||
+285      catgt      281
+
+292      ggcga      296
+         || ||
+306      ccact      302
+
+305      ccatga      310
+         || |||
+316      ggcact      311
+
+331      tcggc      335
+         |||||
+347      agccg      343
+
+333      ggcac      337
+         | |||
+344      cggtg      340
+
+337      cacgtg      342
+         | ||||
+354      gcgcac      349
+
+341      tggccg      346
+         || |||
+358      acgggc      353
+
+344      ccgag      348
+         ||| |
+355      ggcgc      351
+
+348      gcacg      352
+         || ||
+357      cgggc      353
+
+349      cacgc      353
+         || ||
+360      gtacg      356
+
+363      catga      367
+         || ||
+372      gtcct      368
+
+369      cctgg      373
+         || ||
+388      ggtcc      384
+
+374      tggac      378
+         ||| |
+391      accgg      387
+
+379      gacag      383
+         | |||
+389      cggtc      385
+
+381      cagcc      385
+         || ||
+397      gttgg      393
+
+384      cctgg      388
+         | |||
+393      gtacc      389
+
+396      tgctc      400
+         | |||
+413      aggag      409
+
+414      cacga      418
+         ||| |
+432      gtggt      428
+
+431      tggag      435
+         || ||
+449      acgtc      445
+
+460      gtggc      464
+         || ||
+473      catcg      469
+
+462      ggcgag      467
+         ||| ||
+478      ccgatc      473
+
+468      ggcta      472
+         |||||
+478      ccgat      474
+
+525      tctcaact      532
+         |||||| |
+550      agagttta      543
+
+536      ggtctc      541
+         | ||||
+552      caagag      547
+
+538      tctcta      543
+         |||| |
+550      agagtt      545
+
+617      tcaat      621
+         | |||
+636      actta      632
+
+686      aaaca      690
+         || ||
+702      ttcgt      698
+
+693      aacca      697
+         || ||
+702      ttcgt      698
+
+705      aggtcg      710
+         ||||||
+717      tccagc      712
+
+710      ggcga      714
+         || ||
+721      cccct      717
+
+772      cttcat      777
+         |||| |
+785      gaagaa      780
+
+782      gaaggc      787
+         || |||
+802      ctgccg      797
+
+785      ggccg      789
+         ||| |
+799      ccgcc      795
+
+787      ccgcg      791
+         | |||
+800      gccgc      796
+
+790      cgtgt      794
+         || ||
+809      gctca      805
+
+795      ccgccgtc      802
+         ||||| ||
+816      ggcggaag      809
+
+796      cgccgtc      802
+         ||||| |
+818      gcggcgg      812
+
+804      aactcg      809
+         | ||||
+825      tagagc      820
+
+812      ggcggc      817
+         || |||
+832      cccccg      827
+
+815      ggcgcc      820
+         || |||
+831      ccccgg      826
+
+823      gatggccc      830
+         |||||| |
+847      ctaccgcg      840
+
+823      gatgg      827
+         |||||
+838      ctacc      834
+
+823      gatgg      827
+         | |||
+835      ccacc      831
+
+838      ccgcg      842
+         | |||
+857      gccgc      853
+
+850      caccg      854
+         ||| |
+868      gtgcc      864
+
+868      gctcg      872
+         || ||
+884      cgggc      880
+
+879      tcggg      883
+         | |||
+894      acccc      890
+
+881      gggct      885
+         | |||
+898      cgcga      894
+
+882      ggctc      886
+         ||| |
+899      ccgcg      895
+
+891      cccagcgc      898
+         ||||| ||
+912      gggtcccg      905
+
+903      acgcc      907
+         | |||
+918      ttcgg      914
+
+904      cgccc      908
+         | |||
+914      gtggg      910
+
+965      gacgccc      971
+         |||| ||
+979      ctgccgg      973
+
+970      cctggcc      976
+         ||||| |
+983      ggacctg      977
+
+971      ctggcc      976
+         | ||||
+990      ggccgg      985
+
+975      ccgtcc      980
+         ||| ||
+990      ggccgg      985
+
+976      cgtcc      980
+         | |||
+986      ggagg      982
+
+988      cggtg      992
+         ||| |
+1001     gccgc      997
+
+1010     gaggc     1014
+         | |||
+1022     cgccg     1018
+
+1015     cgtgc     1019
+         | |||
+1025     ggacg     1021
+
+1018     gccgc     1022
+         |||||
+1035     cggcg     1031
+
+1018     gccgc     1022
+         ||| |
+1032     cggtg     1028
+
+1021     gcagg     1025
+         | |||
+1039     cttcc     1035
+
+1024     ggagg     1028
+         | |||
+1039     cttcc     1035
+
+1057     aatcccaa     1064
+         ||| ||||
+1075     ttacggtt     1068
+
+1064     accattg     1070
+         |||| ||
+1078     tggttac     1072
+
+1075     tggtgc     1080
+         | ||||
+1094     agcacg     1089
+
+1077     gtgctg     1082
+         |||| |
+1092     cacggc     1087
+
+1087     cggcac     1092
+         | ||||
+1108     gtcgtg     1103
+
+1088     ggcac     1092
+         | |||
+1099     cggtg     1095
+
+1089     gcacgag     1095
+         |||| ||
+1112     cgtggtc     1106
+
+1097     ggccag     1102
+         |||| |
+1117     ccggac     1112
+
+1118     gatat     1122
+         || ||
+1135     cttta     1131
+
+1123     gacggg     1128
+         | ||||
+1140     ccgccc     1135
+
+1125     cggggaa     1131
+         |||| ||
+1138     gcccttt     1132
+
+1136     ccgcc     1140
+         || ||
+1147     ggagg     1143
+
+1139     cctggg     1144
+         | ||||
+1159     gaaccc     1154
+
+1154     cccaa     1158
+         | |||
+1165     gtgtt     1161
+
+1158     agttt     1162
+         | |||
+1172     tgaaa     1168
+
+1160     tttgt     1164
+         ||| |
+1170     aaaaa     1166
+
+1210     gacgt     1214
+         ||| |
+1228     ctgaa     1224
+
+1224     aagtc     1228
+         || ||
+1241     ttgag     1237
+
+1231     gggcgg     1236
+         || |||
+1249     ccggcc     1244
+
+1232     ggcggga     1238
+         ||| |||
+1249     ccggcct     1243
+
+1241     tatcc     1245
+         ||| |
+1259     atacg     1255
+
+1331     tctgcc     1336
+         || |||
+1344     agtcgg     1339
+
+
+
+
+Palindromes of:  OGW1 
+Sequence length is: 1367 
+Start at position: 1
+End at position: 1367
+Minimum length of Palindromes is: 5 
+Maximum length of Palindromes is: 15 
+Maximum gap between elements is: 10 
+Number of mismatches allowed in Palindrome: 1
+
+
+
+Palindromes:
+32       ggagg       36
+         ||| |
+49       ccttc       45
+
+32       ggagg       36
+         | |||
+48       cttcc       44
+
+50       tttcca       55
+         ||| ||
+71       aaacgt       66
+
+60       accaat       65
+         || |||
+79       tgatta       74
+
+63       aattg       67
+         ||| |
+76       ttacc       72
+
+80       cctgc       84
+         || ||
+97       ggccg       93
+
+90       ggtgc       94
+         | |||
+106      ctacg      102
+
+97       gcggt      101
+         | |||
+114      ctcca      110
+
+146      gggat      150
+         ||| |
+162      cccca      158
+
+146      gggat      150
+         ||| |
+161      cccaa      157
+
+184      atgtg      188
+         || ||
+193      taaac      189
+
+223      tgggc      227
+         |||||
+237      acccg      233
+
+265      acacg      269
+         ||| |
+282      tgtac      278
+
+275      gtcca      279
+         || ||
+284      catgt      280
+
+291      ggcga      295
+         || ||
+305      ccact      301
+
+304      ccatga      309
+         || |||
+315      ggcact      310
+
+330      tcggc      334
+         |||||
+346      agccg      342
+
+332      ggcac      336
+         | |||
+343      cggtg      339
+
+336      cacgtg      341
+         | ||||
+353      gcgcac      348
+
+340      tggccg      345
+         || |||
+357      acgggc      352
+
+343      ccgag      347
+         ||| |
+354      ggcgc      350
+
+347      gcacg      351
+         || ||
+356      cgggc      352
+
+348      cacgc      352
+         || ||
+359      gtacg      355
+
+362      catga      366
+         || ||
+371      gtcct      367
+
+368      cctgg      372
+         || ||
+387      ggtcc      383
+
+373      tgggc      377
+         ||| |
+390      accgg      386
+
+375      ggcga      379
+         ||| |
+389      ccggt      385
+
+378      gacag      382
+         | |||
+388      cggtc      384
+
+380      cagcc      384
+         || ||
+396      gttgg      392
+
+383      cctgg      387
+         | |||
+392      gtacc      388
+
+395      tgctc      399
+         | |||
+412      aggag      408
+
+413      cacga      417
+         ||| |
+431      gtggt      427
+
+430      tggag      434
+         || ||
+448      acgtc      444
+
+459      gtggc      463
+         || ||
+472      catcg      468
+
+461      ggcgag      466
+         ||| ||
+477      ccgatc      472
+
+467      ggcta      471
+         |||||
+477      ccgat      473
+
+524      tctcaact      531
+         |||||| |
+549      agagttta      542
+
+535      ggtctc      540
+         | ||||
+551      caagag      546
+
+537      tctcta      542
+         |||| |
+549      agagtt      544
+
+616      tcaat      620
+         | |||
+635      actta      631
+
+684      aaaca      688
+         || ||
+700      ttcgt      696
+
+691      aacca      695
+         || ||
+700      ttcgt      696
+
+703      aggtcg      708
+         ||||||
+715      tccagc      710
+
+708      ggcga      712
+         || ||
+719      cccct      715
+
+770      cttcat      775
+         |||| |
+783      gaagaa      778
+
+780      gaaggc      785
+         || |||
+800      ctgccg      795
+
+783      ggccg      787
+         ||| |
+797      ccgcc      793
+
+785      ccgcg      789
+         | |||
+798      gccgc      794
+
+788      cgtgt      792
+         || ||
+807      gctca      803
+
+793      ccgccgtc      800
+         ||||| ||
+814      ggcggaag      807
+
+794      cgccgtc      800
+         ||||| |
+816      gcggcgg      810
+
+802      aactcg      807
+         | ||||
+823      tagagc      818
+
+810      ggcggc      815
+         || |||
+830      cccccg      825
+
+813      ggcgcc      818
+         || |||
+829      ccccgg      824
+
+821      gatggccc      828
+         |||||| |
+845      ctaccgcg      838
+
+821      gatgg      825
+         |||||
+836      ctacc      832
+
+821      gatgg      825
+         | |||
+833      ccacc      829
+
+836      ccgcg      840
+         | |||
+855      gccgc      851
+
+848      caccg      852
+         ||| |
+866      gtgcc      862
+
+866      gctcg      870
+         || ||
+882      cgggc      878
+
+877      tcggg      881
+         | |||
+892      acccc      888
+
+879      gggct      883
+         | |||
+896      cgcga      892
+
+880      ggctc      884
+         ||| |
+897      ccgcg      893
+
+889      cccagcgc      896
+         ||||| ||
+910      gggtcccg      903
+
+901      acgcc      905
+         | |||
+916      ttcgg      912
+
+902      cgccc      906
+         | |||
+912      gtggg      908
+
+963      gacgccc      969
+         |||| ||
+977      ctgccgg      971
+
+968      cctggcc      974
+         ||||| |
+981      ggacctg      975
+
+969      ctggcc      974
+         | ||||
+988      ggccgg      983
+
+973      ccgtcc      978
+         ||| ||
+988      ggccgg      983
+
+974      cgtcc      978
+         | |||
+984      ggagg      980
+
+986      cggtg      990
+         ||| |
+999      gccgc      995
+
+1008     gaggc     1012
+         | |||
+1020     cgccg     1016
+
+1013     cgtgc     1017
+         | |||
+1023     ggacg     1019
+
+1016     gccgc     1020
+         |||||
+1033     cggcg     1029
+
+1016     gccgc     1020
+         ||| |
+1030     cggtg     1026
+
+1019     gcagg     1023
+         | |||
+1037     cttcc     1033
+
+1022     ggagg     1026
+         | |||
+1037     cttcc     1033
+
+1055     aatcccaa     1062
+         ||| ||||
+1073     ttacggtt     1066
+
+1062     accattg     1068
+         |||| ||
+1076     tggttac     1070
+
+1073     tggtgc     1078
+         | ||||
+1092     agcacg     1087
+
+1075     gtgctg     1080
+         |||| |
+1090     cacggc     1085
+
+1085     cggcac     1090
+         | ||||
+1106     gtcgtg     1101
+
+1086     ggcac     1090
+         | |||
+1097     cggtg     1093
+
+1087     gcacgag     1093
+         |||| ||
+1110     cgtggtc     1104
+
+1095     ggccag     1100
+         |||| |
+1115     ccggac     1110
+
+1116     gatat     1120
+         || ||
+1133     cttta     1129
+
+1121     gacggg     1126
+         | ||||
+1138     ccgccc     1133
+
+1123     cggggaa     1129
+         |||| ||
+1136     gcccttt     1130
+
+1134     ccgcc     1138
+         || ||
+1145     ggagg     1141
+
+1137     cctggg     1142
+         | ||||
+1157     gaaccc     1152
+
+1152     cccaa     1156
+         | |||
+1163     gtgtt     1159
+
+1156     agttt     1160
+         | |||
+1170     tgaaa     1166
+
+1158     tttgt     1162
+         ||| |
+1168     aaaaa     1164
+
+1208     gacgt     1212
+         ||| |
+1226     ctgaa     1222
+
+1222     aagtc     1226
+         || ||
+1239     ttgag     1235
+
+1229     gggcgg     1234
+         || |||
+1247     ccggcc     1242
+
+1230     ggcggga     1236
+         ||| |||
+1247     ccggcct     1241
+
+1239     tatcc     1243
+         ||| |
+1257     atacg     1253
+
+1329     tctgcc     1334
+         || |||
+1342     agtcgg     1337
+
+1330     ctgcc     1334
+         || ||
+1349     gaggg     1345
+
+
+
+

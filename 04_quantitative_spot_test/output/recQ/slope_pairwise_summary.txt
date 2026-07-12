@@ -1,0 +1,17 @@
+ contrast                                            estimate       SE  df
+ (wild-type) - (hH3-K4R)                             3.52e-04 0.000226 Inf
+ (wild-type) - (qde-3-RIP recQ2 KO)                  1.52e-03 0.000276 Inf
+ (wild-type) - (qde-3-RIP recQ2 KO hH3-K4R)          1.57e-03 0.000276 Inf
+ (hH3-K4R) - (qde-3-RIP recQ2 KO)                    1.17e-03 0.000288 Inf
+ (hH3-K4R) - (qde-3-RIP recQ2 KO hH3-K4R)            1.22e-03 0.000288 Inf
+ (qde-3-RIP recQ2 KO) - (qde-3-RIP recQ2 KO hH3-K4R) 4.81e-05 0.000313 Inf
+ z.ratio p.value
+   1.554  0.1441
+   5.512 <0.0001
+   5.688 <0.0001
+   4.063 <0.0001
+   4.231 <0.0001
+   0.154  0.8777
+
+Results are averaged over the levels of: exp_ID 
+P value adjustment: BH method for 6 tests 

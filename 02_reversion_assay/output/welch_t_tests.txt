@@ -1,0 +1,75 @@
+
+> for (sid in names(pair_results)) {
++   cat("========================================\n")
++   cat("Sibling:", sid, "\n")
++   cat("Mutant:", pair_resu .... [TRUNCATED] 
+========================================
+Sibling: Op47 
+Mutant: hH3-K4R 
+========================================
+
+	Welch Two Sample t-test
+
+data:  AUC_bc by genotype
+t = -2.4404, df = 3.0169, p-value = 0.09199
+alternative hypothesis: true difference in means between group wild-type and group hH3-K4R is not equal to 0
+95 percent confidence interval:
+ -1313.6942   171.3359
+sample estimates:
+mean in group wild-type   mean in group hH3-K4R 
+               49.98141               621.16055 
+
+
+========================================
+Sibling: Op51 
+Mutant: set-1 KO 
+========================================
+
+	Welch Two Sample t-test
+
+data:  AUC_bc by genotype
+t = -2.8033, df = 3.1285, p-value = 0.06448
+alternative hypothesis: true difference in means between group wild-type and group set-1 KO is not equal to 0
+95 percent confidence interval:
+ -1400.83144    72.59359
+sample estimates:
+mean in group wild-type  mean in group set-1 KO 
+               122.9816                787.1005 
+
+
+========================================
+Sibling: Op46 
+Mutant: hH3-K4R 
+========================================
+
+	Welch Two Sample t-test
+
+data:  AUC_bc by genotype
+t = -8.1527, df = 3.8391, p-value = 0.001465
+alternative hypothesis: true difference in means between group wild-type and group hH3-K4R is not equal to 0
+95 percent confidence interval:
+ -2862.626 -1390.089
+sample estimates:
+mean in group wild-type   mean in group hH3-K4R 
+               563.6679               2690.0254 
+
+
+========================================
+Sibling: Op55 
+Mutant: set-1 KO 
+========================================
+
+	Welch Two Sample t-test
+
+data:  AUC_bc by genotype
+t = -4.2901, df = 5.9751, p-value = 0.005198
+alternative hypothesis: true difference in means between group wild-type and group set-1 KO is not equal to 0
+95 percent confidence interval:
+ -2381.966  -650.563
+sample estimates:
+mean in group wild-type  mean in group set-1 KO 
+               751.1421               2267.4066 
+
+
+
+> sink()

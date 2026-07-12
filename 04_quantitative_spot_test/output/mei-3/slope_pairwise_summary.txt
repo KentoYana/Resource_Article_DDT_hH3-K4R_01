@@ -1,0 +1,10 @@
+ contrast                         estimate       SE  df z.ratio p.value
+ (wild-type) - (hH3-K4R)          0.000527 0.000333 Inf   1.582  0.1365
+ (wild-type) - (mei-3 KO)         0.000796 0.000366 Inf   2.173  0.0447
+ (wild-type) - (mei-3 KO hH3-K4R) 0.002828 0.000482 Inf   5.866 <0.0001
+ (hH3-K4R) - (mei-3 KO)           0.000268 0.000396 Inf   0.678  0.4981
+ (hH3-K4R) - (mei-3 KO hH3-K4R)   0.002301 0.000506 Inf   4.548 <0.0001
+ (mei-3 KO) - (mei-3 KO hH3-K4R)  0.002032 0.000526 Inf   3.862  0.0002
+
+Results are averaged over the levels of: exp_ID 
+P value adjustment: BH method for 6 tests 

@@ -1,0 +1,8 @@
+ strain           dose.trend       SE  df asymp.LCL asymp.UCL
+ wild-type         -0.000359 0.000210 Inf -0.000771  5.25e-05
+ hH3-K4R           -0.000887 0.000259 Inf -0.001395 -3.79e-04
+ mei-3 KO          -0.001155 0.000300 Inf -0.001743 -5.67e-04
+ mei-3 KO hH3-K4R  -0.003188 0.000432 Inf -0.004034 -2.34e-03
+
+Results are averaged over the levels of: exp_ID 
+Confidence level used: 0.95 

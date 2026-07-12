@@ -1,0 +1,9 @@
+Likelihood ratio tests of Negative Binomial Models
+
+Response: indel_size
+     Model    theta Resid. df    2 x log-lik.   Test    df LR stat.    Pr(Chi)
+1        1 1.545299       108       -561.3099                                 
+2 genotype 1.637043       107       -556.1041 1 vs 2     1 5.205792 0.02251175
+
+Formatted p-value label used in plot:
+p = 0.0225 

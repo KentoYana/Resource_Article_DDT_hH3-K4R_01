@@ -1,0 +1,3 @@
+"sibling","allele","genotype","genotype_safe","mean_AUC","se_AUC","n"
+"Op51","B36","wild-type","wild_type",122.98160433299,34.4029061315324,3
+"Op51","B36","set-1 KO","set_1_KO",787.100531157589,234.390901298724,4

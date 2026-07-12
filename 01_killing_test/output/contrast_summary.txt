@@ -1,0 +1,29 @@
+
+> print(summary(contrast_results))
+UV_dose =   0:
+ contrast                 estimate     SE  df z.ratio p.value
+ (wild-type) - (hH3-K4R)   0.02148 0.0172 Inf   1.247  0.5399
+ (wild-type) - (set-1 KO)  0.02330 0.0174 Inf   1.341  0.5399
+ (hH3-K4R) - (set-1 KO)    0.00182 0.0204 Inf   0.089  0.9289
+
+UV_dose = 100:
+ contrast                 estimate     SE  df z.ratio p.value
+ (wild-type) - (hH3-K4R)   0.11497 0.0366 Inf   3.142  0.0050
+ (wild-type) - (set-1 KO)  0.08320 0.0342 Inf   2.433  0.0299
+ (hH3-K4R) - (set-1 KO)   -0.03177 0.0415 Inf  -0.766  0.4437
+
+UV_dose = 200:
+ contrast                 estimate     SE  df z.ratio p.value
+ (wild-type) - (hH3-K4R)   0.28398 0.0522 Inf   5.439 <0.0001
+ (wild-type) - (set-1 KO)  0.18082 0.0515 Inf   3.513  0.0009
+ (hH3-K4R) - (set-1 KO)   -0.10316 0.0552 Inf  -1.869  0.0616
+
+UV_dose = 400:
+ contrast                 estimate     SE  df z.ratio p.value
+ (wild-type) - (hH3-K4R)   0.12114 0.0364 Inf   3.331  0.0026
+ (wild-type) - (set-1 KO)  0.08656 0.0399 Inf   2.170  0.0600
+ (hH3-K4R) - (set-1 KO)   -0.03458 0.0214 Inf  -1.614  0.1064
+
+P value adjustment: holm method for 3 tests 
+
+> sink()

@@ -1,0 +1,17 @@
+ contrast                                      estimate       SE  df z.ratio
+ (wild-type) - (hH3-K4R)                       -0.00166 0.000957 Inf  -1.734
+ (wild-type) - (mus-26 polh dKO)                0.01764 0.002010 Inf   8.787
+ (wild-type) - (mus-26 polh dKO hH3-K4R)        0.00530 0.001550 Inf   3.427
+ (hH3-K4R) - (mus-26 polh dKO)                  0.01930 0.001920 Inf  10.059
+ (hH3-K4R) - (mus-26 polh dKO hH3-K4R)          0.00696 0.001450 Inf   4.811
+ (mus-26 polh dKO) - (mus-26 polh dKO hH3-K4R) -0.01234 0.002240 Inf  -5.501
+ p.value
+  0.0829
+ <0.0001
+  0.0007
+ <0.0001
+ <0.0001
+ <0.0001
+
+Results are averaged over the levels of: exp_ID 
+P value adjustment: BH method for 6 tests 

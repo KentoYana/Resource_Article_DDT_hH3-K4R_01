@@ -1,0 +1,4 @@
+Target: mus-26-polh 
+Likelihood Ratio Statistic: 152.6714 
+Degrees of Freedom Difference: 6 
+p-value: 2.106839e-30 

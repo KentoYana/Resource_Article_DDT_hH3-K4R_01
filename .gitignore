@@ -1,4 +1,7 @@
+# macOS
 .DS_Store
+._*
+__MACOSX/
 
 # History files
 .Rhistory
@@ -49,3 +52,6 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Default R graphics output
+Rplots.pdf

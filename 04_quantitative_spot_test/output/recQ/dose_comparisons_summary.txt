@@ -1,0 +1,20 @@
+ dose strain                     emmean     SE  df asymp.LCL asymp.UCL
+    0 wild-type                   0.886 0.0215 Inf    0.8436     0.928
+  100 wild-type                   0.847 0.0204 Inf    0.8066     0.887
+  200 wild-type                   0.797 0.0233 Inf    0.7515     0.843
+  400 wild-type                   0.666 0.0554 Inf    0.5574     0.775
+    0 hH3-K4R                     0.897 0.0197 Inf    0.8583     0.936
+  100 hH3-K4R                     0.839 0.0211 Inf    0.7981     0.881
+  200 hH3-K4R                     0.758 0.0260 Inf    0.7073     0.809
+  400 hH3-K4R                     0.531 0.0622 Inf    0.4091     0.653
+    0 qde-3-RIP recQ2 KO          0.821 0.0315 Inf    0.7596     0.883
+  100 qde-3-RIP recQ2 KO          0.669 0.0339 Inf    0.6030     0.736
+  200 qde-3-RIP recQ2 KO          0.472 0.0338 Inf    0.4054     0.538
+  400 qde-3-RIP recQ2 KO          0.148 0.0310 Inf    0.0867     0.208
+    0 qde-3-RIP recQ2 KO hH3-K4R  0.828 0.0306 Inf    0.7676     0.888
+  100 qde-3-RIP recQ2 KO hH3-K4R  0.675 0.0336 Inf    0.6087     0.740
+  200 qde-3-RIP recQ2 KO hH3-K4R  0.473 0.0337 Inf    0.4064     0.539
+  400 qde-3-RIP recQ2 KO hH3-K4R  0.143 0.0302 Inf    0.0839     0.202
+
+Results are averaged over the levels of: exp_ID 
+Confidence level used: 0.95 

@@ -1,0 +1,11 @@
+
+> print(summary(slope_comparisons))
+ genotype  UV_dose.trend       SE  df asymp.LCL asymp.UCL
+ wild-type      -0.00237 0.000259 Inf  -0.00299  -0.00175
+ hH3-K4R        -0.00402 0.000373 Inf  -0.00492  -0.00313
+ set-1 KO       -0.00334 0.000340 Inf  -0.00415  -0.00252
+
+Confidence level used: 0.95 
+Conf-level adjustment: bonferroni method for 3 estimates 
+
+> sink()

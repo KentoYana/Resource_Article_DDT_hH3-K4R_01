@@ -1,0 +1,27 @@
+
+Call:
+betareg(formula = Spot_ratio_scaled ~ dose + Conidia_ratio_scaled + exp_ID, 
+    data = expData_raw, link = "logit")
+
+Quantile residuals:
+    Min      1Q  Median      3Q     Max 
+-2.6027 -0.2669  0.4164  0.6101  1.6197 
+
+Coefficients (mean model with logit link):
+                           Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                1.412032   0.163623   8.630  < 2e-16 ***
+dose                      -0.022053   0.003939  -5.598 2.17e-08 ***
+Conidia_ratio_scaled       0.460639   0.192575   2.392   0.0168 *  
+exp_ID2024-12-04_10-55-47  0.028025   0.173657   0.161   0.8718    
+exp_ID2024-12-08_13-51-05  0.122947   0.173029   0.711   0.4774    
+
+Phi coefficients (precision model with identity link):
+      Estimate Std. Error z value Pr(>|z|)    
+(phi)  0.97524    0.07598   12.84   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+
+Type of estimator: ML (maximum likelihood)
+Log-likelihood: 485.2 on 6 Df
+Pseudo R-squared: 0.2358
+Number of iterations: 24 (BFGS) + 1 (Fisher scoring) 

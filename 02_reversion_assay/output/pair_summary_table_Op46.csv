@@ -1,0 +1,3 @@
+"sibling","allele","genotype","genotype_safe","mean_AUC","se_AUC","n"
+"Op46","OGW1","wild-type","wild_type",563.667912791545,94.2570688458303,3
+"Op46","OGW1","hH3-K4R","hH3_K4R",2690.02542564154,243.188092490752,4

@@ -1,0 +1,45 @@
+
+Call:
+betareg(formula = Spot_ratio_scaled ~ dose * strain + Conidia_ratio_scaled + 
+    exp_ID, data = expData_raw, link = "logit")
+
+Quantile residuals:
+    Min      1Q  Median      3Q     Max 
+-2.8901 -0.4743  0.1515  0.6879  2.3238 
+
+Coefficients (mean model with logit link):
+                                        Estimate Std. Error z value Pr(>|z|)
+(Intercept)                            1.9289155  0.2357403   8.182 2.78e-16
+dose                                  -0.0034060  0.0009108  -3.740 0.000184
+strainhH3-K4R                          0.1166690  0.2853274   0.409 0.682617
+strainqde-3-RIP recQ2 KO              -0.5239637  0.2899554  -1.807 0.070755
+strainqde-3-RIP recQ2 KO hH3-K4R      -0.4806791  0.2896548  -1.659 0.097017
+Conidia_ratio_scaled                   1.4163445  0.1844014   7.681 1.58e-14
+exp_ID2025-01-26_14-51-03             -0.3491173  0.1641689  -2.127 0.033455
+exp_ID2025-02-03_10-29-41             -0.1591448  0.1635497  -0.973 0.330520
+dose:strainhH3-K4R                    -0.0017138  0.0012852  -1.333 0.182391
+dose:strainqde-3-RIP recQ2 KO         -0.0048268  0.0012860  -3.753 0.000174
+dose:strainqde-3-RIP recQ2 KO hH3-K4R -0.0050239  0.0012855  -3.908 9.30e-05
+                                         
+(Intercept)                           ***
+dose                                  ***
+strainhH3-K4R                            
+strainqde-3-RIP recQ2 KO              .  
+strainqde-3-RIP recQ2 KO hH3-K4R      .  
+Conidia_ratio_scaled                  ***
+exp_ID2025-01-26_14-51-03             *  
+exp_ID2025-02-03_10-29-41                
+dose:strainhH3-K4R                       
+dose:strainqde-3-RIP recQ2 KO         ***
+dose:strainqde-3-RIP recQ2 KO hH3-K4R ***
+
+Phi coefficients (precision model with identity link):
+      Estimate Std. Error z value Pr(>|z|)    
+(phi)   1.4776     0.1212   12.19   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+
+Type of estimator: ML (maximum likelihood)
+Log-likelihood: 463.9 on 12 Df
+Pseudo R-squared: 0.6579
+Number of iterations: 42 (BFGS) + 1 (Fisher scoring) 

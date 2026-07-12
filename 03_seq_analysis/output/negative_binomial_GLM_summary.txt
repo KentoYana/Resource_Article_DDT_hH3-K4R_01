@@ -1,0 +1,25 @@
+
+Call:
+glm.nb(formula = indel_size ~ genotype, data = indelData, init.theta = 1.637042538, 
+    link = log)
+
+Coefficients:
+                            Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                   1.6958     0.1248  13.588   <2e-16 ***
+genotypepan-2(OGW1) hH3-K4R  -0.4044     0.1756  -2.302   0.0213 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for Negative Binomial(1.637) family taken to be 1)
+
+    Null deviance: 112.13  on 108  degrees of freedom
+Residual deviance: 106.81  on 107  degrees of freedom
+AIC: 562.1
+
+Number of Fisher Scoring iterations: 1
+
+
+              Theta:  1.637 
+          Std. Err.:  0.287 
+
+ 2 x log-likelihood:  -556.104 

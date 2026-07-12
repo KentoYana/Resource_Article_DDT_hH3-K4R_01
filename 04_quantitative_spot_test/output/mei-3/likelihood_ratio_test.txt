@@ -1,0 +1,4 @@
+Target: mei-3 
+Likelihood Ratio Statistic: 51.13199 
+Degrees of Freedom Difference: 6 
+p-value: 2.786547e-09 

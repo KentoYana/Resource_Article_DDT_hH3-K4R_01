@@ -1,0 +1,20 @@
+ dose strain            emmean     SE  df asymp.LCL asymp.UCL
+    0 wild-type          0.912 0.0164 Inf     0.879     0.944
+   50 wild-type          0.891 0.0148 Inf     0.862     0.920
+  100 wild-type          0.867 0.0160 Inf     0.836     0.898
+  200 wild-type          0.805 0.0359 Inf     0.734     0.875
+    0 hH3-K4R            0.918 0.0153 Inf     0.888     0.948
+   50 hH3-K4R            0.894 0.0145 Inf     0.865     0.922
+  100 hH3-K4R            0.863 0.0163 Inf     0.831     0.895
+  200 hH3-K4R            0.778 0.0391 Inf     0.702     0.855
+    0 mus-11 KO          0.912 0.0163 Inf     0.880     0.944
+   50 mus-11 KO          0.880 0.0160 Inf     0.848     0.911
+  100 mus-11 KO          0.837 0.0184 Inf     0.801     0.873
+  200 mus-11 KO          0.718 0.0452 Inf     0.629     0.806
+    0 mus-11 KO hH3-K4R  0.902 0.0180 Inf     0.866     0.937
+   50 mus-11 KO hH3-K4R  0.797 0.0232 Inf     0.752     0.843
+  100 mus-11 KO hH3-K4R  0.628 0.0290 Inf     0.572     0.685
+  200 mus-11 KO hH3-K4R  0.239 0.0409 Inf     0.159     0.319
+
+Results are averaged over the levels of: exp_ID 
+Confidence level used: 0.95 

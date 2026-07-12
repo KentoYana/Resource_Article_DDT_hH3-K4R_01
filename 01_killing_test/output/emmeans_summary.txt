@@ -1,0 +1,20 @@
+
+> print(summary(emmeans_results))
+ genotype  UV_dose emmean      SE  df asymp.LCL asymp.UCL
+ wild-type       0 0.9662 0.00986 Inf   0.93793    0.9944
+ hH3-K4R         0 0.9447 0.01490 Inf   0.90200    0.9874
+ set-1 KO        0 0.9429 0.01500 Inf   0.89987    0.9859
+ wild-type     100 0.8885 0.02050 Inf   0.82978    0.9473
+ hH3-K4R       100 0.7736 0.03120 Inf   0.68415    0.8630
+ set-1 KO      100 0.8053 0.02830 Inf   0.72421    0.8865
+ wild-type     200 0.6899 0.03380 Inf   0.59324    0.7867
+ hH3-K4R       200 0.4060 0.03940 Inf   0.29316    0.5188
+ set-1 KO      200 0.5091 0.03880 Inf   0.39805    0.6202
+ wild-type     400 0.1478 0.03540 Inf   0.04634    0.2492
+ hH3-K4R       400 0.0266 0.01000 Inf  -0.00212    0.0553
+ set-1 KO      400 0.0612 0.01960 Inf   0.00509    0.1173
+
+Confidence level used: 0.95 
+Conf-level adjustment: bonferroni method for 12 estimates 
+
+> sink()

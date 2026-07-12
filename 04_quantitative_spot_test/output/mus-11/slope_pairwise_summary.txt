@@ -1,0 +1,10 @@
+ contrast                          estimate       SE  df z.ratio p.value
+ (wild-type) - (hH3-K4R)           0.000147 0.000272 Inf   0.540  0.5894
+ (wild-type) - (mus-11 KO)         0.000397 0.000294 Inf   1.350  0.2657
+ (wild-type) - (mus-11 KO hH3-K4R) 0.003183 0.000447 Inf   7.121 <0.0001
+ (hH3-K4R) - (mus-11 KO)           0.000250 0.000298 Inf   0.839  0.4816
+ (hH3-K4R) - (mus-11 KO hH3-K4R)   0.003036 0.000450 Inf   6.746 <0.0001
+ (mus-11 KO) - (mus-11 KO hH3-K4R) 0.002786 0.000463 Inf   6.017 <0.0001
+
+Results are averaged over the levels of: exp_ID 
+P value adjustment: BH method for 6 tests 

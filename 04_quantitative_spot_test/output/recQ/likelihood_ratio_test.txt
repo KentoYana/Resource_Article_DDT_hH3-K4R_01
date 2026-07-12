@@ -1,0 +1,4 @@
+Target: recQ 
+Likelihood Ratio Statistic: 85.45178 
+Degrees of Freedom Difference: 6 
+p-value: 2.661066e-16 

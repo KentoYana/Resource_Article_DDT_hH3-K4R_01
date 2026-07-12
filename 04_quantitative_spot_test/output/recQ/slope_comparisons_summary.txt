@@ -1,0 +1,8 @@
+ strain                     dose.trend       SE  df asymp.LCL asymp.UCL
+ wild-type                   -0.000522 0.000147 Inf  -0.00081 -0.000233
+ hH3-K4R                     -0.000873 0.000172 Inf  -0.00121 -0.000536
+ qde-3-RIP recQ2 KO          -0.002044 0.000233 Inf  -0.00250 -0.001587
+ qde-3-RIP recQ2 KO hH3-K4R  -0.002092 0.000233 Inf  -0.00255 -0.001635
+
+Results are averaged over the levels of: exp_ID 
+Confidence level used: 0.95 

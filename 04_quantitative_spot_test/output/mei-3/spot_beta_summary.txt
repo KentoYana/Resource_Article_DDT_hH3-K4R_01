@@ -1,0 +1,33 @@
+
+Call:
+betareg(formula = Spot_ratio_scaled ~ dose * strain + Conidia_ratio_scaled + 
+    exp_ID, data = expData_raw, link = "logit")
+
+Quantile residuals:
+    Min      1Q  Median      3Q     Max 
+-3.0080 -0.3061  0.3842  0.6455  2.2014 
+
+Coefficients (mean model with logit link):
+                             Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                  1.947379   0.233246   8.349  < 2e-16 ***
+dose                        -0.003062   0.001760  -1.740   0.0818 .  
+strainhH3-K4R                0.081755   0.281389   0.291   0.7714    
+strainmei-3 KO              -0.052303   0.282429  -0.185   0.8531    
+strainmei-3 KO hH3-K4R      -0.074139   0.283339  -0.262   0.7936    
+Conidia_ratio_scaled         0.953509   0.179295   5.318 1.05e-07 ***
+exp_ID2023-12-21_13-06-00   -0.099062   0.160675  -0.617   0.5375    
+exp_ID2023-12-31_12-22-19    0.015383   0.160300   0.096   0.9235    
+dose:strainhH3-K4R          -0.003421   0.002505  -1.366   0.1720    
+dose:strainmei-3 KO         -0.004310   0.002517  -1.712   0.0868 .  
+dose:strainmei-3 KO hH3-K4R -0.011620   0.002556  -4.546 5.48e-06 ***
+
+Phi coefficients (precision model with identity link):
+      Estimate Std. Error z value Pr(>|z|)    
+(phi)   1.6273     0.1434   11.35   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+
+Type of estimator: ML (maximum likelihood)
+Log-likelihood: 549.5 on 12 Df
+Pseudo R-squared: 0.4885
+Number of iterations: 43 (BFGS) + 1 (Fisher scoring) 

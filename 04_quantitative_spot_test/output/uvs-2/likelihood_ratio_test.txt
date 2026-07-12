@@ -1,0 +1,4 @@
+Target: uvs-2 
+Likelihood Ratio Statistic: 197.088 
+Degrees of Freedom Difference: 6 
+p-value: 7.905376e-40 

@@ -1,0 +1,3 @@
+"sibling","allele","genotype","genotype_safe","mean_AUC","se_AUC","n"
+"Op47","B36","wild-type","wild_type",49.9814093238996,12.3980417621498,3
+"Op47","B36","hH3-K4R","hH3_K4R",621.1605486313,233.725938380107,4
