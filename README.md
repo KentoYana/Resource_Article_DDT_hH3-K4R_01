@@ -145,11 +145,14 @@ ChIP-seq dataset selected for locus-level inspection.
 
 Main files:
 
-- `README.md`: dataset identification and the boundary of the identification.
+- `README.md`: dataset identification, experimental metadata, primary sources,
+  control status, and interpretation limits.
+- `dataset/accessions.tsv`: machine-readable GEO, SRA, BioSample, antibody,
+  sequencing, genome-build, and publication metadata.
 
-Experimental metadata, a reproducible analysis workflow, and generated
-locus-level outputs will be added separately if they are used in the revised
-manuscript.
+This directory currently records dataset selection and provenance. A
+reproducible analysis workflow and generated locus-level outputs will be added
+separately if they are used in the revised manuscript.
 
 ### `91_cross_information`
 

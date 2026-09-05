@@ -23,6 +23,63 @@ marks. These deposited tracks are the preferred starting point for reproducing
 a browser view because they retain the processing selected by the original
 authors.
 
+The complete accession and sample crosswalk is recorded in
+[`dataset/accessions.tsv`](dataset/accessions.tsv).
+
+## Experimental metadata
+
+The GEO records describe the samples as wild-type mycelial cultures grown in
+Vogel's medium with 1.5% sucrose. The associated paper specifies shaking at
+32 degrees C for 18 hours. Libraries were sequenced on an Illumina NextSeq 500
+as single-end reads with a nominal length of 75 bp.
+
+The deposited processing description reports:
+
+- Trim Galore with `--length 20 --fastqc`;
+- BWA-MEM 0.7.15 with `-M` or Bowtie2 2.4.1 with `--very-sensitive`;
+- SAMtools 1.3.1;
+- deepTools 3.3.1 with `--normalizeUsing CPM`; and
+- genome build `GCA_000182925.2 (NC12)`.
+
+GEO records the Trim Galore version as "version 4.0". This value is reproduced
+as deposited and has not been silently corrected. GEO also does not identify
+which of the two listed aligners was used for each H3K4 sample.
+
+## Publication
+
+Ferraro AR, Ameri AJ, Lu Z, Kamei M, Schmitz RJ, and Lewis ZA (2021).
+"Chromatin accessibility profiling in *Neurospora crassa* reveals molecular
+features associated with accessible and inaccessible chromatin."
+*BMC Genomics* 22:459.
+
+- DOI: [10.1186/s12864-021-07774-0](https://doi.org/10.1186/s12864-021-07774-0)
+- PubMed: [34147068](https://pubmed.ncbi.nlm.nih.gov/34147068/)
+- BioProject: [PRJNA646493](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA646493)
+- SRA study: [SRP272099](https://www.ncbi.nlm.nih.gov/sra/?term=SRP272099)
+
+## Interpretation limits
+
+- Each H3K4 mark is represented by one GEO sample and one SRA run; biological
+  replication is not available for these marks.
+- The H3K4me2 and H3K4me3 runs are shallow (649,309 and 170,871 spots,
+  respectively). A weak or absent browser signal is not a general proof that a
+  locus can never be methylated.
+- The series contains an input sample, GSM4672252/SRR12229313, but its genotype
+  is `hH3-3xFLAG`, whereas the three H3K4-mark samples are recorded as wild
+  type. It is therefore not treated here as a matched input for the H3K4-mark
+  ChIP-seq samples.
+- CPM values from different marks should not be compared as absolute
+  methylation amounts because the samples use different antibodies and have
+  different sequencing depths.
+- The samples are basal, untreated mycelial cultures. They cannot determine
+  whether H3K4 methylation changes after UV irradiation or replication stress.
+- A locus-level pattern can support a condition-specific descriptive statement,
+  but it cannot by itself establish a direct or indirect causal mechanism.
+
+The RNA-seq runs SRR5177529 and SRR5177530 are not part of GSE154497. They come
+from a separate study and are not matched to these ChIP-seq cultures; they are
+therefore not included in the ChIP-seq accession table.
+
 ## Selection boundary
 
 GSE154497 is selected as the best-supported public source for the wild-type
@@ -31,3 +88,12 @@ itself, sufficient to prove that the displayed track is byte-for-byte identical
 to the deposited bigWig. This identification therefore records the public
 dataset and the evidence-supported correspondence without treating an
 unlabelled screenshot as the primary data source.
+
+## Primary metadata sources
+
+- [GSE154497 series record](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154497)
+- [GSM4672245, H3K4me1](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM4672245)
+- [GSM4672246, H3K4me2](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM4672246)
+- [GSM4672247, H3K4me3](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM4672247)
+- [SRA Run Selector for SRP272099](https://www.ncbi.nlm.nih.gov/Traces/study/?acc=SRP272099)
+- [Ferraro et al. (2021)](https://doi.org/10.1186/s12864-021-07774-0)
