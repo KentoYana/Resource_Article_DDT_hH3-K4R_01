@@ -16,7 +16,7 @@ The repository is intended to support transparency and reproducibility of the an
 ├── 02_reversion_assay
 ├── 03_seq_analysis
 ├── 04_quantitative_spot_test
-├── 05_public_h3k4
+├── 05_public_H3K4
 ├── 91_cross_information
 └── 99_pan-2_identification
 ```
@@ -138,7 +138,7 @@ Run the downstream statistical analysis from the repository root:
 Rscript 04_quantitative_spot_test/script_qSpot_test.R
 ```
 
-### `05_public_h3k4`
+### `05_public_H3K4`
 
 This directory records the public wild-type H3K4me1, H3K4me2, and H3K4me3
 ChIP-seq dataset selected for locus-level inspection.
