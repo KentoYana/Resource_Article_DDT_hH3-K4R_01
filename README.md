@@ -16,6 +16,7 @@ The repository is intended to support transparency and reproducibility of the an
 ├── 02_reversion_assay
 ├── 03_seq_analysis
 ├── 04_quantitative_spot_test
+├── 05_public_h3k4
 ├── 91_cross_information
 └── 99_pan-2_identification
 ```
@@ -136,6 +137,19 @@ Run the downstream statistical analysis from the repository root:
 ```sh
 Rscript 04_quantitative_spot_test/script_qSpot_test.R
 ```
+
+### `05_public_h3k4`
+
+This directory records the public wild-type H3K4me1, H3K4me2, and H3K4me3
+ChIP-seq dataset selected for locus-level inspection.
+
+Main files:
+
+- `README.md`: dataset identification and the boundary of the identification.
+
+Experimental metadata, a reproducible analysis workflow, and generated
+locus-level outputs will be added separately if they are used in the revised
+manuscript.
 
 ### `91_cross_information`
 
