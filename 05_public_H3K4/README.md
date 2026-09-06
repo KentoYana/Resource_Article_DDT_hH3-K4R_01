@@ -2,7 +2,7 @@
 
 This directory records the public wild-type *Neurospora crassa* H3K4
 ChIP-seq datasets selected for locus-level inspection. It includes a raw-read
-reprocessing workflow but does not yet contain newly generated results.
+reprocessing workflow and the resulting reporter-locus summaries.
 
 ## Dataset identification
 
@@ -50,7 +50,7 @@ both duplicate-retaining and nonduplicate CPM bigWig tracks. It intentionally
 does not pool studies or call peaks without a matched input.
 
 After bigWig generation, the `reporters` stage runs
-[`scripts/analyze_reporter_loci.py`](scripts/analyze_reporter_loci.py). It
+[`scripts/analyze_reporter_loci.R`](scripts/analyze_reporter_loci.R). It
 compares `pan-2` with `ad-3A`, `ad-3B`, `ad-8`, `mtr`, `his-3`, and the
 exploratory `csr-1` locus. Coordinates and strand are read from the downloaded
 NC12 GFF. The analysis reports strand-aware promoter (-1 kb to +200 bp), gene
@@ -59,15 +59,21 @@ and missing bases as distinct states. Percentiles are calculated independently
 for each run and track variant across all protein-coding genes on the seven
 nuclear chromosomes.
 
+The reporter analysis requires R with `IRanges`, `rtracklayer`, `digest`, and
+`jsonlite`. The workflow's `check` stage verifies these packages in the active
+R library before starting an analysis.
+
 ```sh
 ./05_public_H3K4/scripts/reprocess_selected_h3k4_chipseq.sh reporters
 ```
 
-Tables and fixed-scale figures are written to
+Tables and fixed-scale TikZ figures are written to
 [`output/reporter_loci`](output/reporter_loci). Each profile-plot row shares
 one y-axis across all seven loci, but y-axes are not shared across studies or
 histone marks. Both duplicate-retaining and nonduplicate results are kept; the
-studies are never pooled.
+studies are never pooled. The figure files are LaTeX fragments containing
+`tikzpicture` environments and require TikZ, PGFPlots, and its `groupplots`
+library when included in a document.
 
 ## Experimental metadata
 

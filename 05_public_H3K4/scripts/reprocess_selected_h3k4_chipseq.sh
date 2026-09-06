@@ -96,7 +96,7 @@ resolve_tools() {
     local command_name
 
     for command_name in \
-        prefetch fasterq-dump vdb-validate fastqc trimmomatic bowtie2 \
+        prefetch fasterq-dump vdb-validate fastqc trimmomatic bowtie2 Rscript \
         bowtie2-build samtools picard curl gzip shasum; do
         require_command "${command_name}"
     done
@@ -108,6 +108,13 @@ resolve_tools() {
     BAM_COVERAGE=$(pyenv which bamCoverage) || die "bamCoverage is unavailable in pyenv Python ${PYTHON_VERSION}"
     [[ -x "${BAM_COVERAGE}" ]] || die "bamCoverage is not executable: ${BAM_COVERAGE}"
     "${BAM_COVERAGE}" --version >/dev/null
+    Rscript -e '
+        required <- c("IRanges", "rtracklayer", "digest", "jsonlite")
+        missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+        if (length(missing) > 0L) {
+            stop("Missing required R packages: ", paste(missing, collapse = ", "))
+        }
+    ' >/dev/null || die "Required R packages are unavailable"
 
     if command -v brew >/dev/null 2>&1; then
         TRIMMOMATIC_ADAPTERS="${TRIMMOMATIC_ADAPTERS:-$(brew --prefix trimmomatic)/share/trimmomatic/adapters/TruSeq3-SE.fa}"
@@ -142,6 +149,7 @@ record_versions() {
         samtools --version 2>&1 | sed -n '1,2p' || true
         picard MarkDuplicates --version 2>&1 | sed -n '1p' || true
         "${BAM_COVERAGE}" --version 2>&1 | sed -n '1p' || true
+        Rscript --version 2>&1 | sed -n '1p' || true
     } > "${versions_path}"
 }
 
@@ -466,7 +474,7 @@ make_tracks() {
 
 analyze_reporter_loci() {
     log "Analyzing candidate reporter loci"
-    "$(pyenv which python)" "${SCRIPT_ROOT}/analyze_reporter_loci.py" \
+    Rscript "${SCRIPT_ROOT}/analyze_reporter_loci.R" \
         --work-root "${WORK_ROOT}"
     log "Candidate reporter-locus analysis completed"
 }

@@ -1,23 +1,13 @@
 {
-  "analysis_script": "analyze_reporter_loci.py",
-  "python": "3.12.13",
-  "numpy": "2.5.2",
-  "matplotlib": "3.11.1",
-  "pyBigWig": "0.3.25",
+  "analysis_script": "analyze_reporter_loci.R",
+  "R": "4.6.1",
+  "rtracklayer": "1.72.0",
+  "IRanges": "2.46.0",
+  "jsonlite": "2.0.0",
+  "digest": "0.6.39",
   "reference_gff": "GCA_000182925.2_NC12_genomic.gff",
   "reference_accession": "GCA_000182925.2",
-  "input_bigwigs": [
-    "Ferraro2021_WT_H3K4me1.q20.nonduplicate.cpm.bw",
-    "Ferraro2021_WT_H3K4me2.q20.nonduplicate.cpm.bw",
-    "Sasaki2014_WT_H3K4me2.q20.nonduplicate.cpm.bw",
-    "Ferraro2021_WT_H3K4me3.q20.nonduplicate.cpm.bw",
-    "Storck2020_WT_H3K4me3.q20.nonduplicate.cpm.bw",
-    "Ferraro2021_WT_H3K4me1.q20.all_mapped.cpm.bw",
-    "Ferraro2021_WT_H3K4me2.q20.all_mapped.cpm.bw",
-    "Sasaki2014_WT_H3K4me2.q20.all_mapped.cpm.bw",
-    "Ferraro2021_WT_H3K4me3.q20.all_mapped.cpm.bw",
-    "Storck2020_WT_H3K4me3.q20.all_mapped.cpm.bw"
-  ],
+  "input_bigwigs": ["Ferraro2021_WT_H3K4me1.q20.nonduplicate.cpm.bw", "Ferraro2021_WT_H3K4me2.q20.nonduplicate.cpm.bw", "Sasaki2014_WT_H3K4me2.q20.nonduplicate.cpm.bw", "Ferraro2021_WT_H3K4me3.q20.nonduplicate.cpm.bw", "Storck2020_WT_H3K4me3.q20.nonduplicate.cpm.bw", "Ferraro2021_WT_H3K4me1.q20.all_mapped.cpm.bw", "Ferraro2021_WT_H3K4me2.q20.all_mapped.cpm.bw", "Sasaki2014_WT_H3K4me2.q20.all_mapped.cpm.bw", "Ferraro2021_WT_H3K4me3.q20.all_mapped.cpm.bw", "Storck2020_WT_H3K4me3.q20.all_mapped.cpm.bw"],
   "runs": [
     {
       "sample_id": "Ferraro2021_WT_H3K4me1",
@@ -93,5 +83,6 @@
   "exact_zero_treatment": "included as zero; counted separately in reporter_locus_signal_summary.tsv",
   "missing_treatment": "excluded from regional means and counted separately; NA retained when a region has no covered bases",
   "random_seed": null,
-  "pooling": "none"
+  "pooling": "none",
+  "figure_format": "TikZ fragments containing tikzpicture environments"
 }
