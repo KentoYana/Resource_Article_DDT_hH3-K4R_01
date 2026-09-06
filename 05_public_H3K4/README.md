@@ -49,6 +49,26 @@ the same reference, marks duplicate reads without destroying them, and creates
 both duplicate-retaining and nonduplicate CPM bigWig tracks. It intentionally
 does not pool studies or call peaks without a matched input.
 
+After bigWig generation, the `reporters` stage runs
+[`scripts/analyze_reporter_loci.py`](scripts/analyze_reporter_loci.py). It
+compares `pan-2` with `ad-3A`, `ad-3B`, `ad-8`, `mtr`, `his-3`, and the
+exploratory `csr-1` locus. Coordinates and strand are read from the downloaded
+NC12 GFF. The analysis reports strand-aware promoter (-1 kb to +200 bp), gene
+body, and gene-body-plus-or-minus-2-kb CPM values, while retaining exact zero
+and missing bases as distinct states. Percentiles are calculated independently
+for each run and track variant across all protein-coding genes on the seven
+nuclear chromosomes.
+
+```sh
+./05_public_H3K4/scripts/reprocess_selected_h3k4_chipseq.sh reporters
+```
+
+Tables and fixed-scale figures are written to
+[`output/reporter_loci`](output/reporter_loci). Each profile-plot row shares
+one y-axis across all seven loci, but y-axes are not shared across studies or
+histone marks. Both duplicate-retaining and nonduplicate results are kept; the
+studies are never pooled.
+
 ## Experimental metadata
 
 The GEO records describe the samples as wild-type mycelial cultures grown in

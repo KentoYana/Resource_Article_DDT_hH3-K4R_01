@@ -23,6 +23,7 @@ readonly DEFAULT_WORK_ROOT="/Volumes/Garage/Re_analysis/260906_issue69_H3K4"
 readonly REFERENCE_ACCESSION="GCA_000182925.2"
 readonly REFERENCE_BASENAME="GCA_000182925.2_NC12"
 readonly REFERENCE_URL_ROOT="https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/182/925/GCA_000182925.2_NC12"
+readonly SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 WORK_ROOT="${WORK_ROOT:-${DEFAULT_WORK_ROOT}}"
 THREADS="${THREADS:-8}"
@@ -463,9 +464,16 @@ make_tracks() {
     log "CPM bigWig generation completed"
 }
 
+analyze_reporter_loci() {
+    log "Analyzing candidate reporter loci"
+    "$(pyenv which python)" "${SCRIPT_ROOT}/analyze_reporter_loci.py" \
+        --work-root "${WORK_ROOT}"
+    log "Candidate reporter-locus analysis completed"
+}
+
 usage() {
     cat <<EOF
-Usage: $(basename "$0") [check|reference|download|trim|align|tracks|all]
+Usage: $(basename "$0") [check|reference|download|trim|align|tracks|reporters|all]
 
 Environment overrides:
   WORK_ROOT       Analysis directory (default: ${DEFAULT_WORK_ROOT})
@@ -476,7 +484,7 @@ Environment overrides:
   TRIMMOMATIC_ADAPTERS
                   TruSeq single-end adapter FASTA, if Homebrew discovery fails
 
-The all stage executes: check, reference, download, trim, align, tracks.
+The all stage executes: check, reference, download, trim, align, tracks, reporters.
 Existing non-empty downloads and outputs are retained to make reruns resumable.
 EOF
 }
@@ -506,6 +514,10 @@ main() {
             check_environment
             make_tracks
             ;;
+        reporters)
+            check_environment
+            analyze_reporter_loci
+            ;;
         all)
             check_environment
             prepare_reference
@@ -513,6 +525,7 @@ main() {
             trim_runs
             align_runs
             make_tracks
+            analyze_reporter_loci
             ;;
         -h|--help|help)
             usage
