@@ -59,9 +59,25 @@ and missing bases as distinct states. Percentiles are calculated independently
 for each run and track variant across all protein-coding genes on the seven
 nuclear chromosomes.
 
-The reporter analysis requires R with `IRanges`, `rtracklayer`, `digest`, and
+The reporter analysis requires R with `tidyverse`, `tikzDevice`,
+`RColorBrewer`, `patchwork`, `here`, `IRanges`, `rtracklayer`, `digest`, and
 `jsonlite`. The workflow's `check` stage verifies these packages in the active
 R library before starting an analysis.
+
+As with the other Resource analyses, the script can also be opened in RStudio
+and run with **Source**. It uses `here::i_am()` to locate the repository root,
+so open this repository as the RStudio working project before sourcing
+`scripts/analyze_reporter_loci.R`. The default bigWig and reference location is
+the external SSD path `/Volumes/Garage/Re_analysis/260906_issue69_H3K4`.
+Set `H3K4_WORK_ROOT` before sourcing to use a different analysis directory:
+
+```r
+Sys.setenv(H3K4_WORK_ROOT = "/path/to/issue69_H3K4")
+source("05_public_H3K4/scripts/analyze_reporter_loci.R")
+```
+
+`H3K4_OUTPUT_DIR` may similarly override the output directory. With neither
+variable set, output is written to `05_public_H3K4/output/reporter_loci`.
 
 ```sh
 ./05_public_H3K4/scripts/reprocess_selected_h3k4_chipseq.sh reporters
@@ -72,8 +88,8 @@ Tables and fixed-scale TikZ figures are written to
 one y-axis across all seven loci, but y-axes are not shared across studies or
 histone marks. Both duplicate-retaining and nonduplicate results are kept; the
 studies are never pooled. The figure files are LaTeX fragments containing
-`tikzpicture` environments and require TikZ, PGFPlots, and its `groupplots`
-library when included in a document.
+`tikzpicture` environments generated from `ggplot2`/`patchwork` objects with
+`tikzDevice`; they require TikZ when included in a document.
 
 ## Experimental metadata
 

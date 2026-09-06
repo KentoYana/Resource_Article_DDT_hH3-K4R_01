@@ -109,7 +109,10 @@ resolve_tools() {
     [[ -x "${BAM_COVERAGE}" ]] || die "bamCoverage is not executable: ${BAM_COVERAGE}"
     "${BAM_COVERAGE}" --version >/dev/null
     Rscript -e '
-        required <- c("IRanges", "rtracklayer", "digest", "jsonlite")
+        required <- c(
+            "tidyverse", "tikzDevice", "RColorBrewer", "patchwork", "here",
+            "IRanges", "rtracklayer", "digest", "jsonlite"
+        )
         missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
         if (length(missing) > 0L) {
             stop("Missing required R packages: ", paste(missing, collapse = ", "))

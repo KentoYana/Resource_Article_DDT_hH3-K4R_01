@@ -1,6 +1,12 @@
 {
   "analysis_script": "analyze_reporter_loci.R",
   "R": "4.6.1",
+  "tidyverse": "2.0.0",
+  "ggplot2": "4.0.3",
+  "tikzDevice": "0.12.6",
+  "RColorBrewer": "1.1.3",
+  "patchwork": "1.3.2",
+  "here": "1.0.2",
   "rtracklayer": "1.72.0",
   "IRanges": "2.46.0",
   "jsonlite": "2.0.0",
@@ -84,5 +90,5 @@
   "missing_treatment": "excluded from regional means and counted separately; NA retained when a region has no covered bases",
   "random_seed": null,
   "pooling": "none",
-  "figure_format": "TikZ fragments containing tikzpicture environments"
+  "figure_format": "TikZ fragments generated from ggplot2 objects with tikzDevice"
 }

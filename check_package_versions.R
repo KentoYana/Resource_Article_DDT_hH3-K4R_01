@@ -21,7 +21,13 @@ packages <- c(
   "seqinr",
   "patchwork",
   "ggh4x",
-  "here"
+  "here",
+
+  # public H3K4 reporter-locus analysis
+  "IRanges",
+  "rtracklayer",
+  "digest",
+  "jsonlite"
 )
 
 # ---- Package versions ----

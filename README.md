@@ -149,10 +149,23 @@ Main files:
   control status, and interpretation limits.
 - `dataset/accessions.tsv`: machine-readable GEO, SRA, BioSample, antibody,
   sequencing, genome-build, and publication metadata.
+- `scripts/reprocess_selected_h3k4_chipseq.sh`: resumable raw-read download,
+  QC, alignment, duplicate marking, and CPM bigWig workflow.
+- `scripts/analyze_reporter_loci.R`: R analysis of H3K4 signal at `pan-2` and
+  alternative reporter loci, including TikZ figure generation.
+- `output/reporter_loci/`: locus definitions, long-form signal summaries,
+  analysis parameters, checksums, and `tikzpicture` figure fragments.
 
-This directory currently records dataset selection and provenance. A
-reproducible analysis workflow and generated locus-level outputs will be added
-separately if they are used in the revised manuscript.
+Run the reporter-locus analysis from the repository root:
+
+```sh
+Rscript 05_public_H3K4/scripts/analyze_reporter_loci.R
+```
+
+The same script can be opened and sourced in RStudio. Open this repository as
+the working project, then use **Source** on
+`05_public_H3K4/scripts/analyze_reporter_loci.R`. See the directory README for
+the external-SSD input path and environment-variable overrides.
 
 ### `91_cross_information`
 
@@ -209,6 +222,16 @@ install.packages(c(
   "tikzDevice",
   "here"
 ))
+```
+
+The public H3K4 analysis additionally requires Bioconductor packages:
+
+```r
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+BiocManager::install(c("IRanges", "rtracklayer"))
+install.packages(c("digest", "jsonlite"))
 ```
 
 The scripts use the `here` package to locate files relative to the repository root. Run all commands from the repository root.

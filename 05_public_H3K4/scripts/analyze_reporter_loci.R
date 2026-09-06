@@ -1,84 +1,42 @@
 #!/usr/bin/env Rscript
 
-# Quantify and plot H3K4 ChIP-seq signal at candidate reporter loci.
-#
-# The five selected runs remain separate. CPM values are never pooled across
-# studies or compared across histone marks as if they were absolute quantities.
+# analyze_reporter_loci.R
+# Kento Yanagisawa
+# This script analyzes public H3K4 ChIP-seq signal at candidate reporter loci.
 
-suppressPackageStartupMessages({
-  library(IRanges)
-  library(rtracklayer)
-})
+# Make these packages and their associated functions
+# available to use in this script
+library("tikzDevice")
+library("RColorBrewer")
+library("tidyverse")
+library("patchwork")
+library("here")
+library("IRanges")
+library("rtracklayer")
+library("digest")
+library("jsonlite")
 
-required_namespaces <- c("digest", "jsonlite")
-missing_namespaces <- required_namespaces[
-  !vapply(required_namespaces, requireNamespace, logical(1), quietly = TRUE)
-]
-if (length(missing_namespaces) > 0L) {
-  stop(
-    "Missing required R packages: ",
-    paste(missing_namespaces, collapse = ", "),
-    call. = FALSE
-  )
-}
+# Clear R's brain
+rm(list = ls())
 
-default_work_root <- "/Volumes/Garage/Re_analysis/260906_issue69_H3K4"
-script_argument <- grep("^--file=", commandArgs(), value = TRUE)
-if (length(script_argument) != 1L) {
-  stop("Could not resolve the R script path", call. = FALSE)
-}
-script_path <- normalizePath(sub("^--file=", "", script_argument))
-script_dir <- dirname(script_path)
-default_output_dir <- file.path(dirname(script_dir), "output", "reporter_loci")
+# Set project root
+here::i_am("05_public_H3K4/scripts/analyze_reporter_loci.R")
 
-window_flank_bp <- 2000L
-promoter_upstream_bp <- 1000L
-promoter_downstream_bp <- 200L
-profile_bin_bp <- 10L
+# =========================
+# Functions
+# =========================
 
-targets <- data.frame(
-  display_name = c("pan-2", "ad-3A", "ad-3B", "ad-8", "mtr", "his-3", "csr-1"),
-  locus_tag = c(
-    "NCU10048", "NCU03166", "NCU03194", "NCU09789", "NCU06619", "NCU03139", "NCU00726"
-  ),
-  role = c("focal", rep("alternative", 5L), "exploratory"),
-  stringsAsFactors = FALSE
-)
-
-runs <- data.frame(
-  sample_id = c(
-    "Ferraro2021_WT_H3K4me1",
-    "Ferraro2021_WT_H3K4me2",
-    "Sasaki2014_WT_H3K4me2",
-    "Ferraro2021_WT_H3K4me3",
-    "Storck2020_WT_H3K4me3"
-  ),
-  study = c(
-    "Ferraro et al. 2021",
-    "Ferraro et al. 2021",
-    "Sasaki et al. 2014",
-    "Ferraro et al. 2021",
-    "Storck et al. 2020"
-  ),
-  mark = c("H3K4me1", "H3K4me2", "H3K4me2", "H3K4me3", "H3K4me3"),
-  stringsAsFactors = FALSE
-)
-
-variants <- c(
-  nonduplicate = "q20.nonduplicate.cpm.bw",
-  all_mapped = "q20.all_mapped.cpm.bw"
-)
-
-metrics <- c("promoter", "gene_body", "gene_body_plus_minus_2kb")
-
-parse_arguments <- function(arguments) {
+# Parse optional command-line arguments used by the shell workflow
+parse_arguments <- function(arguments, default_work_root, default_output_dir) {
   result <- list(
     work_root = default_work_root,
     output_dir = default_output_dir
   )
+
   index <- 1L
   while (index <= length(arguments)) {
     argument <- arguments[[index]]
+
     if (argument %in% c("-h", "--help")) {
       cat(
         "Usage: analyze_reporter_loci.R [--work-root PATH] [--output-dir PATH]\n\n",
@@ -89,131 +47,196 @@ parse_arguments <- function(arguments) {
       )
       quit(status = 0L)
     }
-    if (!argument %in% c("--work-root", "--output-dir") || index == length(arguments)) {
+
+    if (!argument %in% c("--work-root", "--output-dir") ||
+        index == length(arguments)) {
       stop("Unknown or incomplete argument: ", argument, call. = FALSE)
     }
-    key <- sub("^--", "", argument)
-    key <- sub("-", "_", key, fixed = TRUE)
+
+    key <- argument %>%
+      stringr::str_remove("^--") %>%
+      stringr::str_replace_all("-", "_")
     result[[key]] <- arguments[[index + 1L]]
     index <- index + 2L
   }
+
   result
 }
 
+# Extract one key from the semicolon-delimited GFF attribute column
 extract_attribute <- function(attributes, key) {
   pattern <- paste0("(?:^|;)", key, "=([^;]+)")
-  matches <- regexec(pattern, attributes, perl = TRUE)
-  vapply(
-    regmatches(attributes, matches),
-    function(value) if (length(value) >= 2L) value[[2L]] else NA_character_,
-    character(1)
-  )
+  stringr::str_match(attributes, pattern)[, 2]
 }
 
+# Read protein-coding genes on the seven NC12 nuclear chromosomes
 load_genes <- function(gff_path) {
-  gff <- read.delim(
+  column_names <- c(
+    "chrom", "source", "feature", "start", "end",
+    "score", "strand", "phase", "attributes"
+  )
+
+  gff <- readr::read_tsv(
     gff_path,
-    header = FALSE,
-    sep = "\t",
-    quote = "",
-    comment.char = "#",
-    fill = TRUE,
-    stringsAsFactors = FALSE
-  )
-  colnames(gff) <- c(
-    "chrom", "source", "feature", "start", "end", "score", "strand", "phase", "attributes"
-  )
-  locus_tag <- extract_attribute(gff$attributes, "locus_tag")
-  gene_name <- extract_attribute(gff$attributes, "gene")
-  feature_name <- extract_attribute(gff$attributes, "Name")
-  gene_biotype <- extract_attribute(gff$attributes, "gene_biotype")
-  keep <-
-    gff$feature == "gene" &
-    gene_biotype == "protein_coding" &
-    grepl("^CM002(23[6-9]|24[0-2])\\.1$", gff$chrom) &
-    !is.na(locus_tag)
-  genes <- data.frame(
-    locus_tag = locus_tag[keep],
-    symbol = ifelse(
-      !is.na(gene_name[keep]),
-      gene_name[keep],
-      ifelse(!is.na(feature_name[keep]), feature_name[keep], locus_tag[keep])
+    comment = "#",
+    col_names = column_names,
+    col_types = readr::cols(
+      chrom = readr::col_character(),
+      source = readr::col_character(),
+      feature = readr::col_character(),
+      start = readr::col_integer(),
+      end = readr::col_integer(),
+      score = readr::col_character(),
+      strand = readr::col_character(),
+      phase = readr::col_character(),
+      attributes = readr::col_character()
     ),
-    chrom = gff$chrom[keep],
-    start = as.integer(gff$start[keep]),
-    end = as.integer(gff$end[keep]),
-    strand = gff$strand[keep],
-    stringsAsFactors = FALSE
+    progress = FALSE,
+    show_col_types = FALSE
   )
-  genes$length_bp <- genes$end - genes$start + 1L
+
+  genes <- gff %>%
+    dplyr::mutate(
+      locus_tag = extract_attribute(attributes, "locus_tag"),
+      gene_name = extract_attribute(attributes, "gene"),
+      feature_name = extract_attribute(attributes, "Name"),
+      gene_biotype = extract_attribute(attributes, "gene_biotype")
+    ) %>%
+    dplyr::filter(
+      feature == "gene",
+      gene_biotype == "protein_coding",
+      stringr::str_detect(chrom, "^CM002(23[6-9]|24[0-2])\\.1$"),
+      !is.na(locus_tag)
+    ) %>%
+    dplyr::transmute(
+      locus_tag,
+      symbol = dplyr::coalesce(gene_name, feature_name, locus_tag),
+      chrom,
+      start,
+      end,
+      strand,
+      length_bp = end - start + 1L
+    )
+
   if (anyDuplicated(genes$locus_tag)) {
     stop("Duplicate protein-coding gene features in GFF", call. = FALSE)
   }
-  rownames(genes) <- genes$locus_tag
+
   genes
 }
 
-metric_regions <- function(genes, metric, chromosome_lengths) {
+# Return one gene row for a locus tag
+gene_lookup <- function(genes, target_locus_tag) {
+  gene <- genes %>%
+    dplyr::filter(locus_tag == target_locus_tag)
+
+  if (nrow(gene) != 1L) {
+    stop(
+      "Gene lookup did not return exactly one row: ",
+      target_locus_tag,
+      call. = FALSE
+    )
+  }
+
+  gene
+}
+
+# Define promoter, gene-body, or flanking regions
+metric_regions <- function(
+  genes,
+  metric,
+  chromosome_lengths,
+  window_flank_bp,
+  promoter_upstream_bp,
+  promoter_downstream_bp
+) {
   if (metric == "gene_body") {
-    region_start <- genes$start
-    region_end <- genes$end
+    regions <- genes %>%
+      dplyr::transmute(locus_tag, chrom, start, end)
   } else if (metric == "gene_body_plus_minus_2kb") {
-    region_start <- genes$start - window_flank_bp
-    region_end <- genes$end + window_flank_bp
+    regions <- genes %>%
+      dplyr::transmute(
+        locus_tag,
+        chrom,
+        start = start - window_flank_bp,
+        end = end + window_flank_bp
+      )
   } else if (metric == "promoter") {
-    region_start <- ifelse(
-      genes$strand == "+",
-      genes$start - promoter_upstream_bp,
-      genes$end - promoter_downstream_bp + 1L
-    )
-    region_end <- ifelse(
-      genes$strand == "+",
-      genes$start + promoter_downstream_bp - 1L,
-      genes$end + promoter_upstream_bp
-    )
+    regions <- genes %>%
+      dplyr::mutate(
+        region_start = dplyr::if_else(
+          strand == "+",
+          start - promoter_upstream_bp,
+          end - promoter_downstream_bp + 1L
+        ),
+        region_end = dplyr::if_else(
+          strand == "+",
+          start + promoter_downstream_bp - 1L,
+          end + promoter_upstream_bp
+        )
+      ) %>%
+      dplyr::transmute(
+        locus_tag,
+        chrom,
+        start = region_start,
+        end = region_end
+      )
   } else {
     stop("Unknown metric: ", metric, call. = FALSE)
   }
-  region_start <- pmax(1L, as.integer(region_start))
-  region_end <- pmin(
-    as.integer(chromosome_lengths[genes$chrom]),
-    as.integer(region_end)
-  )
-  data.frame(
-    locus_tag = genes$locus_tag,
-    chrom = genes$chrom,
-    start = region_start,
-    end = region_end,
-    stringsAsFactors = FALSE
-  )
+
+  regions %>%
+    dplyr::mutate(
+      start = pmax(1L, as.integer(start)),
+      end = pmin(
+        as.integer(unname(chromosome_lengths[chrom])),
+        as.integer(end)
+      )
+    )
 }
 
+# Apply one summary statistic to genomic intervals chromosome by chromosome
 view_statistic <- function(signal, regions, statistic) {
   result <- rep(NA_real_, nrow(regions))
+
   for (chromosome in unique(regions$chrom)) {
     indices <- which(regions$chrom == chromosome)
-    views <- Views(
+    views <- IRanges::Views(
       signal[[chromosome]],
       start = regions$start[indices],
       end = regions$end[indices]
     )
     result[indices] <- statistic(views)
   }
+
   result
 }
 
+# Calculate mean CPM for each interval
 region_means <- function(signal, regions) {
-  view_statistic(signal, regions, function(views) viewMeans(views, na.rm = TRUE))
+  view_statistic(
+    signal,
+    regions,
+    function(views) IRanges::viewMeans(views, na.rm = TRUE)
+  )
 }
 
+# Calculate an empirical midrank percentile and descending rank
 empirical_midrank <- function(value, population) {
   finite <- population[is.finite(population)]
+
   if (!is.finite(value) || length(finite) == 0L) {
-    return(c(percentile = NA_real_, rank_desc = NA_real_, population_n = length(finite)))
+    return(c(
+      percentile = NA_real_,
+      rank_desc = NA_real_,
+      population_n = length(finite)
+    ))
   }
+
   less <- sum(finite < value)
   greater <- sum(finite > value)
   ties <- sum(finite == value)
+
   c(
     percentile = 100 * (less + 0.5 * ties) / length(finite),
     rank_desc = greater + (ties + 1) / 2,
@@ -221,12 +244,15 @@ empirical_midrank <- function(value, population) {
   )
 }
 
+# Summarize coverage, exact zeros, and signal in one reporter region
 region_details <- function(signal, region) {
-  values <- as.numeric(signal[[region$chrom]][region$start:region$end])
-  valid <- is.finite(values)
-  valid_values <- values[valid]
+  values <- as.numeric(
+    signal[[region$chrom]][region$start:region$end]
+  )
+  valid_values <- values[is.finite(values)]
   region_length <- length(values)
   covered <- length(valid_values)
+
   if (covered == 0L) {
     return(c(
       region_start_1based = region$start,
@@ -240,6 +266,7 @@ region_details <- function(signal, region) {
       nonzero_fraction = NA_real_
     ))
   }
+
   c(
     region_start_1based = region$start,
     region_end_1based = region$end,
@@ -253,52 +280,163 @@ region_details <- function(signal, region) {
   )
 }
 
-collect_summary <- function(genes, bigwig_root) {
-  rows <- list()
-  row_index <- 1L
-  target_genes <- genes[targets$locus_tag, , drop = FALSE]
+# Bin a strand-oriented profile around one gene
+profile_for_gene <- function(signal, gene, window_flank_bp, profile_bin_bp) {
+  region_start <- max(1L, gene$start - window_flank_bp)
+  region_end <- min(
+    length(signal[[gene$chrom]]),
+    gene$end + window_flank_bp
+  )
+  positions <- seq.int(region_start, region_end)
+  values <- as.numeric(signal[[gene$chrom]][region_start:region_end])
+
+  if (gene$strand == "+") {
+    relative_positions <- positions - gene$start
+  } else {
+    values <- rev(values)
+    relative_positions <- rev(gene$end - positions)
+  }
+
+  tibble::tibble(
+    relative_position = relative_positions,
+    cpm = values,
+    profile_bin = ceiling(seq_along(values) / profile_bin_bp)
+  ) %>%
+    dplyr::group_by(profile_bin) %>%
+    dplyr::summarise(
+      x = mean(relative_position),
+      y = if (all(is.na(cpm))) 0 else mean(cpm, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    dplyr::select(x, y)
+}
+
+# Return one summary row
+summary_lookup <- function(
+  summary,
+  sample,
+  variant,
+  target_locus_tag,
+  region_metric
+) {
+  selected <- summary %>%
+    dplyr::filter(
+      sample_id == sample,
+      track_variant == variant,
+      locus_tag == target_locus_tag,
+      metric == region_metric
+    )
+
+  if (nrow(selected) != 1L) {
+    stop("Summary lookup did not return exactly one row", call. = FALSE)
+  }
+
+  selected
+}
+
+# Quantify reporter regions and collect profile data from every bigWig
+collect_analysis_data <- function(
+  genes,
+  bigwig_root,
+  targets,
+  runs,
+  variants,
+  metrics,
+  window_flank_bp,
+  promoter_upstream_bp,
+  promoter_downstream_bp,
+  profile_bin_bp
+) {
+  summary_rows <- list()
+  profile_rows <- list()
+  summary_index <- 1L
+  profile_index <- 1L
+
+  target_genes <- targets %>%
+    dplyr::select(locus_tag) %>%
+    dplyr::left_join(genes, by = "locus_tag")
 
   for (variant in names(variants)) {
     for (run_index in seq_len(nrow(runs))) {
-      run <- runs[run_index, , drop = FALSE]
+      run <- runs %>% dplyr::slice(run_index)
       bigwig_name <- paste0(run$sample_id, ".", variants[[variant]])
       bigwig_path <- file.path(bigwig_root, bigwig_name)
+
       if (!file.exists(bigwig_path)) {
         stop("Missing bigWig: ", bigwig_path, call. = FALSE)
       }
-      signal <- import(bigwig_path, as = "RleList")
+
+      signal <- rtracklayer::import(bigwig_path, as = "RleList")
       chromosome_lengths <- lengths(signal)
+
       if (!all(unique(genes$chrom) %in% names(signal))) {
-        stop("A nuclear chromosome is absent from ", bigwig_name, call. = FALSE)
+        stop(
+          "A nuclear chromosome is absent from ",
+          bigwig_name,
+          call. = FALSE
+        )
       }
 
       genome_values <- list()
       target_values <- list()
       target_regions <- list()
+
       for (metric in metrics) {
-        regions <- metric_regions(genes, metric, chromosome_lengths)
+        regions <- metric_regions(
+          genes,
+          metric,
+          chromosome_lengths,
+          window_flank_bp,
+          promoter_upstream_bp,
+          promoter_downstream_bp
+        )
         values <- region_means(signal, regions)
         names(values) <- regions$locus_tag
+
         genome_values[[metric]] <- values
         target_values[[metric]] <- values[targets$locus_tag]
         target_regions[[metric]] <- metric_regions(
-          target_genes, metric, chromosome_lengths
+          target_genes,
+          metric,
+          chromosome_lengths,
+          window_flank_bp,
+          promoter_upstream_bp,
+          promoter_downstream_bp
         )
-        rownames(target_regions[[metric]]) <- targets$locus_tag
       }
 
       for (target_index in seq_len(nrow(targets))) {
-        target <- targets[target_index, , drop = FALSE]
-        gene <- target_genes[target$locus_tag, , drop = FALSE]
+        target <- targets %>% dplyr::slice(target_index)
+        gene <- gene_lookup(target_genes, target$locus_tag)
+
+        profile_rows[[profile_index]] <- profile_for_gene(
+          signal,
+          gene,
+          window_flank_bp,
+          profile_bin_bp
+        ) %>%
+          dplyr::mutate(
+            sample_id = run$sample_id,
+            study = run$study,
+            mark = run$mark,
+            track_variant = variant,
+            display_name = target$display_name,
+            locus_tag = target$locus_tag,
+            strand = gene$strand,
+            gene_length_bp = gene$length_bp,
+            .before = 1
+          )
+        profile_index <- profile_index + 1L
+
         for (metric in metrics) {
           value <- target_values[[metric]][[target$locus_tag]]
           genome_rank <- empirical_midrank(value, genome_values[[metric]])
           reporter_rank <- empirical_midrank(value, target_values[[metric]])
-          details <- region_details(
-            signal,
-            target_regions[[metric]][target$locus_tag, , drop = FALSE]
-          )
-          rows[[row_index]] <- data.frame(
+          target_region <- target_regions[[metric]] %>%
+            dplyr::filter(locus_tag == target$locus_tag)
+          details <- region_details(signal, target_region)
+
+          summary_rows[[summary_index]] <- tibble::tibble(
             sample_id = run$sample_id,
             study = run$study,
             mark = run$mark,
@@ -325,366 +463,370 @@ collect_summary <- function(genes, bigwig_root) {
             genome_rank_desc = genome_rank[["rank_desc"]],
             genome_population_n = genome_rank[["population_n"]],
             reporter_set_rank_desc = reporter_rank[["rank_desc"]],
-            reporter_set_n = reporter_rank[["population_n"]],
-            stringsAsFactors = FALSE
+            reporter_set_n = reporter_rank[["population_n"]]
           )
-          row_index <- row_index + 1L
+          summary_index <- summary_index + 1L
         }
       }
+
       rm(signal)
       invisible(gc())
     }
   }
-  do.call(rbind, rows)
+
+  list(
+    summary = dplyr::bind_rows(summary_rows),
+    profiles = dplyr::bind_rows(profile_rows)
+  )
 }
 
-summary_lookup <- function(summary, sample_id, variant, locus_tag, metric) {
-  selected <-
-    summary$sample_id == sample_id &
-    summary$track_variant == variant &
-    summary$locus_tag == locus_tag &
-    summary$metric == metric
-  if (sum(selected) != 1L) {
-    stop("Summary lookup did not return exactly one row", call. = FALSE)
-  }
-  summary[selected, , drop = FALSE]
-}
-
-profile_for_gene <- function(signal, gene) {
-  region_start <- max(1L, gene$start - window_flank_bp)
-  region_end <- min(length(signal[[gene$chrom]]), gene$end + window_flank_bp)
-  positions <- seq.int(region_start, region_end)
-  values <- as.numeric(signal[[gene$chrom]][region_start:region_end])
-  if (gene$strand == "+") {
-    relative_positions <- positions - gene$start
-  } else {
-    values <- rev(values)
-    relative_positions <- rev(gene$end - positions)
-  }
-  groups <- ceiling(seq_along(values) / profile_bin_bp)
-  x <- as.numeric(tapply(relative_positions, groups, mean))
-  y <- as.numeric(tapply(values, groups, mean, na.rm = TRUE))
-  y[!is.finite(y)] <- 0
-  data.frame(x = x, y = y)
-}
-
-tex_escape <- function(text) {
-  text <- gsub("\\\\", "\\\\textbackslash{}", text)
-  text <- gsub("([%&#_$])", "\\\\\\1", text, perl = TRUE)
-  text
-}
-
-tex_number <- function(value, digits = 5L) {
-  vapply(value, function(item) {
-    if (!is.finite(item)) {
-      return("0")
-    }
-    formatted <- formatC(item, format = "f", digits = digits)
-    formatted <- sub("0+$", "", formatted)
-    formatted <- sub("\\.$", "", formatted)
-    if (formatted == "-0") "0" else formatted
-  }, character(1), USE.NAMES = FALSE)
-}
-
-write_profile_tikz <- function(
-  path, variant, genes, bigwig_root, summary
+# Make one profile panel for a run and reporter locus
+make_profile_panel <- function(
+  profile_data,
+  summary,
+  run,
+  target,
+  gene,
+  variant,
+  y_max,
+  show_title,
+  show_y_axis,
+  window_flank_bp,
+  promoter_upstream_bp,
+  promoter_downstream_bp,
+  profile_color
 ) {
-  target_genes <- genes[targets$locus_tag, , drop = FALSE]
-  profiles <- list()
-  row_maxima <- numeric(nrow(runs))
-  names(row_maxima) <- runs$sample_id
+  body <- summary_lookup(
+    summary,
+    run$sample_id,
+    variant,
+    target$locus_tag,
+    "gene_body"
+  )
+  promoter <- summary_lookup(
+    summary,
+    run$sample_id,
+    variant,
+    target$locus_tag,
+    "promoter"
+  )
 
-  for (run_index in seq_len(nrow(runs))) {
-    run <- runs[run_index, , drop = FALSE]
-    bigwig_path <- file.path(
-      bigwig_root,
-      paste0(run$sample_id, ".", variants[[variant]])
+  title_text <- if (show_title) {
+    paste0(
+      target$display_name,
+      "\n",
+      target$locus_tag,
+      " (",
+      gene$strand,
+      ")"
     )
-    signal <- import(bigwig_path, as = "RleList")
-    maximum <- 0
-    for (target_index in seq_len(nrow(targets))) {
-      target <- targets[target_index, , drop = FALSE]
-      gene <- target_genes[target$locus_tag, , drop = FALSE]
-      key <- paste(run$sample_id, target$locus_tag, sep = "|")
-      profile <- profile_for_gene(signal, gene)
-      profiles[[key]] <- profile
-      maximum <- max(maximum, profile$y, na.rm = TRUE)
-    }
-    row_maxima[[run$sample_id]] <- max(1, maximum * 1.03)
-    rm(signal)
-    invisible(gc())
+  } else {
+    NULL
+  }
+  y_axis_text <- if (show_y_axis) {
+    paste(run$study, run$mark, "CPM", sep = "\n")
+  } else {
+    NULL
+  }
+  annotation_text <- paste0(
+    "body pct ", round(body$genome_percentile_midrank),
+    "; promoter pct ", round(promoter$genome_percentile_midrank)
+  )
+
+  panel <- ggplot2::ggplot(profile_data, ggplot2::aes(x = x, y = y)) +
+    ggplot2::annotate(
+      "rect",
+      xmin = -promoter_upstream_bp,
+      xmax = promoter_downstream_bp,
+      ymin = 0,
+      ymax = Inf,
+      fill = "#F28E2B",
+      alpha = 0.14
+    ) +
+    ggplot2::annotate(
+      "rect",
+      xmin = 0,
+      xmax = gene$length_bp,
+      ymin = 0,
+      ymax = Inf,
+      fill = "grey70",
+      alpha = 0.25
+    ) +
+    ggplot2::geom_area(fill = profile_color, alpha = 0.45) +
+    ggplot2::geom_line(color = profile_color, linewidth = 0.25) +
+    ggplot2::geom_vline(
+      xintercept = 0,
+      color = "grey35",
+      linetype = "dashed",
+      linewidth = 0.25
+    ) +
+    ggplot2::annotate(
+      "text",
+      x = Inf,
+      y = Inf,
+      label = annotation_text,
+      hjust = 1.05,
+      vjust = 1.25,
+      size = 1.7,
+      color = "grey25"
+    ) +
+    ggplot2::scale_x_continuous(
+      limits = c(-window_flank_bp, gene$length_bp + window_flank_bp),
+      breaks = c(
+        -window_flank_bp,
+        0,
+        gene$length_bp,
+        gene$length_bp + window_flank_bp
+      ),
+      labels = c("-2 kb", "TSS", "TES", "+2 kb"),
+      expand = ggplot2::expansion(mult = 0)
+    ) +
+    ggplot2::scale_y_continuous(
+      limits = c(0, y_max),
+      breaks = c(0, y_max),
+      labels = function(values) format(round(values, 1), trim = TRUE),
+      expand = ggplot2::expansion(mult = c(0, 0.02))
+    ) +
+    ggplot2::labs(title = title_text, x = NULL, y = y_axis_text) +
+    ggplot2::theme_bw(base_size = 6) +
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      panel.border = ggplot2::element_rect(linewidth = 0.25),
+      axis.ticks = ggplot2::element_line(linewidth = 0.25),
+      axis.text = ggplot2::element_text(size = 5),
+      axis.title.y = ggplot2::element_text(
+        size = 6,
+        margin = ggplot2::margin(r = 2)
+      ),
+      plot.title = ggplot2::element_text(
+        size = 6,
+        hjust = 0.5,
+        lineheight = 0.9
+      ),
+      plot.margin = ggplot2::margin(1, 1, 1, 1)
+    )
+
+  if (!show_y_axis) {
+    panel <- panel +
+      ggplot2::theme(
+        axis.text.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank()
+      )
   }
 
-  connection <- file(path, open = "wt", encoding = "UTF-8")
-  on.exit(close(connection), add = TRUE)
-  writeLines(
-    c(
-      "% Generated by analyze_reporter_loci.R. This file is a TikZ fragment.",
-      "\\begin{tikzpicture}",
-      "\\definecolor{signalblue}{HTML}{1546A0}",
-      "\\pgfplotsset{compat=1.18}",
-      "\\begin{groupplot}[",
-      "  group style={group size=7 by 5, horizontal sep=0.42cm, vertical sep=0.55cm},",
-      "  width=3.15cm, height=2.25cm, scale only axis,",
-      "  axis line style={black!65, line width=0.3pt},",
-      "  tick align=outside, tick style={black!65, line width=0.3pt},",
-      "  tick label style={font=\\tiny}, title style={font=\\scriptsize, align=center},",
-      "  label style={font=\\scriptsize}, clip=true",
-      "]"
-    ),
-    connection
-  )
+  panel
+}
+
+# Assemble the five-by-seven profile figure
+make_profile_plot <- function(
+  profiles,
+  summary,
+  genes,
+  targets,
+  runs,
+  variant,
+  window_flank_bp,
+  promoter_upstream_bp,
+  promoter_downstream_bp
+) {
+  profile_color <- RColorBrewer::brewer.pal(9, "Blues")[[7]]
+  row_plots <- vector("list", nrow(runs))
 
   for (run_index in seq_len(nrow(runs))) {
-    run <- runs[run_index, , drop = FALSE]
-    y_max <- row_maxima[[run$sample_id]]
+    run <- runs %>% dplyr::slice(run_index)
+    run_profiles <- profiles %>%
+      dplyr::filter(
+        sample_id == run$sample_id,
+        track_variant == variant
+      )
+    y_max <- max(run_profiles$y, na.rm = TRUE) * 1.05
+    if (!is.finite(y_max) || y_max <= 0) {
+      y_max <- 1
+    }
+
+    panels <- vector("list", nrow(targets))
     for (target_index in seq_len(nrow(targets))) {
-      target <- targets[target_index, , drop = FALSE]
-      gene <- target_genes[target$locus_tag, , drop = FALSE]
-      body <- summary_lookup(
-        summary, run$sample_id, variant, target$locus_tag, "gene_body"
-      )
-      promoter <- summary_lookup(
-        summary, run$sample_id, variant, target$locus_tag, "promoter"
-      )
-      options <- c(
-        paste0("xmin=-", window_flank_bp),
-        paste0("xmax=", gene$length_bp + window_flank_bp),
-        "ymin=0",
-        paste0("ymax=", tex_number(y_max, 3L)),
-        paste0(
-          "xtick={-", window_flank_bp, ",0,", gene$length_bp, ",",
-          gene$length_bp + window_flank_bp, "}"
-        ),
-        "xticklabels={-2 kb,TSS,TES,+2 kb}"
-      )
-      if (run_index == 1L) {
-        options <- c(
-          options,
-          paste0(
-            "title={\\shortstack{", tex_escape(target$display_name), "\\\\",
-            tex_escape(target$locus_tag), " (", gene$strand, ")}}"
-          )
-        )
-      }
-      if (target_index == 1L) {
-        options <- c(
-          options,
-          paste0("ytick={0,", tex_number(y_max, 2L), "}"),
-          paste0(
-            "ylabel={\\shortstack{", tex_escape(run$study), "\\\\",
-            tex_escape(run$mark), "\\\\CPM}}"
-          )
-        )
-      } else {
-        options <- c(options, "ytick=\\empty")
-      }
-      writeLines(
-        paste0("\\nextgroupplot[", paste(options, collapse = ","), "]"),
-        connection
-      )
-      writeLines(
-        c(
-          paste0(
-            "\\path[fill=orange!14,draw=none] (axis cs:-", promoter_upstream_bp,
-            ",0) rectangle (axis cs:", promoter_downstream_bp, ",",
-            tex_number(y_max, 3L), ");"
-          ),
-          paste0(
-            "\\path[fill=black!8,draw=none] (axis cs:0,0) rectangle (axis cs:",
-            gene$length_bp, ",", tex_number(y_max, 3L), ");"
-          ),
-          "\\draw[black!55,dashed,line width=0.3pt] (axis cs:0,0) -- (axis cs:0,\\pgfkeysvalueof{/pgfplots/ymax});"
-        ),
-        connection
-      )
-      key <- paste(run$sample_id, target$locus_tag, sep = "|")
-      profile <- profiles[[key]]
-      coordinates <- paste0(
-        "(", tex_number(profile$x, 2L), ",", tex_number(profile$y, 5L), ")"
-      )
-      area_coordinates <- c(
-        paste0("(", tex_number(profile$x[[1L]], 2L), ",0)"),
-        coordinates,
-        paste0("(", tex_number(tail(profile$x, 1L), 2L), ",0)")
-      )
-      writeLines(
-        paste0(
-          "\\addplot[signalblue,line width=0.35pt,fill=signalblue!45,fill opacity=0.72] coordinates {",
-          paste(area_coordinates, collapse = " "), "};"
-        ),
-        connection
-      )
-      writeLines(
-        paste0(
-          "\\node[anchor=north east,font=\\tiny,text=black!75] at (rel axis cs:0.98,0.97) {body pct ",
-          round(body$genome_percentile_midrank), "; promoter pct ",
-          round(promoter$genome_percentile_midrank), "};"
-        ),
-        connection
+      target <- targets %>% dplyr::slice(target_index)
+      gene <- gene_lookup(genes, target$locus_tag)
+      profile_data <- run_profiles %>%
+        dplyr::filter(locus_tag == target$locus_tag)
+
+      panels[[target_index]] <- make_profile_panel(
+        profile_data,
+        summary,
+        run,
+        target,
+        gene,
+        variant,
+        y_max,
+        show_title = run_index == 1L,
+        show_y_axis = target_index == 1L,
+        window_flank_bp,
+        promoter_upstream_bp,
+        promoter_downstream_bp,
+        profile_color
       )
     }
+
+    row_plots[[run_index]] <- patchwork::wrap_plots(panels, nrow = 1)
   }
-  title_variant <- gsub("_", " ", variant, fixed = TRUE)
-  writeLines(
-    c(
-      "\\end{groupplot}",
-      paste0(
-        "\\node[font=\\large\\bfseries,anchor=south] at ([yshift=0.85cm]group c4r1.north) ",
-        "{Candidate reporter loci: gene-oriented H3K4me profiles (",
-        tex_escape(title_variant), ")};"
+
+  variant_label <- stringr::str_replace_all(variant, "_", " ")
+  patchwork::wrap_plots(row_plots, ncol = 1) +
+    patchwork::plot_annotation(
+      title = paste0(
+        "Candidate reporter loci: gene-oriented H3K4me profiles (",
+        variant_label,
+        ")"
       ),
-      "\\node[font=\\scriptsize,align=center,text width=22cm,anchor=north] at ([yshift=-0.75cm]group c4r5.south) {Each row has one shared y-axis across all seven loci; y-axes are not shared between runs. Orange: promoter (-1 kb to +200 bp); gray: annotated gene body. Annotations are within-run genome-wide midrank percentiles.};",
-      "\\end{tikzpicture}"
-    ),
-    connection
-  )
+      caption = paste0(
+        "Each row has one shared y-axis across all seven loci; y-axes are not ",
+        "shared between runs. Orange: promoter (-1 kb to +200 bp); grey: ",
+        "annotated gene body. Annotations are within-run genome-wide midrank percentiles."
+      )
+    ) &
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(size = 11, hjust = 0.5),
+      plot.caption = ggplot2::element_text(size = 6, hjust = 0.5)
+    )
 }
 
-heatmap_color <- function(percentile) {
-  if (percentile <= 50) {
-    paste0("heatlow!", round(100 - 2 * percentile), "!heatmid")
-  } else {
-    paste0("heatmid!", round(200 - 2 * percentile), "!heathigh")
-  }
-}
-
-write_percentile_tikz <- function(path, variant, summary) {
-  connection <- file(path, open = "wt", encoding = "UTF-8")
-  on.exit(close(connection), add = TRUE)
-  title_variant <- gsub("_", " ", variant, fixed = TRUE)
-  panel_titles <- c(
+# Make the percentile heatmap
+make_percentile_plot <- function(summary, targets, runs, metrics, variant) {
+  metric_labels <- c(
     promoter = "Promoter (-1 kb/+200 bp)",
     gene_body = "Gene body",
     gene_body_plus_minus_2kb = "Gene body $\\pm$ 2 kb"
   )
-  panel_offsets <- c(0, 9.5, 19)
-  writeLines(
-    c(
-      "% Generated by analyze_reporter_loci.R. This file is a TikZ fragment.",
-      "\\begin{tikzpicture}[x=0.78cm,y=0.78cm]",
-      "\\definecolor{heatlow}{HTML}{440154}",
-      "\\definecolor{heatmid}{HTML}{21918C}",
-      "\\definecolor{heathigh}{HTML}{FDE725}",
-      paste0(
-        "\\node[font=\\large\\bfseries] at (13,-0.1) {Candidate reporter H3K4me signal percentiles (",
-        tex_escape(title_variant), ")};"
+  run_labels <- paste(runs$study, runs$mark, sep = "\n")
+
+  plot_data <- summary %>%
+    dplyr::filter(track_variant == variant) %>%
+    dplyr::mutate(
+      display_name = factor(display_name, levels = targets$display_name),
+      run_label = factor(
+        paste(study, mark, sep = "\n"),
+        levels = rev(run_labels)
+      ),
+      metric_label = factor(
+        dplyr::recode(metric, !!!metric_labels),
+        levels = unname(metric_labels)
+      ),
+      percentile_label = round(genome_percentile_midrank),
+      label_color = dplyr::if_else(
+        genome_percentile_midrank < 45,
+        "white",
+        "black"
       )
-    ),
-    connection
-  )
-  for (metric_index in seq_along(metrics)) {
-    metric <- metrics[[metric_index]]
-    offset <- panel_offsets[[metric_index]]
-    writeLines(
-      paste0(
-        "\\node[font=\\normalsize\\bfseries] at (", offset + 3.5,
-        ",-1.25) {", panel_titles[[metric]], "};"
-      ),
-      connection
     )
-    for (run_index in seq_len(nrow(runs))) {
-      run <- runs[run_index, , drop = FALSE]
-      for (target_index in seq_len(nrow(targets))) {
-        target <- targets[target_index, , drop = FALSE]
-        row <- summary_lookup(
-          summary, run$sample_id, variant, target$locus_tag, metric
-        )
-        percentile <- row$genome_percentile_midrank
-        x_left <- offset + target_index - 1L
-        y_top <- -1.7 - (run_index - 1L)
-        text_color <- if (percentile < 45) "white" else "black"
-        writeLines(
-          c(
-            paste0(
-              "\\fill[", heatmap_color(percentile), "] (", x_left, ",", y_top,
-              ") rectangle ++(1,-1);"
-            ),
-            paste0(
-              "\\node[font=\\scriptsize,text=", text_color, "] at (", x_left + 0.5,
-              ",", y_top - 0.5, ") {", round(percentile), "};"
-            )
-          ),
-          connection
-        )
-      }
-      if (metric_index == 1L) {
-        y_center <- -2.2 - (run_index - 1L)
-        writeLines(
-          paste0(
-            "\\node[anchor=east,font=\\scriptsize,align=right] at (-0.2,", y_center,
-            ") {", tex_escape(run$study), "\\\\", tex_escape(run$mark), "};"
-          ),
-          connection
-        )
-      }
-    }
-    for (target_index in seq_len(nrow(targets))) {
-      x_center <- offset + target_index - 0.5
-      writeLines(
-        paste0(
-          "\\node[anchor=east,rotate=45,font=\\scriptsize] at (", x_center,
-          ",-6.95) {", tex_escape(targets$display_name[[target_index]]), "};"
-        ),
-        connection
-      )
-    }
-    writeLines(
-      paste0(
-        "\\draw[black,line width=0.4pt] (", offset, ",-1.7) rectangle (",
-        offset + 7, ",-6.7);"
-      ),
-      connection
+
+  variant_label <- stringr::str_replace_all(variant, "_", " ")
+  ggplot2::ggplot(
+    plot_data,
+    ggplot2::aes(
+      x = display_name,
+      y = run_label,
+      fill = genome_percentile_midrank
     )
-  }
-  legend_x <- 27.4
-  for (legend_index in 0:19) {
-    percentile <- legend_index * 5
-    y_bottom <- -6.7 + legend_index * 0.25
-    writeLines(
-      paste0(
-        "\\fill[", heatmap_color(percentile), "] (", legend_x, ",", y_bottom,
-        ") rectangle ++(0.35,0.25);"
+  ) +
+    ggplot2::geom_tile(color = "black", linewidth = 0.25) +
+    ggplot2::geom_text(
+      ggplot2::aes(label = percentile_label, color = label_color),
+      size = 2.4
+    ) +
+    ggplot2::facet_wrap(~metric_label, nrow = 1) +
+    ggplot2::scale_fill_gradientn(
+      colors = c("#440154", "#21918C", "#FDE725"),
+      limits = c(0, 100),
+      name = "Within-run genome-wide\npercentile (midrank)"
+    ) +
+    ggplot2::guides(
+      fill = ggplot2::guide_colourbar(display = "rectangles", nbin = 20)
+    ) +
+    ggplot2::scale_color_identity() +
+    ggplot2::labs(
+      title = paste0(
+        "Candidate reporter H3K4me signal percentiles (",
+        variant_label,
+        ")"
       ),
-      connection
+      x = NULL,
+      y = NULL
+    ) +
+    ggplot2::theme_bw(base_size = 7) +
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      panel.border = ggplot2::element_rect(linewidth = 0.3),
+      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 6),
+      axis.text.y = ggplot2::element_text(size = 6),
+      axis.ticks = ggplot2::element_blank(),
+      strip.background = ggplot2::element_blank(),
+      strip.text = ggplot2::element_text(size = 8, face = "bold"),
+      plot.title = ggplot2::element_text(size = 11, hjust = 0.5),
+      legend.title = ggplot2::element_text(size = 6),
+      legend.text = ggplot2::element_text(size = 6)
     )
-  }
-  writeLines(
-    c(
-      paste0("\\draw[black,line width=0.4pt] (", legend_x, ",-6.7) rectangle ++(0.35,5);"),
-      paste0("\\node[anchor=west,font=\\scriptsize] at (", legend_x + 0.45, ",-6.7) {0};"),
-      paste0("\\node[anchor=west,font=\\scriptsize] at (", legend_x + 0.45, ",-4.2) {50};"),
-      paste0("\\node[anchor=west,font=\\scriptsize] at (", legend_x + 0.45, ",-1.7) {100};"),
-      paste0(
-        "\\node[rotate=90,font=\\scriptsize] at (", legend_x + 1.35,
-        ",-4.2) {Within-run genome-wide percentile (midrank)};"
-      ),
-      "\\end{tikzpicture}"
-    ),
-    connection
-  )
 }
 
-write_locus_table <- function(path, genes) {
-  target_genes <- genes[targets$locus_tag, , drop = FALSE]
-  table <- data.frame(
-    display_name = targets$display_name,
-    locus_tag = targets$locus_tag,
-    role = targets$role,
-    chrom = target_genes$chrom,
-    start_1based = target_genes$start,
-    end_1based = target_genes$end,
-    strand = target_genes$strand,
-    length_bp = target_genes$length_bp,
-    gff_gene_name = target_genes$symbol,
-    stringsAsFactors = FALSE
+# Write a ggplot or patchwork object as a reproducible tikzpicture fragment
+write_tikz_plot <- function(plot_object, path, width, height) {
+  figure_stem <- tools::file_path_sans_ext(basename(path))
+  stale_sidecars <- list.files(dirname(path), full.names = TRUE) %>%
+    purrr::keep(
+      ~ stringr::str_starts(basename(.x), paste0(figure_stem, "_ras")) &&
+        stringr::str_ends(basename(.x), ".png")
+    )
+  if (length(stale_sidecars) > 0L) {
+    file.remove(stale_sidecars)
+  }
+
+  tikzDevice::tikz(
+    path,
+    width = width,
+    height = height,
+    standAlone = FALSE,
+    timestamp = FALSE,
+    sanitize = FALSE,
+    lwdUnit = 72.27 / 96
   )
-  write.table(table, path, sep = "\t", quote = FALSE, row.names = FALSE)
+  print(plot_object)
+  grDevices::dev.off()
+
+  generated_sidecars <- list.files(dirname(path), full.names = TRUE) %>%
+    purrr::keep(
+      ~ stringr::str_starts(basename(.x), paste0(figure_stem, "_ras")) &&
+        stringr::str_ends(basename(.x), ".png")
+    )
+  if (length(generated_sidecars) > 0L) {
+    stop("TikZ figure unexpectedly requires raster sidecars: ", basename(path),
+         call. = FALSE)
+  }
 }
 
-write_analysis_summary <- function(path, summary) {
+# Write reporter-locus coordinates
+write_locus_table <- function(path, genes, targets) {
+  locus_table <- targets %>%
+    dplyr::left_join(genes, by = "locus_tag") %>%
+    dplyr::transmute(
+      display_name,
+      locus_tag,
+      role,
+      chrom,
+      start_1based = start,
+      end_1based = end,
+      strand,
+      length_bp,
+      gff_gene_name = symbol
+    )
+
+  readr::write_tsv(locus_table, path, na = "NA")
+}
+
+# Write the concise pan-2 interpretation table
+write_analysis_summary <- function(path, summary, runs, metrics) {
   connection <- file(path, open = "wt", encoding = "UTF-8")
   on.exit(close(connection), add = TRUE)
+
   writeLines(
     c(
       "# Reporter-locus H3K4me descriptive summary",
@@ -696,11 +838,16 @@ write_analysis_summary <- function(path, summary) {
     ),
     connection
   )
+
   for (run_index in seq_len(nrow(runs))) {
-    run <- runs[run_index, , drop = FALSE]
+    run <- runs %>% dplyr::slice(run_index)
     for (metric in metrics) {
       row <- summary_lookup(
-        summary, run$sample_id, "nonduplicate", "NCU10048", metric
+        summary,
+        run$sample_id,
+        "nonduplicate",
+        "NCU10048",
+        metric
       )
       writeLines(
         sprintf(
@@ -717,6 +864,7 @@ write_analysis_summary <- function(path, summary) {
       )
     }
   }
+
   writeLines(
     c(
       "",
@@ -732,8 +880,8 @@ write_analysis_summary <- function(path, summary) {
   )
 }
 
+# Write the long-form summary with stable six-decimal numeric formatting
 write_signal_summary <- function(path, summary) {
-  formatted <- summary
   six_decimal_columns <- c(
     "mean_cpm",
     "max_cpm",
@@ -742,31 +890,46 @@ write_signal_summary <- function(path, summary) {
     "genome_rank_desc",
     "reporter_set_rank_desc"
   )
-  for (column in six_decimal_columns) {
-    formatted[[column]] <- ifelse(
-      is.na(formatted[[column]]),
-      "NA",
-      formatC(formatted[[column]], format = "f", digits = 6L)
+
+  formatted <- summary %>%
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::all_of(six_decimal_columns),
+        ~ dplyr::if_else(
+          is.na(.x),
+          "NA",
+          formatC(.x, format = "f", digits = 6L)
+        )
+      )
     )
-  }
-  write.table(
-    formatted,
-    path,
-    sep = "\t",
-    quote = FALSE,
-    row.names = FALSE,
-    na = "NA"
-  )
+
+  readr::write_tsv(formatted, path, na = "NA")
 }
 
-write_parameters <- function(path, gff_path) {
-  input_bigwigs <- unlist(lapply(
-    names(variants),
-    function(variant) paste0(runs$sample_id, ".", variants[[variant]])
-  ))
+# Record software, inputs, and analysis choices
+write_parameters <- function(
+  path,
+  script_path,
+  gff_path,
+  runs,
+  targets,
+  variants,
+  profile_bin_bp,
+  window_flank_bp
+) {
+  input_bigwigs <- names(variants) %>%
+    purrr::map(~ paste0(runs$sample_id, ".", variants[[.x]])) %>%
+    unlist(use.names = FALSE)
+
   payload <- list(
     analysis_script = basename(script_path),
     R = as.character(getRversion()),
+    tidyverse = as.character(packageVersion("tidyverse")),
+    ggplot2 = as.character(packageVersion("ggplot2")),
+    tikzDevice = as.character(packageVersion("tikzDevice")),
+    RColorBrewer = as.character(packageVersion("RColorBrewer")),
+    patchwork = as.character(packageVersion("patchwork")),
+    here = as.character(packageVersion("here")),
     rtracklayer = as.character(packageVersion("rtracklayer")),
     IRanges = as.character(packageVersion("IRanges")),
     jsonlite = as.character(packageVersion("jsonlite")),
@@ -774,12 +937,8 @@ write_parameters <- function(path, gff_path) {
     reference_gff = basename(gff_path),
     reference_accession = "GCA_000182925.2",
     input_bigwigs = input_bigwigs,
-    runs = lapply(seq_len(nrow(runs)), function(index) {
-      as.list(runs[index, , drop = FALSE])
-    }),
-    targets = lapply(seq_len(nrow(targets)), function(index) {
-      as.list(targets[index, , drop = FALSE])
-    }),
+    runs = purrr::transpose(runs),
+    targets = purrr::transpose(targets),
     normalization = "CPM; inherited from the uniformly generated bigWig inputs",
     minimum_mapping_quality = 20L,
     profile_bin_bp = profile_bin_bp,
@@ -792,8 +951,9 @@ write_parameters <- function(path, gff_path) {
     missing_treatment = "excluded from regional means and counted separately; NA retained when a region has no covered bases",
     random_seed = NULL,
     pooling = "none",
-    figure_format = "TikZ fragments containing tikzpicture environments"
+    figure_format = "TikZ fragments generated from ggplot2 objects with tikzDevice"
   )
+
   jsonlite::write_json(
     payload,
     path,
@@ -804,45 +964,64 @@ write_parameters <- function(path, gff_path) {
   )
 }
 
+# Write SHA-256 checksums for all generated files
 write_checksums <- function(output_dir) {
   checksum_path <- file.path(output_dir, "output_sha256.txt")
-  output_files <- sort(list.files(output_dir, full.names = TRUE))
-  output_files <- output_files[
-    file.info(output_files)$isdir == FALSE & basename(output_files) != basename(checksum_path)
-  ]
-  digests <- vapply(
-    output_files,
-    digest::digest,
-    character(1),
-    algo = "sha256",
-    file = TRUE,
-    serialize = FALSE
+  output_files <- list.files(output_dir, full.names = TRUE) %>%
+    sort() %>%
+    purrr::keep(~ !file.info(.x)$isdir) %>%
+    purrr::discard(~ basename(.x) == basename(checksum_path))
+  digests <- output_files %>%
+    purrr::map_chr(
+      ~ digest::digest(.x, algo = "sha256", file = TRUE, serialize = FALSE)
+    )
+
+  writeLines(
+    paste(digests, basename(output_files), sep = "  "),
+    checksum_path
   )
-  writeLines(paste(digests, basename(output_files), sep = "  "), checksum_path)
 }
 
-main <- function() {
+# Run the complete reporter-locus analysis
+run_analysis <- function(
+  arguments,
+  script_path,
+  default_work_root,
+  default_output_dir,
+  targets,
+  runs,
+  variants,
+  metrics,
+  window_flank_bp,
+  promoter_upstream_bp,
+  promoter_downstream_bp,
+  profile_bin_bp
+) {
   options(digits = 15)
-  arguments <- parse_arguments(commandArgs(trailingOnly = TRUE))
-  work_root <- normalizePath(arguments$work_root, mustWork = TRUE)
-  output_dir <- normalizePath(
-    arguments$output_dir,
-    mustWork = FALSE
+  parsed_arguments <- parse_arguments(
+    arguments,
+    default_work_root,
+    default_output_dir
   )
+  work_root <- normalizePath(parsed_arguments$work_root, mustWork = TRUE)
+  output_dir <- normalizePath(parsed_arguments$output_dir, mustWork = FALSE)
   gff_path <- file.path(
     work_root,
     "reference",
     "GCA_000182925.2_NC12_genomic.gff"
   )
   bigwig_root <- file.path(work_root, "bigwig")
+
   if (!file.exists(gff_path)) {
     stop("Missing reference GFF: ", gff_path, call. = FALSE)
   }
   if (!dir.exists(bigwig_root)) {
     stop("Missing bigWig directory: ", bigwig_root, call. = FALSE)
   }
+
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
+  # Read genome annotation
   genes <- load_genes(gff_path)
   missing_targets <- setdiff(targets$locus_tag, genes$locus_tag)
   if (length(missing_targets) > 0L) {
@@ -853,35 +1032,102 @@ main <- function() {
     )
   }
 
-  write_locus_table(file.path(output_dir, "reporter_loci.tsv"), genes)
-  summary <- collect_summary(genes, bigwig_root)
+  # Quantify signal and prepare plotting data
+  analysis_data <- collect_analysis_data(
+    genes,
+    bigwig_root,
+    targets,
+    runs,
+    variants,
+    metrics,
+    window_flank_bp,
+    promoter_upstream_bp,
+    promoter_downstream_bp,
+    profile_bin_bp
+  )
+
+  # Prepare figures
+  profile_plots <- names(variants) %>%
+    purrr::set_names() %>%
+    purrr::map(
+      ~ make_profile_plot(
+        analysis_data$profiles,
+        analysis_data$summary,
+        genes,
+        targets,
+        runs,
+        .x,
+        window_flank_bp,
+        promoter_upstream_bp,
+        promoter_downstream_bp
+      )
+    )
+  percentile_plots <- names(variants) %>%
+    purrr::set_names() %>%
+    purrr::map(
+      ~ make_percentile_plot(
+        analysis_data$summary,
+        targets,
+        runs,
+        metrics,
+        .x
+      )
+    )
+
+  # =========================
+  # Output results
+  # =========================
+
+  write_locus_table(
+    file.path(output_dir, "reporter_loci.tsv"),
+    genes,
+    targets
+  )
   write_signal_summary(
     file.path(output_dir, "reporter_locus_signal_summary.tsv"),
-    summary
+    analysis_data$summary
   )
-  for (variant in names(variants)) {
-    write_profile_tikz(
-      file.path(output_dir, paste0("reporter_locus_profiles.", variant, ".tex")),
-      variant,
-      genes,
-      bigwig_root,
-      summary
-    )
-    write_percentile_tikz(
-      file.path(output_dir, paste0("reporter_locus_percentiles.", variant, ".tex")),
-      variant,
-      summary
-    )
-  }
   write_analysis_summary(
     file.path(output_dir, "analysis_summary.md"),
-    summary
+    analysis_data$summary,
+    runs,
+    metrics
   )
+
+  for (variant in names(variants)) {
+    write_tikz_plot(
+      profile_plots[[variant]],
+      file.path(
+        output_dir,
+        paste0("reporter_locus_profiles.", variant, ".tex")
+      ),
+      width = 11,
+      height = 7
+    )
+    write_tikz_plot(
+      percentile_plots[[variant]],
+      file.path(
+        output_dir,
+        paste0("reporter_locus_percentiles.", variant, ".tex")
+      ),
+      width = 11,
+      height = 3.2
+    )
+  }
+
   write_parameters(
     file.path(output_dir, "analysis_parameters.json"),
-    gff_path
+    script_path,
+    gff_path,
+    runs,
+    targets,
+    variants,
+    profile_bin_bp,
+    window_flank_bp
   )
   write_checksums(output_dir)
+
+  # Print summaries to console
   cat(
     "Analyzed ", nrow(targets), " reporter loci across ", nrow(runs),
     " runs and ", length(variants), " track variants\n",
@@ -895,4 +1141,81 @@ main <- function() {
   cat("Outputs: ", output_dir, "\n", sep = "")
 }
 
-main()
+# =========================
+# Analysis settings
+# =========================
+
+# Define directories
+script_path <- here::here(
+  "05_public_H3K4",
+  "scripts",
+  "analyze_reporter_loci.R"
+)
+default_work_root <- Sys.getenv(
+  "H3K4_WORK_ROOT",
+  unset = "/Volumes/Garage/Re_analysis/260906_issue69_H3K4"
+)
+default_output_dir <- Sys.getenv(
+  "H3K4_OUTPUT_DIR",
+  unset = here::here("05_public_H3K4", "output", "reporter_loci")
+)
+
+# Define genomic regions and profile resolution
+window_flank_bp <- 2000L
+promoter_upstream_bp <- 1000L
+promoter_downstream_bp <- 200L
+profile_bin_bp <- 10L
+
+# Define reporter loci
+targets <- tibble::tribble(
+  ~display_name, ~locus_tag, ~role,
+  "pan-2", "NCU10048", "focal",
+  "ad-3A", "NCU03166", "alternative",
+  "ad-3B", "NCU03194", "alternative",
+  "ad-8", "NCU09789", "alternative",
+  "mtr", "NCU06619", "alternative",
+  "his-3", "NCU03139", "alternative",
+  "csr-1", "NCU00726", "exploratory"
+)
+
+# Define H3K4 ChIP-seq runs
+runs <- tibble::tribble(
+  ~sample_id, ~study, ~mark,
+  "Ferraro2021_WT_H3K4me1", "Ferraro et al. 2021", "H3K4me1",
+  "Ferraro2021_WT_H3K4me2", "Ferraro et al. 2021", "H3K4me2",
+  "Sasaki2014_WT_H3K4me2", "Sasaki et al. 2014", "H3K4me2",
+  "Ferraro2021_WT_H3K4me3", "Ferraro et al. 2021", "H3K4me3",
+  "Storck2020_WT_H3K4me3", "Storck et al. 2020", "H3K4me3"
+)
+
+# Keep duplicate-retaining and nonduplicate tracks separate
+variants <- c(
+  nonduplicate = "q20.nonduplicate.cpm.bw",
+  all_mapped = "q20.all_mapped.cpm.bw"
+)
+metrics <- c("promoter", "gene_body", "gene_body_plus_minus_2kb")
+
+# =========================
+# Run analysis
+# =========================
+
+runtime_arguments <- if (interactive()) {
+  character()
+} else {
+  commandArgs(trailingOnly = TRUE)
+}
+
+run_analysis(
+  runtime_arguments,
+  script_path,
+  default_work_root,
+  default_output_dir,
+  targets,
+  runs,
+  variants,
+  metrics,
+  window_flank_bp,
+  promoter_upstream_bp,
+  promoter_downstream_bp,
+  profile_bin_bp
+)
