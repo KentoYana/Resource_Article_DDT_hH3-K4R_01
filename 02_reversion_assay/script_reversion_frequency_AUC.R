@@ -117,7 +117,7 @@ aucData <- expData %>%
   ) %>%
   dplyr::filter(UV_dose > 0) %>%
   dplyr::summarise(
-    baseline_0J = first(baseline_0J),
+    baseline_0J = dplyr::first(baseline_0J),
     AUC_bc      = calc_auc_trapz(UV_dose, Rev_freq_bc),
     .groups = "drop"
   ) %>%
