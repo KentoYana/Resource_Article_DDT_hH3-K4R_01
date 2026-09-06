@@ -67,8 +67,11 @@ R library before starting an analysis.
 As with the other Resource analyses, the script can also be opened in RStudio
 and run with **Source**. It uses `here::i_am()` to locate the repository root,
 so open this repository as the RStudio working project before sourcing
-`scripts/analyze_reporter_loci.R`. The default bigWig and reference location is
-the external SSD path `/Volumes/Garage/Re_analysis/260906_issue69_H3K4`.
+`scripts/analyze_reporter_loci.R`. The four figures are first drawn on the
+standard R graphics device for inspection in RStudio's Plots pane, then drawn
+again with `tikzDevice` for final output. The default bigWig and reference
+location is the external SSD path
+`/Volumes/Garage/Re_analysis/260906_issue69_H3K4`.
 Set `H3K4_WORK_ROOT` before sourcing to use a different analysis directory:
 
 ```r

@@ -1,5 +1,3 @@
-#!/usr/bin/env Rscript
-
 # analyze_reporter_loci.R
 # Kento Yanagisawa
 # This script analyzes public H3K4 ChIP-seq signal at candidate reporter loci.
@@ -768,7 +766,34 @@ make_percentile_plot <- function(summary, targets, runs, metrics, variant) {
     )
 }
 
-# Write a ggplot or patchwork object as a reproducible tikzpicture fragment
+# Plot all figures first using the standard R graphics device
+plot_standard_figures <- function(profile_plots, percentile_plots) {
+  preview_path <- NULL
+
+  if (!interactive()) {
+    preview_path <- tempfile(
+      pattern = "reporter_loci_preview_",
+      fileext = ".pdf"
+    )
+    grDevices::pdf(preview_path, width = 11, height = 7)
+    on.exit(
+      {
+        grDevices::dev.off()
+        file.remove(preview_path)
+      },
+      add = TRUE
+    )
+  }
+
+  plot(profile_plots$nonduplicate)
+  plot(profile_plots$all_mapped)
+  plot(percentile_plots$nonduplicate)
+  plot(percentile_plots$all_mapped)
+
+  invisible(NULL)
+}
+
+# Switch to tikzDevice and draw the same plot as a tikzpicture fragment
 write_tikz_plot <- function(plot_object, path, width, height) {
   figure_stem <- tools::file_path_sans_ext(basename(path))
   stale_sidecars <- list.files(dirname(path), full.names = TRUE) %>%
@@ -789,7 +814,7 @@ write_tikz_plot <- function(plot_object, path, width, height) {
     sanitize = FALSE,
     lwdUnit = 72.27 / 96
   )
-  print(plot_object)
+  plot(plot_object)
   grDevices::dev.off()
 
   generated_sidecars <- list.files(dirname(path), full.names = TRUE) %>%
@@ -1073,6 +1098,9 @@ run_analysis <- function(
         .x
       )
     )
+
+  # Plot figures using the standard R graphics device
+  plot_standard_figures(profile_plots, percentile_plots)
 
   # =========================
   # Output results
