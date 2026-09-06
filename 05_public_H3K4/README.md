@@ -1,8 +1,8 @@
 # Public H3K4 ChIP-seq dataset
 
 This directory records the public wild-type *Neurospora crassa* H3K4
-ChIP-seq dataset selected for locus-level inspection. This metadata record does
-not itself contain a reanalysis workflow or newly generated results.
+ChIP-seq datasets selected for locus-level inspection. It includes a raw-read
+reprocessing workflow but does not yet contain newly generated results.
 
 ## Dataset identification
 
@@ -23,8 +23,31 @@ marks. These deposited tracks are the preferred starting point for reproducing
 a browser view because they retain the processing selected by the original
 authors.
 
-The complete accession and sample crosswalk is recorded in
+The Ferraro et al. accession and sample crosswalk is recorded in
 [`dataset/accessions.tsv`](dataset/accessions.tsv).
+
+## Raw-read reprocessing workflow
+
+[`scripts/reprocess_selected_h3k4_chipseq.sh`](scripts/reprocess_selected_h3k4_chipseq.sh)
+downloads and uniformly processes five selected wild-type H3K4 ChIP-seq runs:
+
+- Ferraro et al. (2021): SRR12229306, SRR12229307, and SRR12229308;
+- Sasaki et al. (2014): SRR1295547; and
+- Storck et al. (2020): SRR12202381.
+
+By default, all downloaded data and generated outputs are kept outside this
+repository in `/Volumes/Garage/Re_analysis/260906_issue69_H3K4`. The workflow
+can be inspected without downloading data by running:
+
+```sh
+./05_public_H3K4/scripts/reprocess_selected_h3k4_chipseq.sh check
+```
+
+Run `--help` to list the resumable stages. The workflow obtains raw SRA data
+and the NC12 reference anew, performs raw and trimmed FastQC, maps all runs to
+the same reference, marks duplicate reads without destroying them, and creates
+both duplicate-retaining and nonduplicate CPM bigWig tracks. It intentionally
+does not pool studies or call peaks without a matched input.
 
 ## Experimental metadata
 
