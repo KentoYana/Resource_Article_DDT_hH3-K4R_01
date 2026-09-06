@@ -110,7 +110,7 @@ resolve_tools() {
     "${BAM_COVERAGE}" --version >/dev/null
     Rscript -e '
         required <- c(
-            "tidyverse", "tikzDevice", "RColorBrewer", "patchwork", "here",
+            "tidyverse", "tikzDevice", "patchwork", "here",
             "IRanges", "rtracklayer", "digest", "jsonlite"
         )
         missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]

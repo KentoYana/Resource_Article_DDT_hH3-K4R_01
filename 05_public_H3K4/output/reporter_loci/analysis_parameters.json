@@ -4,7 +4,6 @@
   "tidyverse": "2.0.0",
   "ggplot2": "4.0.3",
   "tikzDevice": "0.12.6",
-  "RColorBrewer": "1.1.3",
   "patchwork": "1.3.2",
   "here": "1.0.2",
   "rtracklayer": "1.72.0",
@@ -82,6 +81,18 @@
   "minimum_mapping_quality": 20,
   "profile_bin_bp": 10,
   "window_flank_bp": 2000,
+  "plot_colors": {
+    "blue": "#0068b7",
+    "orange": "#f39800"
+  },
+  "figure_width_in": 7.5,
+  "profile_heights_in": {
+    "H3K4me1": 3.1,
+    "H3K4me2": 4.5,
+    "H3K4me3": 4.5
+  },
+  "percentile_height_in": 3.2,
+  "tikz_lwd_unit": 0.7528,
   "promoter_definition": "strand-aware TSS -1000 bp through +200 bp",
   "gene_body_definition": "full NCBI GFF gene feature",
   "ranking_population": "protein-coding genes on the seven NC12 nuclear chromosomes",

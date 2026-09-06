@@ -5,7 +5,6 @@
 # Make these packages and their associated functions
 # available to use in this script
 library("tikzDevice")
-library("RColorBrewer")
 library("tidyverse")
 library("patchwork")
 library("here")
@@ -489,10 +488,13 @@ make_profile_panel <- function(
   y_max,
   show_title,
   show_y_axis,
+  show_left_flank_label,
+  show_right_flank_label,
   window_flank_bp,
   promoter_upstream_bp,
   promoter_downstream_bp,
-  profile_color
+  profile_color,
+  promoter_color
 ) {
   body <- summary_lookup(
     summary,
@@ -538,7 +540,7 @@ make_profile_panel <- function(
       xmax = promoter_downstream_bp,
       ymin = 0,
       ymax = Inf,
-      fill = "#F28E2B",
+      fill = promoter_color,
       alpha = 0.14
     ) +
     ggplot2::annotate(
@@ -551,12 +553,12 @@ make_profile_panel <- function(
       alpha = 0.25
     ) +
     ggplot2::geom_area(fill = profile_color, alpha = 0.45) +
-    ggplot2::geom_line(color = profile_color, linewidth = 0.25) +
+    ggplot2::geom_line(color = profile_color, linewidth = 0.5) +
     ggplot2::geom_vline(
       xintercept = 0,
       color = "grey35",
       linetype = "dashed",
-      linewidth = 0.25
+      linewidth = 0.5
     ) +
     ggplot2::annotate(
       "text",
@@ -576,7 +578,12 @@ make_profile_panel <- function(
         gene$length_bp,
         gene$length_bp + window_flank_bp
       ),
-      labels = c("-2 kb", "TSS", "TES", "+2 kb"),
+      labels = c(
+        if (show_left_flank_label) "-2 kb" else "",
+        "TSS",
+        "TES",
+        if (show_right_flank_label) "+2 kb" else ""
+      ),
       expand = ggplot2::expansion(mult = 0)
     ) +
     ggplot2::scale_y_continuous(
@@ -589,9 +596,13 @@ make_profile_panel <- function(
     ggplot2::theme_bw(base_size = 6) +
     ggplot2::theme(
       panel.grid = ggplot2::element_blank(),
-      panel.border = ggplot2::element_rect(linewidth = 0.25),
-      axis.ticks = ggplot2::element_line(linewidth = 0.25),
-      axis.text = ggplot2::element_text(size = 5),
+      panel.background = ggplot2::element_rect(
+        fill = "white",
+        colour = "black",
+        linewidth = 0.5
+      ),
+      axis.ticks = ggplot2::element_line(linewidth = 0.5),
+      axis.text = ggplot2::element_text(size = 5, colour = "black"),
       axis.title.y = ggplot2::element_text(
         size = 6,
         margin = ggplot2::margin(r = 2)
@@ -599,7 +610,8 @@ make_profile_panel <- function(
       plot.title = ggplot2::element_text(
         size = 6,
         hjust = 0.5,
-        lineheight = 0.9
+        lineheight = 0.9,
+        colour = "black"
       ),
       plot.margin = ggplot2::margin(1, 1, 1, 1)
     )
@@ -615,7 +627,7 @@ make_profile_panel <- function(
   panel
 }
 
-# Assemble the five-by-seven profile figure
+# Assemble one mark-specific reporter-locus profile figure
 make_profile_plot <- function(
   profiles,
   summary,
@@ -623,15 +635,22 @@ make_profile_plot <- function(
   targets,
   runs,
   variant,
+  selected_mark,
   window_flank_bp,
   promoter_upstream_bp,
-  promoter_downstream_bp
+  promoter_downstream_bp,
+  plot_colors
 ) {
-  profile_color <- RColorBrewer::brewer.pal(9, "Blues")[[7]]
-  row_plots <- vector("list", nrow(runs))
+  profile_color <- plot_colors[["blue"]]
+  mark_runs <- runs %>%
+    dplyr::filter(mark == selected_mark)
+  if (nrow(mark_runs) == 0L) {
+    stop("No runs found for histone mark: ", selected_mark, call. = FALSE)
+  }
+  row_plots <- vector("list", nrow(mark_runs))
 
-  for (run_index in seq_len(nrow(runs))) {
-    run <- runs %>% dplyr::slice(run_index)
+  for (run_index in seq_len(nrow(mark_runs))) {
+    run <- mark_runs %>% dplyr::slice(run_index)
     run_profiles <- profiles %>%
       dplyr::filter(
         sample_id == run$sample_id,
@@ -659,10 +678,13 @@ make_profile_plot <- function(
         y_max,
         show_title = run_index == 1L,
         show_y_axis = target_index == 1L,
+        show_left_flank_label = target_index == 1L,
+        show_right_flank_label = target_index == nrow(targets),
         window_flank_bp,
         promoter_upstream_bp,
         promoter_downstream_bp,
-        profile_color
+        profile_color,
+        plot_colors[["orange"]]
       )
     }
 
@@ -673,14 +695,17 @@ make_profile_plot <- function(
   patchwork::wrap_plots(row_plots, ncol = 1) +
     patchwork::plot_annotation(
       title = paste0(
-        "Candidate reporter loci: gene-oriented H3K4me profiles (",
+        "Candidate reporter loci: gene-oriented ",
+        selected_mark,
+        " profiles (",
         variant_label,
         ")"
       ),
       caption = paste0(
         "Each row has one shared y-axis across all seven loci; y-axes are not ",
-        "shared between runs. Orange: promoter (-1 kb to +200 bp); grey: ",
-        "annotated gene body. Annotations are within-run genome-wide midrank percentiles."
+        "shared between runs.\n",
+        "Orange: promoter (-1 kb to +200 bp); grey: annotated gene body.\n",
+        "Annotations are within-run genome-wide midrank percentiles."
       )
     ) &
     ggplot2::theme(
@@ -690,7 +715,14 @@ make_profile_plot <- function(
 }
 
 # Make the percentile heatmap
-make_percentile_plot <- function(summary, targets, runs, metrics, variant) {
+make_percentile_plot <- function(
+  summary,
+  targets,
+  runs,
+  metrics,
+  variant,
+  plot_colors
+) {
   metric_labels <- c(
     promoter = "Promoter (-1 kb/+200 bp)",
     gene_body = "Gene body",
@@ -734,12 +766,19 @@ make_percentile_plot <- function(summary, targets, runs, metrics, variant) {
     ) +
     ggplot2::facet_wrap(~metric_label, nrow = 1) +
     ggplot2::scale_fill_gradientn(
-      colors = c("#440154", "#21918C", "#FDE725"),
+      colors = grDevices::colorRampPalette(
+        c(plot_colors[["blue"]], plot_colors[["orange"]]),
+        space = "Lab"
+      )(100),
       limits = c(0, 100),
       name = "Within-run genome-wide\npercentile (midrank)"
     ) +
     ggplot2::guides(
-      fill = ggplot2::guide_colourbar(display = "rectangles", nbin = 20)
+      fill = ggplot2::guide_colourbar(
+        display = "rectangles",
+        nbin = 20,
+        direction = "horizontal"
+      )
     ) +
     ggplot2::scale_color_identity() +
     ggplot2::labs(
@@ -754,20 +793,43 @@ make_percentile_plot <- function(summary, targets, runs, metrics, variant) {
     ggplot2::theme_bw(base_size = 7) +
     ggplot2::theme(
       panel.grid = ggplot2::element_blank(),
-      panel.border = ggplot2::element_rect(linewidth = 0.3),
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 6),
-      axis.text.y = ggplot2::element_text(size = 6),
+      panel.background = ggplot2::element_rect(
+        fill = "white",
+        colour = "black",
+        linewidth = 0.5
+      ),
+      axis.text.x = ggplot2::element_text(
+        angle = 45,
+        hjust = 1,
+        size = 6,
+        colour = "black"
+      ),
+      axis.text.y = ggplot2::element_text(size = 6, colour = "black"),
       axis.ticks = ggplot2::element_blank(),
-      strip.background = ggplot2::element_blank(),
+      strip.background = ggplot2::element_rect(
+        fill = "white",
+        colour = "black",
+        linewidth = 0.5
+      ),
       strip.text = ggplot2::element_text(size = 8, face = "bold"),
       plot.title = ggplot2::element_text(size = 11, hjust = 0.5),
       legend.title = ggplot2::element_text(size = 6),
-      legend.text = ggplot2::element_text(size = 6)
+      legend.text = ggplot2::element_text(size = 6, colour = "black"),
+      legend.position = "bottom",
+      legend.direction = "horizontal",
+      legend.key = ggplot2::element_blank(),
+      legend.key.width = grid::unit(0.45, "cm"),
+      legend.box.spacing = grid::unit(0, "cm")
     )
 }
 
 # Plot all figures first using the standard R graphics device
-plot_standard_figures <- function(profile_plots, percentile_plots) {
+plot_standard_figures <- function(
+  profile_plots,
+  percentile_plots,
+  figure_width_in,
+  profile_heights_in
+) {
   preview_path <- NULL
 
   if (!interactive()) {
@@ -775,7 +837,11 @@ plot_standard_figures <- function(profile_plots, percentile_plots) {
       pattern = "reporter_loci_preview_",
       fileext = ".pdf"
     )
-    grDevices::pdf(preview_path, width = 11, height = 7)
+    grDevices::pdf(
+      preview_path,
+      width = figure_width_in,
+      height = max(profile_heights_in)
+    )
     on.exit(
       {
         grDevices::dev.off()
@@ -785,8 +851,11 @@ plot_standard_figures <- function(profile_plots, percentile_plots) {
     )
   }
 
-  plot(profile_plots$nonduplicate)
-  plot(profile_plots$all_mapped)
+  for (variant in names(profile_plots)) {
+    for (mark in names(profile_plots[[variant]])) {
+      plot(profile_plots[[variant]][[mark]])
+    }
+  }
   plot(percentile_plots$nonduplicate)
   plot(percentile_plots$all_mapped)
 
@@ -940,7 +1009,11 @@ write_parameters <- function(
   targets,
   variants,
   profile_bin_bp,
-  window_flank_bp
+  window_flank_bp,
+  plot_colors,
+  figure_width_in,
+  profile_heights_in,
+  percentile_height_in
 ) {
   input_bigwigs <- names(variants) %>%
     purrr::map(~ paste0(runs$sample_id, ".", variants[[.x]])) %>%
@@ -952,7 +1025,6 @@ write_parameters <- function(
     tidyverse = as.character(packageVersion("tidyverse")),
     ggplot2 = as.character(packageVersion("ggplot2")),
     tikzDevice = as.character(packageVersion("tikzDevice")),
-    RColorBrewer = as.character(packageVersion("RColorBrewer")),
     patchwork = as.character(packageVersion("patchwork")),
     here = as.character(packageVersion("here")),
     rtracklayer = as.character(packageVersion("rtracklayer")),
@@ -968,6 +1040,11 @@ write_parameters <- function(
     minimum_mapping_quality = 20L,
     profile_bin_bp = profile_bin_bp,
     window_flank_bp = window_flank_bp,
+    plot_colors = as.list(plot_colors),
+    figure_width_in = figure_width_in,
+    profile_heights_in = as.list(profile_heights_in),
+    percentile_height_in = percentile_height_in,
+    tikz_lwd_unit = 72.27 / 96,
     promoter_definition = "strand-aware TSS -1000 bp through +200 bp",
     gene_body_definition = "full NCBI GFF gene feature",
     ranking_population = "protein-coding genes on the seven NC12 nuclear chromosomes",
@@ -1020,7 +1097,11 @@ run_analysis <- function(
   window_flank_bp,
   promoter_upstream_bp,
   promoter_downstream_bp,
-  profile_bin_bp
+  profile_bin_bp,
+  plot_colors,
+  figure_width_in,
+  profile_heights_in,
+  percentile_height_in
 ) {
   options(digits = 15)
   parsed_arguments <- parse_arguments(
@@ -1072,21 +1153,28 @@ run_analysis <- function(
   )
 
   # Prepare figures
+  marks <- unique(runs$mark)
   profile_plots <- names(variants) %>%
     purrr::set_names() %>%
-    purrr::map(
-      ~ make_profile_plot(
-        analysis_data$profiles,
-        analysis_data$summary,
-        genes,
-        targets,
-        runs,
-        .x,
-        window_flank_bp,
-        promoter_upstream_bp,
-        promoter_downstream_bp
-      )
-    )
+    purrr::map(function(variant) {
+      marks %>%
+        purrr::set_names() %>%
+        purrr::map(function(mark) {
+          make_profile_plot(
+            analysis_data$profiles,
+            analysis_data$summary,
+            genes,
+            targets,
+            runs,
+            variant,
+            mark,
+            window_flank_bp,
+            promoter_upstream_bp,
+            promoter_downstream_bp,
+            plot_colors
+          )
+        })
+    })
   percentile_plots <- names(variants) %>%
     purrr::set_names() %>%
     purrr::map(
@@ -1095,12 +1183,18 @@ run_analysis <- function(
         targets,
         runs,
         metrics,
-        .x
+        .x,
+        plot_colors
       )
     )
 
   # Plot figures using the standard R graphics device
-  plot_standard_figures(profile_plots, percentile_plots)
+  plot_standard_figures(
+    profile_plots,
+    percentile_plots,
+    figure_width_in,
+    profile_heights_in
+  )
 
   # =========================
   # Output results
@@ -1122,24 +1216,32 @@ run_analysis <- function(
     metrics
   )
 
+  obsolete_profile_files <- file.path(
+    output_dir,
+    paste0("reporter_locus_profiles.", names(variants), ".tex")
+  )
+  file.remove(obsolete_profile_files[file.exists(obsolete_profile_files)])
+
   for (variant in names(variants)) {
-    write_tikz_plot(
-      profile_plots[[variant]],
-      file.path(
-        output_dir,
-        paste0("reporter_locus_profiles.", variant, ".tex")
-      ),
-      width = 11,
-      height = 7
-    )
+    for (mark in marks) {
+      write_tikz_plot(
+        profile_plots[[variant]][[mark]],
+        file.path(
+          output_dir,
+          paste0("reporter_locus_profiles.", mark, ".", variant, ".tex")
+        ),
+        width = figure_width_in,
+        height = profile_heights_in[[mark]]
+      )
+    }
     write_tikz_plot(
       percentile_plots[[variant]],
       file.path(
         output_dir,
         paste0("reporter_locus_percentiles.", variant, ".tex")
       ),
-      width = 11,
-      height = 3.2
+      width = figure_width_in,
+      height = percentile_height_in
     )
   }
 
@@ -1151,7 +1253,11 @@ run_analysis <- function(
     targets,
     variants,
     profile_bin_bp,
-    window_flank_bp
+    window_flank_bp,
+    plot_colors,
+    figure_width_in,
+    profile_heights_in,
+    percentile_height_in
   )
   write_checksums(output_dir)
 
@@ -1223,6 +1329,19 @@ variants <- c(
 )
 metrics <- c("promoter", "gene_body", "gene_body_plus_minus_2kb")
 
+# Match the color and TikZ sizing conventions used by the other analyses
+plot_colors <- c(
+  blue = "#0068b7",
+  orange = "#f39800"
+)
+figure_width_in <- 7.5
+profile_heights_in <- c(
+  H3K4me1 = 3.1,
+  H3K4me2 = 4.5,
+  H3K4me3 = 4.5
+)
+percentile_height_in <- 3.2
+
 # =========================
 # Run analysis
 # =========================
@@ -1245,5 +1364,9 @@ run_analysis(
   window_flank_bp,
   promoter_upstream_bp,
   promoter_downstream_bp,
-  profile_bin_bp
+  profile_bin_bp,
+  plot_colors,
+  figure_width_in,
+  profile_heights_in,
+  percentile_height_in
 )
