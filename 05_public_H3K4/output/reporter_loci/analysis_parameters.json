@@ -83,8 +83,10 @@
   "window_flank_bp": 2000,
   "plot_colors": {
     "blue": "#0068b7",
+    "midpoint": "#ffffff",
     "orange": "#f39800"
   },
+  "plot_palette_reference": "https://okumuralab.org/~okumura/stat/colors.html",
   "figure_width_in": 7.5,
   "profile_heights_in": {
     "H3K4me1": 3.1,

@@ -96,8 +96,10 @@ are never pooled. The figure files are LaTeX fragments containing
 `tikzpicture` environments generated from `ggplot2`/`patchwork` objects with
 `tikzDevice`; they require TikZ when included in a document. TikZ figures use
 the same 7.5-inch width and `lwdUnit = 72.27 / 96` as the reversion-assay
-figure. The heatmap uses a continuous `#0068b7`-to-`#f39800` scale with its
-color bar below the panels.
+figure. Following the color-scale example at
+<https://okumuralab.org/~okumura/stat/colors.html>, the heatmap maps 0 to
+`#0068b7`, 50 to white, and 100 to `#f39800`, with its color bar below the
+panels.
 
 ## Experimental metadata
 

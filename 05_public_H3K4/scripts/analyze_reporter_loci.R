@@ -744,7 +744,7 @@ make_percentile_plot <- function(
       ),
       percentile_label = round(genome_percentile_midrank),
       label_color = dplyr::if_else(
-        genome_percentile_midrank < 45,
+        genome_percentile_midrank < 18,
         "white",
         "black"
       )
@@ -767,7 +767,7 @@ make_percentile_plot <- function(
     ggplot2::facet_wrap(~metric_label, nrow = 1) +
     ggplot2::scale_fill_gradientn(
       colors = grDevices::colorRampPalette(
-        c(plot_colors[["blue"]], plot_colors[["orange"]]),
+        unname(plot_colors),
         space = "Lab"
       )(100),
       limits = c(0, 100),
@@ -1041,6 +1041,7 @@ write_parameters <- function(
     profile_bin_bp = profile_bin_bp,
     window_flank_bp = window_flank_bp,
     plot_colors = as.list(plot_colors),
+    plot_palette_reference = "https://okumuralab.org/~okumura/stat/colors.html",
     figure_width_in = figure_width_in,
     profile_heights_in = as.list(profile_heights_in),
     percentile_height_in = percentile_height_in,
@@ -1332,6 +1333,7 @@ metrics <- c("promoter", "gene_body", "gene_body_plus_minus_2kb")
 # Match the color and TikZ sizing conventions used by the other analyses
 plot_colors <- c(
   blue = "#0068b7",
+  midpoint = "#ffffff",
   orange = "#f39800"
 )
 figure_width_in <- 7.5
