@@ -220,6 +220,32 @@ compress_fastq() {
     fi
 }
 
+normalize_single_end_fastq() {
+    local run="$1"
+    local fastq_path="${RAW_FASTQ_ROOT}/${run}.fastq"
+    local split_fastq_1="${RAW_FASTQ_ROOT}/${run}_1.fastq"
+    local split_fastq_2="${RAW_FASTQ_ROOT}/${run}_2.fastq"
+
+    if [[ -s "${fastq_path}" ]]; then
+        [[ ! -e "${split_fastq_1}" && ! -e "${split_fastq_2}" ]] || \
+            die "Ambiguous FASTQ outputs for ${run}: canonical and split files coexist"
+        return
+    fi
+
+    # Some nominally single-end SRA runs contain one biological read followed
+    # by a zero-length technical read. With --split-files, fasterq-dump writes
+    # the biological reads to *_1.fastq rather than to the canonical filename.
+    if [[ -s "${split_fastq_1}" && ! -e "${split_fastq_2}" ]]; then
+        log "Normalizing single biological read file for ${run}"
+        mv "${split_fastq_1}" "${fastq_path}"
+        return
+    fi
+
+    if [[ -e "${split_fastq_1}" || -e "${split_fastq_2}" ]]; then
+        die "Unexpected paired or incomplete FASTQ output for ${run}; inspect ${RAW_FASTQ_ROOT}"
+    fi
+}
+
 download_one_run() {
     local run="$1"
     local sra_path="${SRA_ROOT}/${run}/${run}.sra"
@@ -239,14 +265,18 @@ download_one_run() {
 
     if [[ ! -s "${fastq_gz_path}" ]]; then
         mkdir -p "${run_tmp}"
-        log "Converting ${run} to FASTQ"
-        fasterq-dump "${sra_path}" \
-            --threads "${THREADS}" \
-            --temp "${run_tmp}" \
-            --outdir "${RAW_FASTQ_ROOT}" \
-            --split-files \
-            > "${LOG_ROOT}/${run}.fasterq-dump.stdout.log" \
-            2> "${LOG_ROOT}/${run}.fasterq-dump.stderr.log"
+        normalize_single_end_fastq "${run}"
+        if [[ ! -s "${fastq_path}" ]]; then
+            log "Converting ${run} to FASTQ"
+            fasterq-dump "${sra_path}" \
+                --threads "${THREADS}" \
+                --temp "${run_tmp}" \
+                --outdir "${RAW_FASTQ_ROOT}" \
+                --split-files \
+                > "${LOG_ROOT}/${run}.fasterq-dump.stdout.log" \
+                2> "${LOG_ROOT}/${run}.fasterq-dump.stderr.log"
+            normalize_single_end_fastq "${run}"
+        fi
         [[ -s "${fastq_path}" ]] || die "Expected single-end FASTQ was not created: ${fastq_path}"
         compress_fastq "${fastq_path}"
     fi
