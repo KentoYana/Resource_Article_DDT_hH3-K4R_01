@@ -111,6 +111,8 @@ Within each target-specific directory, subdirectories named `SpotYYMMDD` identif
 
 Each archived source image has a corresponding `*_results.csv` file, and each archived result CSV has a corresponding source image. The result CSV files are the direct quantitative inputs used by `script_qSpot_test.R`.
 
+For normalization, replicate spot measurements are averaged and rounded to two decimal places. Observations whose corresponding 0 J/m² control mean is zero are excluded before calculating the spot-coverage ratio. Each target's `output/<target>/excluded_zero_control.csv` records these observations (a header-only file indicates no exclusions). Ratios above one are capped at one, and the endpoint adjustment `(x * (n - 1) + 0.5) / n` uses the number of retained observations for that target. The same retained sample size is used to transform relative conidial input. For the mus-9 set, four zero-control observations are excluded, leaving 380 observations; the other five sets each retain 288 observations.
+
 #### SpotScanner image analysis
 
 Plate images were quantified using SpotScanner version 7.0.0. The software is available at <https://github.com/KentoYana/spotscanner>.

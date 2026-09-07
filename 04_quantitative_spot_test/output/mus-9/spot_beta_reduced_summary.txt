@@ -1,28 +1,28 @@
 
 Call:
-betareg(formula = Spot_ratio_scaled ~ dose + Conidia_ratio_scaled + exp_ID, 
+betareg(formula = Spot_ratio_scaled ~ dose + Conidia_ratio_scaled + exp_ID,
     data = expData_raw, link = "logit")
 
 Quantile residuals:
-    Min      1Q  Median      3Q     Max 
--2.4676 -0.3766  0.3556  0.6315  1.8709 
+    Min      1Q  Median      3Q     Max
+-2.4656 -0.3783  0.3444  0.6327  1.8695
 
 Coefficients (mean model with logit link):
-                            Estimate Std. Error z value Pr(>|z|)    
-(Intercept)                1.3237958  0.1591649   8.317  < 2e-16 ***
-dose                      -0.0069597  0.0008984  -7.747 9.40e-15 ***
-Conidia_ratio_scaled       0.7494172  0.1697949   4.414 1.02e-05 ***
-exp_ID2024-02-08_21-31-21  0.0288929  0.1788138   0.162    0.872    
-exp_ID2024-02-08_21-32-06 -0.0709638  0.1794953  -0.395    0.693    
-exp_ID2025-01-20_13-48-58 -0.0638867  0.1794465  -0.356    0.722    
+                            Estimate Std. Error z value Pr(>|z|)
+(Intercept)                1.3121295  0.1599777   8.202 2.37e-16 ***
+dose                      -0.0069461  0.0008986  -7.730 1.08e-14 ***
+Conidia_ratio_scaled       0.7533857  0.1699002   4.434 9.24e-06 ***
+exp_ID2024-02-08_21-31-21  0.0382342  0.1793706   0.213    0.831
+exp_ID2024-02-08_21-32-06 -0.0618089  0.1800451  -0.343    0.731
+exp_ID2025-01-20_13-48-58 -0.0543119  0.1799940  -0.302    0.763
 
 Phi coefficients (precision model with identity link):
-      Estimate Std. Error z value Pr(>|z|)    
-(phi)   0.8222     0.0527    15.6   <2e-16 ***
+      Estimate Std. Error z value Pr(>|z|)
+(phi)  0.82310    0.05279   15.59   <2e-16 ***
 ---
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Type of estimator: ML (maximum likelihood)
-Log-likelihood: 661.4 on 7 Df
+Log-likelihood: 656.4 on 7 Df
 Pseudo R-squared: 0.2963
-Number of iterations: 26 (BFGS) + 1 (Fisher scoring) 
+Number of iterations: 27 (BFGS) + 1 (Fisher scoring)

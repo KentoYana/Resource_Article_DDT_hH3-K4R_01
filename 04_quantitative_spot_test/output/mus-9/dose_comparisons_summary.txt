@@ -1,20 +1,20 @@
  dose strain               emmean     SE  df asymp.LCL asymp.UCL
-    0 wild-type             0.866 0.0216 Inf     0.824     0.909
-   50 wild-type             0.851 0.0178 Inf     0.816     0.886
-  100 wild-type             0.833 0.0180 Inf     0.798     0.868
-  200 wild-type             0.793 0.0360 Inf     0.723     0.864
-    0 hH3-K4R               0.874 0.0207 Inf     0.833     0.914
-   50 hH3-K4R               0.848 0.0180 Inf     0.813     0.884
-  100 hH3-K4R               0.819 0.0192 Inf     0.781     0.856
-  200 hH3-K4R               0.747 0.0419 Inf     0.664     0.829
-    0 mus-9(FK129)          0.840 0.0258 Inf     0.790     0.891
-   50 mus-9(FK129)          0.726 0.0274 Inf     0.672     0.780
-  100 mus-9(FK129)          0.572 0.0301 Inf     0.513     0.631
+    0 wild-type             0.867 0.0215 Inf     0.825     0.910
+   50 wild-type             0.852 0.0177 Inf     0.817     0.886
+  100 wild-type             0.834 0.0180 Inf     0.799     0.869
+  200 wild-type             0.794 0.0358 Inf     0.724     0.865
+    0 hH3-K4R               0.875 0.0205 Inf     0.834     0.915
+   50 hH3-K4R               0.849 0.0179 Inf     0.814     0.884
+  100 hH3-K4R               0.820 0.0192 Inf     0.782     0.857
+  200 hH3-K4R               0.748 0.0418 Inf     0.666     0.829
+    0 mus-9(FK129)          0.841 0.0257 Inf     0.791     0.891
+   50 mus-9(FK129)          0.727 0.0273 Inf     0.673     0.780
+  100 mus-9(FK129)          0.573 0.0300 Inf     0.514     0.632
   200 mus-9(FK129)          0.254 0.0422 Inf     0.171     0.336
-    0 mus-9(FK129) hH3-K4R  0.815 0.0294 Inf     0.758     0.873
-   50 mus-9(FK129) hH3-K4R  0.690 0.0299 Inf     0.632     0.749
-  100 mus-9(FK129) hH3-K4R  0.529 0.0311 Inf     0.468     0.590
-  200 mus-9(FK129) hH3-K4R  0.223 0.0392 Inf     0.146     0.299
+    0 mus-9(FK129) hH3-K4R  0.812 0.0300 Inf     0.753     0.870
+   50 mus-9(FK129) hH3-K4R  0.686 0.0303 Inf     0.626     0.745
+  100 mus-9(FK129) hH3-K4R  0.525 0.0312 Inf     0.464     0.586
+  200 mus-9(FK129) hH3-K4R  0.220 0.0389 Inf     0.144     0.297
 
-Results are averaged over the levels of: exp_ID 
-Confidence level used: 0.95 
+Results are averaged over the levels of: exp_ID
+Confidence level used: 0.95

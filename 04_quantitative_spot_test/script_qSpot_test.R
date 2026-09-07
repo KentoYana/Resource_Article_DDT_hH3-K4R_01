@@ -152,21 +152,41 @@ analyze_qspot_target <- function(target_info) {
     by = c("suspension", "strain", "column", "exp_ID")
   )
 
+  # A zero UV-control mean cannot define a normalized spot-coverage ratio.
+  # Retain the excluded observations for auditing, but remove them before
+  # calculating ratios and the sample size for the endpoint adjustment.
+  excluded_zero_control <- raw_csv_summarize %>%
+    filter(Colony_control == 0)
+
+  if (any(!is.finite(raw_csv_summarize$Colony_control)) ||
+      any(raw_csv_summarize$Colony_control < 0)) {
+    stop("Missing, non-finite, or negative UV-control coverage for ", target_name)
+  }
+
+  ratio_data <- raw_csv_summarize %>%
+    filter(Colony_control != 0)
+
   # calculate ratio of Colony_mean to Control
   expData_raw <- data.frame(
-    exp_ID = raw_csv_summarize$exp_ID,
-    suspension = raw_csv_summarize$suspension,
-    dose = raw_csv_summarize$dose,
-    strain = raw_csv_summarize$strain,
-    column = raw_csv_summarize$column,
-    Spot_ratio = raw_csv_summarize$Colony_mean / raw_csv_summarize$Colony_control,
-    Conidia_ratio = raw_csv_summarize$Conidia / raw_csv_summarize$Conidia_control
+    exp_ID = ratio_data$exp_ID,
+    suspension = ratio_data$suspension,
+    dose = ratio_data$dose,
+    strain = ratio_data$strain,
+    column = ratio_data$column,
+    Spot_ratio = ratio_data$Colony_mean / ratio_data$Colony_control,
+    Conidia_ratio = ratio_data$Conidia / ratio_data$Conidia_control
   )
+
+  n_observations <- nrow(expData_raw)
+  if (n_observations < 2 || any(!is.finite(expData_raw$Spot_ratio)) ||
+      any(expData_raw$Spot_ratio < 0)) {
+    stop("Invalid normalized spot-coverage ratios for ", target_name)
+  }
 
   expData_raw <- expData_raw %>%
     mutate(Spot_ratio_scaled = ifelse(Spot_ratio > 1, 1, Spot_ratio)) %>%
-    mutate(Spot_ratio_scaled = (Spot_ratio_scaled * (nrow(expData_raw) - 1) + 0.5) / nrow(expData_raw)) %>%
-    mutate(Conidia_ratio_scaled = (Conidia_ratio * (nrow(expData_raw) - 1) + 0.5) / nrow(expData_raw))
+    mutate(Spot_ratio_scaled = (Spot_ratio_scaled * (n_observations - 1) + 0.5) / n_observations) %>%
+    mutate(Conidia_ratio_scaled = (Conidia_ratio * (n_observations - 1) + 0.5) / n_observations)
 
   spot_beta <- betareg(
     Spot_ratio_scaled ~ dose * strain + Conidia_ratio_scaled + exp_ID,
@@ -312,6 +332,12 @@ analyze_qspot_target <- function(target_info) {
   write.csv(
     expData_raw,
     file = here("04_quantitative_spot_test", "output", target_name, "expData_raw.csv"),
+    row.names = FALSE
+  )
+
+  write.csv(
+    excluded_zero_control,
+    file = here("04_quantitative_spot_test", "output", target_name, "excluded_zero_control.csv"),
     row.names = FALSE
   )
 
