@@ -2,7 +2,8 @@
 
 This directory records the public wild-type *Neurospora crassa* H3K4
 ChIP-seq datasets selected for locus-level inspection. It includes a raw-read
-reprocessing workflow and the resulting reporter-locus summaries.
+reprocessing workflow and the resulting reporter-locus and repair/DDT-gene
+summaries.
 
 ## Dataset identification
 
@@ -100,6 +101,44 @@ figure. Following the color-scale example at
 <https://okumuralab.org/~okumura/stat/colors.html>, the heatmap maps 0 to
 `#0068b7`, 50 to white, and 100 to `#f39800`, with its color bar below the
 panels.
+
+## Repair/DDT-related gene inspection
+
+For Reviewer 1's question about a possible indirect effect through repair-gene
+regulation, the same uniformly processed H3K4me tracks can be inspected at the
+eight genes tested directly in the genetic-interaction experiments: `mus-9`,
+`uvs-2`, `mus-26`, `polh`, `qde-3`, `recQ2`, `mei-3`, and `mus-11`. No new
+download, alignment, or normalization is performed for this target set.
+
+Run only this analysis stage from the shell with:
+
+```sh
+./05_public_H3K4/scripts/reprocess_selected_h3k4_chipseq.sh repairs
+```
+
+The same analysis can be run from RStudio by setting the target collection
+before sourcing the script:
+
+```r
+Sys.setenv(H3K4_TARGET_SET = "repair")
+source("05_public_H3K4/scripts/analyze_reporter_loci.R")
+```
+
+Results are written to [`output/repair_genes`](output/repair_genes). The output
+uses the same promoter, gene-body, and plus-or-minus-2-kb definitions,
+within-run genome-wide percentiles, duplicate-retaining/nonduplicate variants,
+7.5-inch TikZ width, and blue-white-orange scale as the reporter-locus output.
+The studies are displayed separately and are not pooled. These basal wild-type
+profiles cannot determine transcriptional effects of `hH3-K4R` or changes after
+UV irradiation or replication stress.
+
+In the nonduplicate tracks, the promoter profiles are heterogeneous rather
+than uniformly H3K4me-rich. `uvs-2`, `mus-26`, and `mus-11` have high H3K4me1
+and H3K4me2 promoter percentiles, and `mus-26` and `mus-11` also have high
+H3K4me3 promoter percentiles. In contrast, `recQ2` has low H3K4me2 and H3K4me3
+promoter percentiles, while `qde-3` and `mei-3` are not consistently high for
+H3K4me3. These descriptive patterns make a gene-specific indirect effect
+plausible but do not establish altered expression or causality.
 
 ## Nucleosome occupancy and accessibility workflow
 

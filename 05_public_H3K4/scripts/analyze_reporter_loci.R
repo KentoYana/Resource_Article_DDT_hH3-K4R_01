@@ -633,6 +633,7 @@ make_profile_plot <- function(
   summary,
   genes,
   targets,
+  collection_label,
   runs,
   variant,
   selected_mark,
@@ -647,7 +648,13 @@ make_profile_plot <- function(
   if (nrow(mark_runs) == 0L) {
     stop("No runs found for histone mark: ", selected_mark, call. = FALSE)
   }
-  row_plots <- vector("list", nrow(mark_runs))
+  target_groups <- if (nrow(targets) > 7L) {
+    split(targets, ceiling(seq_len(nrow(targets)) / 4L))
+  } else {
+    list(targets)
+  }
+  row_plots <- vector("list", nrow(mark_runs) * length(target_groups))
+  row_plot_index <- 1L
 
   for (run_index in seq_len(nrow(mark_runs))) {
     run <- mark_runs %>% dplyr::slice(run_index)
@@ -661,49 +668,64 @@ make_profile_plot <- function(
       y_max <- 1
     }
 
-    panels <- vector("list", nrow(targets))
-    for (target_index in seq_len(nrow(targets))) {
-      target <- targets %>% dplyr::slice(target_index)
-      gene <- gene_lookup(genes, target$locus_tag)
-      profile_data <- run_profiles %>%
-        dplyr::filter(locus_tag == target$locus_tag)
+    for (target_group in target_groups) {
+      panels <- vector("list", nrow(target_group))
+      for (target_index in seq_len(nrow(target_group))) {
+        target <- target_group %>% dplyr::slice(target_index)
+        gene <- gene_lookup(genes, target$locus_tag)
+        profile_data <- run_profiles %>%
+          dplyr::filter(locus_tag == target$locus_tag)
 
-      panels[[target_index]] <- make_profile_panel(
-        profile_data,
-        summary,
-        run,
-        target,
-        gene,
-        variant,
-        y_max,
-        show_title = run_index == 1L,
-        show_y_axis = target_index == 1L,
-        show_left_flank_label = target_index == 1L,
-        show_right_flank_label = target_index == nrow(targets),
-        window_flank_bp,
-        promoter_upstream_bp,
-        promoter_downstream_bp,
-        profile_color,
-        plot_colors[["orange"]]
-      )
+        panels[[target_index]] <- make_profile_panel(
+          profile_data,
+          summary,
+          run,
+          target,
+          gene,
+          variant,
+          y_max,
+          show_title = run_index == 1L,
+          show_y_axis = target_index == 1L,
+          show_left_flank_label = target_index == 1L,
+          show_right_flank_label = target_index == nrow(target_group),
+          window_flank_bp,
+          promoter_upstream_bp,
+          promoter_downstream_bp,
+          profile_color,
+          plot_colors[["orange"]]
+        )
+      }
+
+      row_plots[[row_plot_index]] <- patchwork::wrap_plots(panels, nrow = 1)
+      row_plot_index <- row_plot_index + 1L
     }
-
-    row_plots[[run_index]] <- patchwork::wrap_plots(panels, nrow = 1)
   }
 
   variant_label <- stringr::str_replace_all(variant, "_", " ")
+  layout_caption <- if (length(target_groups) > 1L) {
+    paste0(
+      "Within each run, all ", nrow(targets),
+      " loci share one y-axis and are displayed in two four-locus rows; ",
+      "y-axes are not shared between runs.\n"
+    )
+  } else {
+    paste0(
+      "Each row has one shared y-axis across all seven loci; ",
+      "y-axes are not shared between runs.\n"
+    )
+  }
   patchwork::wrap_plots(row_plots, ncol = 1) +
     patchwork::plot_annotation(
       title = paste0(
-        "Candidate reporter loci: gene-oriented ",
+        collection_label,
+        ": gene-oriented ",
         selected_mark,
         " profiles (",
         variant_label,
         ")"
       ),
       caption = paste0(
-        "Each row has one shared y-axis across all seven loci; y-axes are not ",
-        "shared between runs.\n",
+        layout_caption,
         "Orange: promoter (-1 kb to +200 bp); grey: annotated gene body.\n",
         "Annotations are within-run genome-wide midrank percentiles."
       )
@@ -718,6 +740,7 @@ make_profile_plot <- function(
 make_percentile_plot <- function(
   summary,
   targets,
+  collection_label,
   runs,
   metrics,
   variant,
@@ -751,6 +774,11 @@ make_percentile_plot <- function(
     )
 
   variant_label <- stringr::str_replace_all(variant, "_", " ")
+  heatmap_collection_label <- if (collection_label == "Candidate reporter loci") {
+    "Candidate reporter"
+  } else {
+    collection_label
+  }
   ggplot2::ggplot(
     plot_data,
     ggplot2::aes(
@@ -783,7 +811,8 @@ make_percentile_plot <- function(
     ggplot2::scale_color_identity() +
     ggplot2::labs(
       title = paste0(
-        "Candidate reporter H3K4me signal percentiles (",
+        heatmap_collection_label,
+        " H3K4me signal percentiles (",
         variant_label,
         ")"
       ),
@@ -917,7 +946,7 @@ write_locus_table <- function(path, genes, targets) {
 }
 
 # Write the concise pan-2 interpretation table
-write_analysis_summary <- function(path, summary, runs, metrics) {
+write_reporter_analysis_summary <- function(path, summary, runs, metrics) {
   connection <- file(path, open = "wt", encoding = "UTF-8")
   on.exit(close(connection), add = TRUE)
 
@@ -982,6 +1011,89 @@ write_analysis_summary <- function(path, summary, runs, metrics) {
   )
 }
 
+# Format one or more study-specific percentiles without treating studies as
+# biological replicates
+format_percentile_range <- function(values) {
+  finite_values <- values[is.finite(values)]
+  if (length(finite_values) == 0L) {
+    return("NA")
+  }
+  if (length(finite_values) == 1L) {
+    return(sprintf("%.1f", finite_values))
+  }
+  sprintf("%.1f-%.1f", min(finite_values), max(finite_values))
+}
+
+# Write the repair/DDT-gene summary requested by Reviewer 1
+write_repair_analysis_summary <- function(path, summary, targets) {
+  connection <- file(path, open = "wt", encoding = "UTF-8")
+  on.exit(close(connection), add = TRUE)
+
+  writeLines(
+    c(
+      "# Repair/DDT-gene H3K4me descriptive summary",
+      "",
+      "This table reports within-run genome-wide midrank percentiles from the nonduplicate tracks. Values separated by a hyphen give the range across the selected studies; studies are not treated as biological replicates and are not pooled.",
+      "",
+      "| Gene | H3K4me1 promoter | H3K4me1 gene body | H3K4me2 promoter | H3K4me2 gene body | H3K4me3 promoter | H3K4me3 gene body |",
+      "|---|---:|---:|---:|---:|---:|---:|"
+    ),
+    connection
+  )
+
+  for (target_index in seq_len(nrow(targets))) {
+    target <- targets %>% dplyr::slice(target_index)
+    target_summary <- summary %>%
+      dplyr::filter(
+        track_variant == "nonduplicate",
+        locus_tag == target$locus_tag,
+        metric %in% c("promoter", "gene_body")
+      )
+
+    lookup_range <- function(mark_name, metric_name) {
+      target_summary %>%
+        dplyr::filter(mark == mark_name, metric == metric_name) %>%
+        dplyr::pull(genome_percentile_midrank) %>%
+        format_percentile_range()
+    }
+
+    writeLines(
+      sprintf(
+        "| `%s` | %s | %s | %s | %s | %s | %s |",
+        target$display_name,
+        lookup_range("H3K4me1", "promoter"),
+        lookup_range("H3K4me1", "gene_body"),
+        lookup_range("H3K4me2", "promoter"),
+        lookup_range("H3K4me2", "gene_body"),
+        lookup_range("H3K4me3", "promoter"),
+        lookup_range("H3K4me3", "gene_body")
+      ),
+      connection
+    )
+  }
+
+  writeLines(
+    c(
+      "",
+      "## Descriptive result",
+      "",
+      "- The promoter profiles are heterogeneous rather than uniformly H3K4me-rich.",
+      "- `uvs-2`, `mus-26`, and `mus-11` have high H3K4me1 and H3K4me2 promoter percentiles; `mus-26` and `mus-11` also have high H3K4me3 promoter percentiles.",
+      "- `recQ2` has low H3K4me2 and H3K4me3 promoter percentiles, while `qde-3` and `mei-3` are not consistently high for H3K4me3.",
+      "- These basal profiles make a gene-specific indirect effect through altered transcription plausible, but do not demonstrate an expression change or causality.",
+      "",
+      "## Interpretation boundaries",
+      "",
+      "- These are descriptive CPM summaries and genome-relative percentiles, not statistical tests.",
+      "- No selected mark has biological replication within every study, and the studies remain separate.",
+      "- Nonzero coverage is not equivalent to enrichment because no matched input is used.",
+      "- Basal wild-type H3K4me profiles can show whether these genes lie in H3K4me-rich chromatin under the public-data conditions, but cannot determine transcriptional effects of `hH3-K4R` or changes after UV irradiation or replication stress.",
+      "- Exact zero bases are retained and counted separately from missing bases in the long-form TSV."
+    ),
+    connection
+  )
+}
+
 # Write the long-form summary with stable six-decimal numeric formatting
 write_signal_summary <- function(path, summary) {
   six_decimal_columns <- c(
@@ -1012,6 +1124,9 @@ write_signal_summary <- function(path, summary) {
 write_parameters <- function(
   path,
   script_path,
+  target_set,
+  file_prefix,
+  signal_summary_name,
   gff_path,
   runs,
   targets,
@@ -1029,6 +1144,7 @@ write_parameters <- function(
 
   payload <- list(
     analysis_script = basename(script_path),
+    target_set = target_set,
     R = as.character(getRversion()),
     tidyverse = as.character(packageVersion("tidyverse")),
     ggplot2 = as.character(packageVersion("ggplot2")),
@@ -1058,7 +1174,9 @@ write_parameters <- function(
     gene_body_definition = "full NCBI GFF gene feature",
     ranking_population = "protein-coding genes on the seven NC12 nuclear chromosomes",
     percentile_method = "empirical midrank, calculated independently for each run, track variant, and region metric",
-    exact_zero_treatment = "included as zero; counted separately in reporter_locus_signal_summary.tsv",
+    exact_zero_treatment = paste0(
+      "included as zero; counted separately in ", signal_summary_name
+    ),
     missing_treatment = "excluded from regional means and counted separately; NA retained when a region has no covered bases",
     random_seed = NULL,
     pooling = "none",
@@ -1099,6 +1217,9 @@ run_analysis <- function(
   script_path,
   default_work_root,
   default_output_dir,
+  target_set,
+  collection_label,
+  file_prefix,
   targets,
   runs,
   variants,
@@ -1174,6 +1295,7 @@ run_analysis <- function(
             analysis_data$summary,
             genes,
             targets,
+            collection_label,
             runs,
             variant,
             mark,
@@ -1190,6 +1312,7 @@ run_analysis <- function(
       ~ make_percentile_plot(
         analysis_data$summary,
         targets,
+        collection_label,
         runs,
         metrics,
         .x,
@@ -1209,25 +1332,40 @@ run_analysis <- function(
   # Output results
   # =========================
 
+  locus_table_name <- if (target_set == "repair") {
+    "repair_genes.tsv"
+  } else {
+    "reporter_loci.tsv"
+  }
+  signal_summary_name <- paste0(file_prefix, "_signal_summary.tsv")
+
   write_locus_table(
-    file.path(output_dir, "reporter_loci.tsv"),
+    file.path(output_dir, locus_table_name),
     genes,
     targets
   )
   write_signal_summary(
-    file.path(output_dir, "reporter_locus_signal_summary.tsv"),
+    file.path(output_dir, paste0(file_prefix, "_signal_summary.tsv")),
     analysis_data$summary
   )
-  write_analysis_summary(
-    file.path(output_dir, "analysis_summary.md"),
-    analysis_data$summary,
-    runs,
-    metrics
-  )
+  if (target_set == "repair") {
+    write_repair_analysis_summary(
+      file.path(output_dir, "analysis_summary.md"),
+      analysis_data$summary,
+      targets
+    )
+  } else {
+    write_reporter_analysis_summary(
+      file.path(output_dir, "analysis_summary.md"),
+      analysis_data$summary,
+      runs,
+      metrics
+    )
+  }
 
   obsolete_profile_files <- file.path(
     output_dir,
-    paste0("reporter_locus_profiles.", names(variants), ".tex")
+    paste0(file_prefix, "_profiles.", names(variants), ".tex")
   )
   file.remove(obsolete_profile_files[file.exists(obsolete_profile_files)])
 
@@ -1237,7 +1375,7 @@ run_analysis <- function(
         profile_plots[[variant]][[mark]],
         file.path(
           output_dir,
-          paste0("reporter_locus_profiles.", mark, ".", variant, ".tex")
+          paste0(file_prefix, "_profiles.", mark, ".", variant, ".tex")
         ),
         width = figure_width_in,
         height = profile_heights_in[[mark]]
@@ -1247,7 +1385,7 @@ run_analysis <- function(
       percentile_plots[[variant]],
       file.path(
         output_dir,
-        paste0("reporter_locus_percentiles.", variant, ".tex")
+        paste0(file_prefix, "_percentiles.", variant, ".tex")
       ),
       width = figure_width_in,
       height = percentile_height_in
@@ -1257,6 +1395,9 @@ run_analysis <- function(
   write_parameters(
     file.path(output_dir, "analysis_parameters.json"),
     script_path,
+    target_set,
+    file_prefix,
+    signal_summary_name,
     gff_path,
     runs,
     targets,
@@ -1272,7 +1413,8 @@ run_analysis <- function(
 
   # Print summaries to console
   cat(
-    "Analyzed ", nrow(targets), " reporter loci across ", nrow(runs),
+    "Analyzed ", nrow(targets), " loci in the ", target_set,
+    " target set across ", nrow(runs),
     " runs and ", length(variants), " track variants\n",
     sep = ""
   )
@@ -1298,9 +1440,30 @@ default_work_root <- Sys.getenv(
   "H3K4_WORK_ROOT",
   unset = "/Volumes/Garage/Re_analysis/260906_issue69_H3K4"
 )
+target_set <- Sys.getenv("H3K4_TARGET_SET", unset = "reporter")
+if (!target_set %in% c("reporter", "repair")) {
+  stop(
+    "H3K4_TARGET_SET must be either 'reporter' or 'repair'",
+    call. = FALSE
+  )
+}
+collection_label <- if (target_set == "repair") {
+  "Repair/DDT-related genes"
+} else {
+  "Candidate reporter loci"
+}
+file_prefix <- if (target_set == "repair") {
+  "repair_gene"
+} else {
+  "reporter_locus"
+}
 default_output_dir <- Sys.getenv(
   "H3K4_OUTPUT_DIR",
-  unset = here::here("05_public_H3K4", "output", "reporter_loci")
+  unset = here::here(
+    "05_public_H3K4",
+    "output",
+    if (target_set == "repair") "repair_genes" else "reporter_loci"
+  )
 )
 
 # Define genomic regions and profile resolution
@@ -1309,17 +1472,31 @@ promoter_upstream_bp <- 1000L
 promoter_downstream_bp <- 200L
 profile_bin_bp <- 10L
 
-# Define reporter loci
-targets <- tibble::tribble(
-  ~display_name, ~locus_tag, ~role,
-  "pan-2", "NCU10048", "focal",
-  "ad-3A", "NCU03166", "alternative",
-  "ad-3B", "NCU03194", "alternative",
-  "ad-8", "NCU09789", "alternative",
-  "his-3", "NCU03139", "alternative",
-  "mtr", "NCU06619", "alternative",
-  "csr-1", "NCU00726", "exploratory"
-)
+# Define the requested locus collection in manuscript order
+targets <- if (target_set == "repair") {
+  tibble::tribble(
+    ~display_name, ~locus_tag, ~role,
+    "mus-9", "NCU11188", "checkpoint",
+    "uvs-2", "NCU05210", "TLS",
+    "mus-26", "NCU06577", "TLS",
+    "polh", "NCU01936", "TLS",
+    "qde-3", "NCU08598", "RecQ",
+    "recQ2", "NCU03337", "RecQ",
+    "mei-3", "NCU02741", "HR",
+    "mus-11", "NCU04275", "HR"
+  )
+} else {
+  tibble::tribble(
+    ~display_name, ~locus_tag, ~role,
+    "pan-2", "NCU10048", "focal",
+    "ad-3A", "NCU03166", "alternative",
+    "ad-3B", "NCU03194", "alternative",
+    "ad-8", "NCU09789", "alternative",
+    "his-3", "NCU03139", "alternative",
+    "mtr", "NCU06619", "alternative",
+    "csr-1", "NCU00726", "exploratory"
+  )
+}
 
 # Define H3K4 ChIP-seq runs
 runs <- tibble::tribble(
@@ -1345,11 +1522,19 @@ plot_colors <- c(
   orange = "#f39800"
 )
 figure_width_in <- 7.5
-profile_heights_in <- c(
-  H3K4me1 = 3.1,
-  H3K4me2 = 4.5,
-  H3K4me3 = 4.5
-)
+profile_heights_in <- if (target_set == "repair") {
+  c(
+    H3K4me1 = 4.8,
+    H3K4me2 = 8.0,
+    H3K4me3 = 8.0
+  )
+} else {
+  c(
+    H3K4me1 = 3.1,
+    H3K4me2 = 4.5,
+    H3K4me3 = 4.5
+  )
+}
 percentile_height_in <- 3.2
 
 # =========================
@@ -1367,6 +1552,9 @@ run_analysis(
   script_path,
   default_work_root,
   default_output_dir,
+  target_set,
+  collection_label,
+  file_prefix,
   targets,
   runs,
   variants,

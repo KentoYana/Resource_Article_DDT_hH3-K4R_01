@@ -482,9 +482,16 @@ analyze_reporter_loci() {
     log "Candidate reporter-locus analysis completed"
 }
 
+analyze_repair_genes() {
+    log "Analyzing repair/DDT-related genes"
+    H3K4_TARGET_SET=repair Rscript "${SCRIPT_ROOT}/analyze_reporter_loci.R" \
+        --work-root "${WORK_ROOT}"
+    log "Repair/DDT-gene analysis completed"
+}
+
 usage() {
     cat <<EOF
-Usage: $(basename "$0") [check|reference|download|trim|align|tracks|reporters|all]
+Usage: $(basename "$0") [check|reference|download|trim|align|tracks|reporters|repairs|all]
 
 Environment overrides:
   WORK_ROOT       Analysis directory (default: ${DEFAULT_WORK_ROOT})
@@ -495,7 +502,7 @@ Environment overrides:
   TRIMMOMATIC_ADAPTERS
                   TruSeq single-end adapter FASTA, if Homebrew discovery fails
 
-The all stage executes: check, reference, download, trim, align, tracks, reporters.
+The all stage executes: check, reference, download, trim, align, tracks, reporters, repairs.
 Existing non-empty downloads and outputs are retained to make reruns resumable.
 EOF
 }
@@ -529,6 +536,10 @@ main() {
             check_environment
             analyze_reporter_loci
             ;;
+        repairs)
+            check_environment
+            analyze_repair_genes
+            ;;
         all)
             check_environment
             prepare_reference
@@ -537,6 +548,7 @@ main() {
             align_runs
             make_tracks
             analyze_reporter_loci
+            analyze_repair_genes
             ;;
         -h|--help|help)
             usage
