@@ -1,0 +1,8 @@
+run	study	assay	replicate	GEO_sample	SRA_experiment	condition	analysis_role
+SRR13067301	Kamei et al. 2021	MNase-seq	1	GSM4909900	SRX9514848	WT mycelial culture; constant light; standard growth conditions	primary nucleosome dyad signal
+SRR13067302	Kamei et al. 2021	MNase-seq	2	GSM4909901	SRX9514849	WT mycelial culture; constant light; standard growth conditions	primary nucleosome dyad signal
+SRR13067303	Kamei et al. 2021	MNase-seq	3	GSM4909902	SRX9514850	WT mycelial culture; constant light; standard growth conditions	primary nucleosome dyad signal
+SRR13067307	Kamei et al. 2021	total H3 ChIP-seq	1	GSM4909906	SRX9514854	WT mycelial culture; constant light; standard growth conditions	orthogonal nucleosome occupancy proxy
+SRR13067308	Kamei et al. 2021	total H3 ChIP-seq	2	GSM4909907	SRX9514855	WT mycelial culture; constant light; standard growth conditions	orthogonal nucleosome occupancy proxy
+SRR12229299	Ferraro et al. 2021	ATAC-seq	1	GSM4672238	SRX8737822	WT mycelial culture; Vogel's minimal medium with 1.5% sucrose; 32 C; 18 h	same-series chromatin accessibility support
+SRR12229300	Ferraro et al. 2021	ATAC-seq	2	GSM4672239	SRX8737823	WT mycelial culture; Vogel's minimal medium with 1.5% sucrose; 32 C; 18 h	same-series chromatin accessibility support

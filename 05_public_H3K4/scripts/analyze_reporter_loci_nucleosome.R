@@ -1,6 +1,7 @@
-# analyze_reporter_loci.R
+# analyze_reporter_loci_nucleosome.R
 # Kento Yanagisawa
-# This script analyzes public H3K4 ChIP-seq signal at candidate reporter loci.
+# This script analyzes public MNase-seq, total-H3 ChIP-seq, and ATAC-seq signal
+# at candidate reporter loci.
 
 # Make these packages and their associated functions
 # available to use in this script
@@ -17,7 +18,7 @@ library("jsonlite")
 rm(list = ls())
 
 # Set project root
-here::i_am("05_public_H3K4/scripts/analyze_reporter_loci.R")
+here::i_am("05_public_H3K4/scripts/analyze_reporter_loci_nucleosome.R")
 
 # =========================
 # Functions
@@ -346,8 +347,10 @@ collect_analysis_data <- function(
 ) {
   summary_rows <- list()
   profile_rows <- list()
+  genome_rows <- list()
   summary_index <- 1L
   profile_index <- 1L
+  genome_index <- 1L
 
   target_genes <- targets %>%
     dplyr::select(locus_tag) %>%
@@ -363,6 +366,7 @@ collect_analysis_data <- function(
         stop("Missing bigWig: ", bigwig_path, call. = FALSE)
       }
 
+      message("Importing ", bigwig_name)
       signal <- rtracklayer::import(bigwig_path, as = "RleList")
       chromosome_lengths <- lengths(signal)
 
@@ -400,6 +404,17 @@ collect_analysis_data <- function(
           promoter_upstream_bp,
           promoter_downstream_bp
         )
+
+        genome_rows[[genome_index]] <- tibble::tibble(
+          sample_id = run$sample_id,
+          study = run$study,
+          mark = run$mark,
+          track_variant = variant,
+          metric = metric,
+          locus_tag = names(values),
+          mean_cpm = as.numeric(values)
+        )
+        genome_index <- genome_index + 1L
       }
 
       for (target_index in seq_len(nrow(targets))) {
@@ -468,13 +483,142 @@ collect_analysis_data <- function(
 
       rm(signal)
       invisible(gc())
+      message("Completed ", bigwig_name)
     }
   }
 
   list(
     summary = dplyr::bind_rows(summary_rows),
-    profiles = dplyr::bind_rows(profile_rows)
+    profiles = dplyr::bind_rows(profile_rows),
+    genome_summary = dplyr::bind_rows(genome_rows)
   )
+}
+
+# Calculate pairwise replicate agreement across all protein-coding genes
+calculate_replicate_correlations <- function(genome_summary) {
+  genome_summary %>%
+    dplyr::group_by(mark, track_variant, metric) %>%
+    dplyr::group_split() %>%
+    purrr::map_dfr(function(group_data) {
+      sample_ids <- unique(group_data$sample_id)
+      if (length(sample_ids) < 2L) {
+        return(tibble::tibble())
+      }
+
+      wide <- group_data %>%
+        dplyr::select(locus_tag, sample_id, mean_cpm) %>%
+        tidyr::pivot_wider(
+          names_from = sample_id,
+          values_from = mean_cpm
+        )
+
+      utils::combn(sample_ids, 2L, simplify = FALSE) %>%
+        purrr::map_dfr(function(sample_pair) {
+          first_values <- wide[[sample_pair[[1L]]]]
+          second_values <- wide[[sample_pair[[2L]]]]
+          complete <- is.finite(first_values) & is.finite(second_values)
+
+          tibble::tibble(
+            mark = group_data$mark[[1L]],
+            track_variant = group_data$track_variant[[1L]],
+            metric = group_data$metric[[1L]],
+            sample_1 = sample_pair[[1L]],
+            sample_2 = sample_pair[[2L]],
+            protein_coding_genes_n = sum(complete),
+            spearman_rho = stats::cor(
+              first_values[complete],
+              second_values[complete],
+              method = "spearman"
+            )
+          )
+        })
+    })
+}
+
+# Read alignment, duplicate, and MNase fragment-window QC summaries
+load_alignment_qc <- function(
+  work_root,
+  runs,
+  mnase_min_fragment,
+  mnase_max_fragment
+) {
+  purrr::map_dfr(seq_len(nrow(runs)), function(run_index) {
+    run_row <- runs %>% dplyr::slice(run_index)
+    flagstat_path <- file.path(
+      work_root,
+      "qc",
+      "alignment",
+      paste0(run_row$sample_id, ".marked.flagstat.txt")
+    )
+    duplicate_path <- file.path(
+      work_root,
+      "qc",
+      "duplicates",
+      paste0(run_row$sample_id, ".picard_markduplicates.txt")
+    )
+
+    flagstat_lines <- readLines(flagstat_path, warn = FALSE)
+    proper_pair_line <- flagstat_lines %>%
+      purrr::keep(~ stringr::str_detect(.x, " properly paired "))
+    proper_pair_reads <- proper_pair_line[[1L]] %>%
+      stringr::str_extract("^[0-9]+") %>%
+      as.numeric()
+
+    duplicate_lines <- readLines(duplicate_path, warn = FALSE)
+    metric_header_index <- which(
+      stringr::str_starts(duplicate_lines, "LIBRARY\t")
+    )[[1L]]
+    duplicate_metric <- readr::read_tsv(
+      I(paste(
+        duplicate_lines[[metric_header_index]],
+        duplicate_lines[[metric_header_index + 1L]],
+        sep = "\n"
+      )),
+      show_col_types = FALSE,
+      progress = FALSE
+    )
+
+    mnase_window_fraction <- NA_real_
+    if (run_row$mark == "MNase") {
+      fragment_path <- file.path(
+        work_root,
+        "qc",
+        "fragment_size",
+        paste0(run_row$sample_id, ".marked.fragment_lengths.tsv")
+      )
+      fragments <- readr::read_tsv(
+        fragment_path,
+        show_col_types = FALSE,
+        progress = FALSE
+      )
+      mnase_window_fraction <- fragments %>%
+        dplyr::summarise(
+          fraction = sum(
+            pair_count[
+              fragment_length_bp >= mnase_min_fragment &
+                fragment_length_bp <= mnase_max_fragment
+            ]
+          ) / sum(pair_count)
+        ) %>%
+        dplyr::pull(fraction)
+    }
+
+    tibble::tibble(
+      run = run_row$run,
+      sample_id = run_row$sample_id,
+      study = run_row$study,
+      assay = run_row$mark,
+      retained_proper_pair_reads = proper_pair_reads,
+      retained_proper_pairs = proper_pair_reads / 2,
+      duplicate_fraction = duplicate_metric$PERCENT_DUPLICATION[[1L]],
+      mnase_fragment_window = dplyr::if_else(
+        run_row$mark == "MNase",
+        paste0(mnase_min_fragment, "-", mnase_max_fragment, " bp"),
+        NA_character_
+      ),
+      mnase_pairs_in_window_fraction = mnase_window_fraction
+    )
+  })
 }
 
 # Make one profile panel for a run and reporter locus
@@ -783,7 +927,7 @@ make_percentile_plot <- function(
     ggplot2::scale_color_identity() +
     ggplot2::labs(
       title = paste0(
-        "Candidate reporter H3K4me signal percentiles (",
+        "Reporter-locus chromatin signal percentiles (",
         variant_label,
         ")"
       ),
@@ -916,18 +1060,61 @@ write_locus_table <- function(path, genes, targets) {
   readr::write_tsv(locus_table, path, na = "NA")
 }
 
-# Write the concise pan-2 interpretation table
-write_analysis_summary <- function(path, summary, runs, metrics) {
+# Write the concise pan-2 descriptive summary
+write_analysis_summary <- function(
+  path,
+  summary,
+  runs,
+  metrics,
+  replicate_correlations,
+  alignment_qc
+) {
   connection <- file(path, open = "wt", encoding = "UTF-8")
   on.exit(close(connection), add = TRUE)
 
+  pan2_nonduplicate <- summary %>%
+    dplyr::filter(
+      display_name == "pan-2",
+      track_variant == "nonduplicate"
+    )
+
+  percentile_range <- function(selected_mark, selected_metric) {
+    values <- pan2_nonduplicate %>%
+      dplyr::filter(
+        mark == selected_mark,
+        metric == selected_metric
+      ) %>%
+      dplyr::pull(genome_percentile_midrank)
+
+    paste0(
+      format(round(min(values, na.rm = TRUE), 1), nsmall = 1),
+      "-",
+      format(round(max(values, na.rm = TRUE), 1), nsmall = 1)
+    )
+  }
+
+  correlation_range <- function(selected_mark) {
+    values <- replicate_correlations %>%
+      dplyr::filter(
+        mark == selected_mark,
+        track_variant == "nonduplicate"
+      ) %>%
+      dplyr::pull(spearman_rho)
+
+    paste0(
+      format(round(min(values, na.rm = TRUE), 2), nsmall = 2),
+      "-",
+      format(round(max(values, na.rm = TRUE), 2), nsmall = 2)
+    )
+  }
+
   writeLines(
     c(
-      "# Reporter-locus H3K4me descriptive summary",
+      "# Reporter-locus nucleosome and accessibility summary",
       "",
-      "This table reports the nonduplicate tracks for `pan-2`. Percentiles are calculated separately for every run and region definition across all annotated protein-coding genes on the seven nuclear chromosomes.",
+      "This table reports nonduplicate tracks for `pan-2`. Percentiles are calculated separately for every run, assay, and region definition across all annotated protein-coding genes on the seven nuclear chromosomes.",
       "",
-      "| Study | Mark | Region | Mean CPM | Nonzero fraction | Genome percentile | Reporter-set rank |",
+      "| Study | Assay | Region | Mean CPM | Nonzero fraction | Genome percentile | Reporter-set rank |",
       "|---|---|---|---:|---:|---:|---:|"
     ),
     connection
@@ -964,19 +1151,69 @@ write_analysis_summary <- function(path, summary, runs, metrics) {
       "",
       "## Interpretation boundaries",
       "",
-      "- These are descriptive CPM summaries, not statistical tests; no selected mark has biological replication within every study.",
-      "- Nonzero coverage is not equivalent to enrichment because no matched input is used.",
-      "- Studies and marks remain separate; absolute CPM values are not pooled or treated as directly exchangeable.",
+      "- These are descriptive CPM summaries, not statistical tests. Biological replicates remain visible and are not pooled.",
+      "- MNase dyad density and total-H3 coverage are complementary proxies for nucleosome occupancy; neither alone uniquely measures absolute occupancy.",
+      "- ATAC cut-site density measures accessibility and is not treated as a direct nucleosome-occupancy measurement.",
+      "- Assays remain separate; absolute CPM values are not pooled or treated as directly exchangeable.",
       "- Exact zero bases are counted separately from missing bases in the long-form TSV.",
       "- `csr-1` is exploratory and is not treated as an established forward-mutation reporter.",
+      paste0(
+        "- Genome-wide nonduplicate replicate Spearman correlations range from ",
+        correlation_range("ATAC"),
+        " for ATAC, ",
+        correlation_range("MNase"),
+        " for MNase, and ",
+        correlation_range("total H3"),
+        " for total H3 across the three region definitions. The moderate total-H3 agreement and shallow rep1 reduce the precision of locus-level inference."
+      ),
+      paste0(
+        "- MNase pairs in the 130-200-bp analysis window account for ",
+        paste0(
+          format(
+            round(
+              100 * alignment_qc$mnase_pairs_in_window_fraction[
+                is.finite(alignment_qc$mnase_pairs_in_window_fraction)
+              ],
+              1
+            ),
+            nsmall = 1
+          ),
+          "%",
+          collapse = ", "
+        ),
+        " of retained pairs in replicates 1-3, respectively."
+      ),
       "",
-      "## Current author interpretation and decision (2026-09-07)",
+      "## Interpretation status",
       "",
-      "- No additional wet-lab experiment will be performed for this issue; the response will use the available public-data reanalysis with the limitations below.",
-      "- No prior ChIP-seq study of a `pan-2` mutant has been identified in the sources examined for this analysis. The chromatin state of the strain background used for the mutation assay is therefore unknown. Possible differences between mutant and wild-type strains and between mycelia and conidia remain untested here; literature support for developmental-state differences has not yet been identified and verified for citation.",
-      "- In the selected wild-type mycelial datasets, `pan-2` does not show the consistently high genome-relative H3K4me1, H3K4me2, or H3K4me3 signal expected of an H3K4me-rich locus. Signal is not uniformly zero, and the gene-body-plus-or-minus-2-kb H3K4me3 percentiles are intermediate, so this is a bounded descriptive conclusion rather than evidence of complete absence.",
-      "- This pattern argues against the simplest model in which the observed mutation-frequency and indel-size changes depend directly on abundant H3K4me1/2/3 at the assayed `pan-2` locus. It does not exclude a locus-local effect and is also compatible with indirect effects mediated through gene expression or with direct effects of larger-scale chromatin organization; the present data do not distinguish these possibilities.",
-      "- The complementary Kamei MNase/total-H3 and Ferraro ATAC reanalysis does not support describing the entire `pan-2` locus as nucleosome-free or extremely open. In both total-H3 replicates, the annotated gene body is high relative to other protein-coding genes (81.3-94.0th percentile), whereas the promoter is low (6.7-18.9th percentile). ATAC signal is intermediate at the promoter (55.0-59.3th percentile), low in the gene body (18.4-24.8th percentile), and higher when the plus-or-minus-2-kb flanks are included (66.9-75.0th percentile); MNase estimates vary among replicates. These data therefore support substantial nucleosome occupancy across the gene body while leaving promoter-local depletion possible. They do not establish the state of the mutation-assay `pan-2` mutant background or dormant conidia; detailed results and QC are in `output/reporter_loci_nucleosome`."
+      paste0(
+        "- In the two total-H3 replicates, the `pan-2` gene body is high relative to other protein-coding genes (",
+        percentile_range("total H3", "gene_body"),
+        "th percentile), whereas its promoter is low (",
+        percentile_range("total H3", "promoter"),
+        "th percentile)."
+      ),
+      paste0(
+        "- `pan-2` ATAC accessibility is intermediate at the promoter (",
+        percentile_range("ATAC", "promoter"),
+        "th percentile), low in the gene body (",
+        percentile_range("ATAC", "gene_body"),
+        "th percentile), and higher only when the plus-or-minus-2-kb flanks are included (",
+        percentile_range("ATAC", "gene_body_plus_minus_2kb"),
+        "th percentile)."
+      ),
+      paste0(
+        "- MNase dyad percentiles vary among the three replicates: promoter ",
+        percentile_range("MNase", "promoter"),
+        ", gene body ",
+        percentile_range("MNase", "gene_body"),
+        ", and gene body plus or minus 2 kb ",
+        percentile_range("MNase", "gene_body_plus_minus_2kb"),
+        ". This variation is retained rather than averaged away."
+      ),
+      "- Taken together, these public wild-type data do not support describing the entire `pan-2` locus as nucleosome-free or extremely open. They are compatible with relatively low total-H3 signal at the promoter but substantial nucleosome occupancy across the annotated gene body.",
+      "- Wild-type public data do not establish the chromatin state of the mutation-assay `pan-2` mutant background or dormant conidia.",
+      "- No additional wet-lab experiment is planned for this issue; any conclusion will remain limited to the public-data conditions analyzed here."
     ),
     connection
   )
@@ -1044,8 +1281,13 @@ write_parameters <- function(
     input_bigwigs = input_bigwigs,
     runs = purrr::transpose(runs),
     targets = purrr::transpose(targets),
-    normalization = "CPM; inherited from the uniformly generated bigWig inputs",
+    normalization = "CPM calculated independently for each run after nuclear-contig filtering",
     minimum_mapping_quality = 20L,
+    track_definitions = list(
+      MNase = "three central bases of proper-pair fragments 130-200 bp; 1-bp bins",
+      total_H3 = "paired-fragment coverage extended between mates; 10-bp bins",
+      ATAC = "Tn5-shifted 5-prime cut sites; 10-bp analysis bins; 1-bp IGV tracks retained separately"
+    ),
     profile_bin_bp = profile_bin_bp,
     window_flank_bp = window_flank_bp,
     plot_colors = as.list(plot_colors),
@@ -1061,7 +1303,7 @@ write_parameters <- function(
     exact_zero_treatment = "included as zero; counted separately in reporter_locus_signal_summary.tsv",
     missing_treatment = "excluded from regional means and counted separately; NA retained when a region has no covered bases",
     random_seed = NULL,
-    pooling = "none",
+    pooling = "none; biological replicates and assays remain separate",
     figure_format = "TikZ fragments generated from ggplot2 objects with tikzDevice"
   )
 
@@ -1091,6 +1333,19 @@ write_checksums <- function(output_dir) {
     paste(digests, basename(output_files), sep = "  "),
     checksum_path
   )
+}
+
+# Preserve the command-line tool versions recorded by the shell workflow
+copy_software_versions <- function(work_root, output_dir) {
+  source_path <- file.path(work_root, "metadata", "software_versions.txt")
+  destination_path <- file.path(output_dir, "software_versions.txt")
+
+  if (!file.exists(source_path)) {
+    stop("Software-version record not found: ", source_path, call. = FALSE)
+  }
+  if (!file.copy(source_path, destination_path, overwrite = TRUE)) {
+    stop("Could not copy software-version record to output", call. = FALSE)
+  }
 }
 
 # Run the complete reporter-locus analysis
@@ -1160,6 +1415,15 @@ run_analysis <- function(
     promoter_downstream_bp,
     profile_bin_bp
   )
+  replicate_correlations <- calculate_replicate_correlations(
+    analysis_data$genome_summary
+  )
+  alignment_qc <- load_alignment_qc(
+    work_root,
+    runs,
+    130L,
+    200L
+  )
 
   # Prepare figures
   marks <- unique(runs$mark)
@@ -1218,11 +1482,23 @@ run_analysis <- function(
     file.path(output_dir, "reporter_locus_signal_summary.tsv"),
     analysis_data$summary
   )
+  readr::write_tsv(
+    replicate_correlations,
+    file.path(output_dir, "replicate_correlations.tsv"),
+    na = "NA"
+  )
+  readr::write_tsv(
+    alignment_qc,
+    file.path(output_dir, "alignment_qc_summary.tsv"),
+    na = "NA"
+  )
   write_analysis_summary(
     file.path(output_dir, "analysis_summary.md"),
     analysis_data$summary,
     runs,
-    metrics
+    metrics,
+    replicate_correlations,
+    alignment_qc
   )
 
   obsolete_profile_files <- file.path(
@@ -1233,11 +1509,18 @@ run_analysis <- function(
 
   for (variant in names(variants)) {
     for (mark in marks) {
+      file_mark <- stringr::str_replace_all(mark, " ", "_")
       write_tikz_plot(
         profile_plots[[variant]][[mark]],
         file.path(
           output_dir,
-          paste0("reporter_locus_profiles.", mark, ".", variant, ".tex")
+          paste0(
+            "reporter_locus_profiles.",
+            file_mark,
+            ".",
+            variant,
+            ".tex"
+          )
         ),
         width = figure_width_in,
         height = profile_heights_in[[mark]]
@@ -1268,6 +1551,7 @@ run_analysis <- function(
     profile_heights_in,
     percentile_height_in
   )
+  copy_software_versions(work_root, output_dir)
   write_checksums(output_dir)
 
   # Print summaries to console
@@ -1292,15 +1576,19 @@ run_analysis <- function(
 script_path <- here::here(
   "05_public_H3K4",
   "scripts",
-  "analyze_reporter_loci.R"
+  "analyze_reporter_loci_nucleosome.R"
 )
 default_work_root <- Sys.getenv(
-  "H3K4_WORK_ROOT",
-  unset = "/Volumes/Garage/Re_analysis/260906_issue69_H3K4"
+  "NUCLEOSOME_WORK_ROOT",
+  unset = "/Volumes/Garage/Re_analysis/260907_issue69_nucleosome"
 )
 default_output_dir <- Sys.getenv(
-  "H3K4_OUTPUT_DIR",
-  unset = here::here("05_public_H3K4", "output", "reporter_loci")
+  "NUCLEOSOME_OUTPUT_DIR",
+  unset = here::here(
+    "05_public_H3K4",
+    "output",
+    "reporter_loci_nucleosome"
+  )
 )
 
 # Define genomic regions and profile resolution
@@ -1321,14 +1609,16 @@ targets <- tibble::tribble(
   "csr-1", "NCU00726", "exploratory"
 )
 
-# Define H3K4 ChIP-seq runs
+# Define MNase-seq, total-H3 ChIP-seq, and ATAC-seq runs
 runs <- tibble::tribble(
-  ~sample_id, ~study, ~mark,
-  "Ferraro2021_WT_H3K4me1", "Ferraro et al. 2021", "H3K4me1",
-  "Ferraro2021_WT_H3K4me2", "Ferraro et al. 2021", "H3K4me2",
-  "Sasaki2014_WT_H3K4me2", "Sasaki et al. 2014", "H3K4me2",
-  "Ferraro2021_WT_H3K4me3", "Ferraro et al. 2021", "H3K4me3",
-  "Storck2020_WT_H3K4me3", "Storck et al. 2020", "H3K4me3"
+  ~run, ~sample_id, ~study, ~mark,
+  "SRR13067301", "Kamei2021_WT_MNase_rep1", "Kamei et al. 2021 rep1", "MNase",
+  "SRR13067302", "Kamei2021_WT_MNase_rep2", "Kamei et al. 2021 rep2", "MNase",
+  "SRR13067303", "Kamei2021_WT_MNase_rep3", "Kamei et al. 2021 rep3", "MNase",
+  "SRR13067307", "Kamei2021_WT_totalH3_rep1", "Kamei et al. 2021 rep1", "total H3",
+  "SRR13067308", "Kamei2021_WT_totalH3_rep2", "Kamei et al. 2021 rep2", "total H3",
+  "SRR12229299", "Ferraro2021_WT_ATAC_rep1", "Ferraro et al. 2021 rep1", "ATAC",
+  "SRR12229300", "Ferraro2021_WT_ATAC_rep2", "Ferraro et al. 2021 rep2", "ATAC"
 )
 
 # Keep duplicate-retaining and nonduplicate tracks separate
@@ -1346,11 +1636,11 @@ plot_colors <- c(
 )
 figure_width_in <- 7.5
 profile_heights_in <- c(
-  H3K4me1 = 3.1,
-  H3K4me2 = 4.5,
-  H3K4me3 = 4.5
+  MNase = 5.8,
+  `total H3` = 4.3,
+  ATAC = 5.0
 )
-percentile_height_in <- 3.2
+percentile_height_in <- 4.0
 
 # =========================
 # Run analysis

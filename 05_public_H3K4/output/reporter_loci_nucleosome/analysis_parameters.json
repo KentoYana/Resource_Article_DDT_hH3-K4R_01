@@ -1,0 +1,129 @@
+{
+  "analysis_script": "analyze_reporter_loci_nucleosome.R",
+  "R": "4.6.1",
+  "tidyverse": "2.0.0",
+  "ggplot2": "4.0.3",
+  "tikzDevice": "0.12.6",
+  "patchwork": "1.3.2",
+  "here": "1.0.2",
+  "rtracklayer": "1.72.0",
+  "IRanges": "2.46.0",
+  "jsonlite": "2.0.0",
+  "digest": "0.6.39",
+  "reference_gff": "GCA_000182925.2_NC12_genomic.gff",
+  "reference_accession": "GCA_000182925.2",
+  "input_bigwigs": ["Kamei2021_WT_MNase_rep1.q20.nonduplicate.cpm.bw", "Kamei2021_WT_MNase_rep2.q20.nonduplicate.cpm.bw", "Kamei2021_WT_MNase_rep3.q20.nonduplicate.cpm.bw", "Kamei2021_WT_totalH3_rep1.q20.nonduplicate.cpm.bw", "Kamei2021_WT_totalH3_rep2.q20.nonduplicate.cpm.bw", "Ferraro2021_WT_ATAC_rep1.q20.nonduplicate.cpm.bw", "Ferraro2021_WT_ATAC_rep2.q20.nonduplicate.cpm.bw", "Kamei2021_WT_MNase_rep1.q20.all_mapped.cpm.bw", "Kamei2021_WT_MNase_rep2.q20.all_mapped.cpm.bw", "Kamei2021_WT_MNase_rep3.q20.all_mapped.cpm.bw", "Kamei2021_WT_totalH3_rep1.q20.all_mapped.cpm.bw", "Kamei2021_WT_totalH3_rep2.q20.all_mapped.cpm.bw", "Ferraro2021_WT_ATAC_rep1.q20.all_mapped.cpm.bw", "Ferraro2021_WT_ATAC_rep2.q20.all_mapped.cpm.bw"],
+  "runs": [
+    {
+      "run": "SRR13067301",
+      "sample_id": "Kamei2021_WT_MNase_rep1",
+      "study": "Kamei et al. 2021 rep1",
+      "mark": "MNase"
+    },
+    {
+      "run": "SRR13067302",
+      "sample_id": "Kamei2021_WT_MNase_rep2",
+      "study": "Kamei et al. 2021 rep2",
+      "mark": "MNase"
+    },
+    {
+      "run": "SRR13067303",
+      "sample_id": "Kamei2021_WT_MNase_rep3",
+      "study": "Kamei et al. 2021 rep3",
+      "mark": "MNase"
+    },
+    {
+      "run": "SRR13067307",
+      "sample_id": "Kamei2021_WT_totalH3_rep1",
+      "study": "Kamei et al. 2021 rep1",
+      "mark": "total H3"
+    },
+    {
+      "run": "SRR13067308",
+      "sample_id": "Kamei2021_WT_totalH3_rep2",
+      "study": "Kamei et al. 2021 rep2",
+      "mark": "total H3"
+    },
+    {
+      "run": "SRR12229299",
+      "sample_id": "Ferraro2021_WT_ATAC_rep1",
+      "study": "Ferraro et al. 2021 rep1",
+      "mark": "ATAC"
+    },
+    {
+      "run": "SRR12229300",
+      "sample_id": "Ferraro2021_WT_ATAC_rep2",
+      "study": "Ferraro et al. 2021 rep2",
+      "mark": "ATAC"
+    }
+  ],
+  "targets": [
+    {
+      "display_name": "pan-2",
+      "locus_tag": "NCU10048",
+      "role": "focal"
+    },
+    {
+      "display_name": "ad-3A",
+      "locus_tag": "NCU03166",
+      "role": "alternative"
+    },
+    {
+      "display_name": "ad-3B",
+      "locus_tag": "NCU03194",
+      "role": "alternative"
+    },
+    {
+      "display_name": "ad-8",
+      "locus_tag": "NCU09789",
+      "role": "alternative"
+    },
+    {
+      "display_name": "his-3",
+      "locus_tag": "NCU03139",
+      "role": "alternative"
+    },
+    {
+      "display_name": "mtr",
+      "locus_tag": "NCU06619",
+      "role": "alternative"
+    },
+    {
+      "display_name": "csr-1",
+      "locus_tag": "NCU00726",
+      "role": "exploratory"
+    }
+  ],
+  "normalization": "CPM calculated independently for each run after nuclear-contig filtering",
+  "minimum_mapping_quality": 20,
+  "track_definitions": {
+    "MNase": "three central bases of proper-pair fragments 130-200 bp; 1-bp bins",
+    "total_H3": "paired-fragment coverage extended between mates; 10-bp bins",
+    "ATAC": "Tn5-shifted 5-prime cut sites; 10-bp analysis bins; 1-bp IGV tracks retained separately"
+  },
+  "profile_bin_bp": 10,
+  "window_flank_bp": 2000,
+  "plot_colors": {
+    "blue": "#0068b7",
+    "midpoint": "#ffffff",
+    "orange": "#f39800"
+  },
+  "plot_palette_reference": "https://okumuralab.org/~okumura/stat/colors.html",
+  "figure_width_in": 7.5,
+  "profile_heights_in": {
+    "MNase": 5.8,
+    "total H3": 4.3,
+    "ATAC": 5
+  },
+  "percentile_height_in": 4,
+  "tikz_lwd_unit": 0.7528,
+  "promoter_definition": "strand-aware TSS -1000 bp through +200 bp",
+  "gene_body_definition": "full NCBI GFF gene feature",
+  "ranking_population": "protein-coding genes on the seven NC12 nuclear chromosomes",
+  "percentile_method": "empirical midrank, calculated independently for each run, track variant, and region metric",
+  "exact_zero_treatment": "included as zero; counted separately in reporter_locus_signal_summary.tsv",
+  "missing_treatment": "excluded from regional means and counted separately; NA retained when a region has no covered bases",
+  "random_seed": null,
+  "pooling": "none; biological replicates and assays remain separate",
+  "figure_format": "TikZ fragments generated from ggplot2 objects with tikzDevice"
+}

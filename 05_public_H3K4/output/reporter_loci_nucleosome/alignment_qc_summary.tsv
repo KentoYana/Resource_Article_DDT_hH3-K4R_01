@@ -1,0 +1,8 @@
+run	sample_id	study	assay	retained_proper_pair_reads	retained_proper_pairs	duplicate_fraction	mnase_fragment_window	mnase_pairs_in_window_fraction
+SRR13067301	Kamei2021_WT_MNase_rep1	Kamei et al. 2021 rep1	MNase	13573202	6786601	0.055569	130-200 bp	0.12038205870656017
+SRR13067302	Kamei2021_WT_MNase_rep2	Kamei et al. 2021 rep2	MNase	15925152	7962576	0.063518	130-200 bp	0.14968861835667252
+SRR13067303	Kamei2021_WT_MNase_rep3	Kamei et al. 2021 rep3	MNase	14787542	7393771	0.055601	130-200 bp	0.22450154325850774
+SRR13067307	Kamei2021_WT_totalH3_rep1	Kamei et al. 2021 rep1	total H3	1633498	816749	0.098958	NA	NA
+SRR13067308	Kamei2021_WT_totalH3_rep2	Kamei et al. 2021 rep2	total H3	10335814	5167907	0.494894	NA	NA
+SRR12229299	Ferraro2021_WT_ATAC_rep1	Ferraro et al. 2021 rep1	ATAC	57071608	28535804	0.665161	NA	NA
+SRR12229300	Ferraro2021_WT_ATAC_rep2	Ferraro et al. 2021 rep2	ATAC	37864894	18932447	0.274061	NA	NA

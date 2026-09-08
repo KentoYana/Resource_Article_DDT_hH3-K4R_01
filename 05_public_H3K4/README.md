@@ -51,7 +51,7 @@ does not pool studies or call peaks without a matched input.
 
 After bigWig generation, the `reporters` stage runs
 [`scripts/analyze_reporter_loci.R`](scripts/analyze_reporter_loci.R). It
-compares `pan-2` with `ad-3A`, `ad-3B`, `ad-8`, `mtr`, `his-3`, and the
+compares `pan-2` with `ad-3A`, `ad-3B`, `ad-8`, `his-3`, `mtr`, and the
 exploratory `csr-1` locus. Coordinates and strand are read from the downloaded
 NC12 GFF. The analysis reports strand-aware promoter (-1 kb to +200 bp), gene
 body, and gene-body-plus-or-minus-2-kb CPM values, while retaining exact zero
@@ -100,6 +100,66 @@ figure. Following the color-scale example at
 <https://okumuralab.org/~okumura/stat/colors.html>, the heatmap maps 0 to
 `#0068b7`, 50 to white, and 100 to `#f39800`, with its color bar below the
 panels.
+
+## Nucleosome occupancy and accessibility workflow
+
+Low H3K4me ChIP-seq signal can reflect either a low fraction of methylated H3
+or low local nucleosome occupancy. To distinguish these explanations using
+existing public data,
+[`scripts/reprocess_selected_nucleosome_occupancy.sh`](scripts/reprocess_selected_nucleosome_occupancy.sh)
+uniformly reprocesses the paired-end raw reads listed in
+[`dataset/nucleosome_accessions.tsv`](dataset/nucleosome_accessions.tsv):
+
+- three wild-type MNase-seq biological replicates and two wild-type total-H3
+  ChIP-seq biological replicates from Kamei et al. (2021), GSE150758; and
+- two wild-type ATAC-seq biological replicates from Ferraro et al. (2021),
+  GSE154497.
+
+By default, the workflow stores raw and intermediate data on the external SSD
+at `/Volumes/Garage/Re_analysis/260907_issue69_nucleosome`. It downloads NC12
+and all seven SRA runs anew, performs paired-end trimming and alignment, retains
+proper primary pairs with MAPQ at least 20 on the seven nuclear chromosomes,
+and marks duplicates without discarding them. Both duplicate-retaining and
+nonduplicate tracks are generated.
+
+MNase tracks count the central three bases of 130-200-bp fragments as
+nucleosome dyads. Total-H3 tracks represent paired-fragment coverage. ATAC
+tracks represent Tn5-shifted cut sites; 10-bp tracks are used for the R
+analysis and separate 1-bp tracks are retained for IGV. ATAC is interpreted as
+accessibility, not as a direct measurement of nucleosome occupancy. Every run
+is normalized to CPM independently; assays and biological replicates are not
+pooled.
+
+Run the complete resumable workflow with:
+
+```sh
+THREADS=6 caffeinate -dimsu \
+  ./05_public_H3K4/scripts/reprocess_selected_nucleosome_occupancy.sh all
+```
+
+The final stage runs
+[`scripts/analyze_reporter_loci_nucleosome.R`](scripts/analyze_reporter_loci_nucleosome.R).
+Like the H3K4 script, it can be opened and sourced from RStudio. Required
+packages and functions are declared before data processing, tidyverse is used
+for tabular processing, figures are drawn first on the standard R graphics
+device, and final plots are written as `tikzpicture` fragments with
+`width = 7.5` and `lwdUnit = 72.27 / 96`.
+
+```r
+Sys.setenv(
+  NUCLEOSOME_WORK_ROOT = "/path/to/issue69_nucleosome",
+  NUCLEOSOME_OUTPUT_DIR = "/path/to/output"
+)
+source("05_public_H3K4/scripts/analyze_reporter_loci_nucleosome.R")
+```
+
+The tracked default output directory is
+[`output/reporter_loci_nucleosome`](output/reporter_loci_nucleosome). Reporter
+loci are ordered `pan-2`, `ad-3A`, `ad-3B`, `ad-8`, `his-3`, `mtr`, and
+`csr-1`. Profile plots are split by assay, while heatmaps use within-run
+genome-wide midrank percentiles with the same blue-white-orange scale and
+bottom color bar as the H3K4 figures. The output also preserves the exact
+command-line software versions recorded during preprocessing.
 
 ## Experimental metadata
 
@@ -150,6 +210,42 @@ features associated with accessible and inaccessible chromatin."
   whether H3K4 methylation changes after UV irradiation or replication stress.
 - A locus-level pattern can support a condition-specific descriptive statement,
   but it cannot by itself establish a direct or indirect causal mechanism.
+
+## Current author interpretation and decision (2026-09-07)
+
+- No additional wet-lab experiment will be performed for this issue. The
+  response will use this public-data reanalysis while retaining the limitations
+  stated here.
+- No prior ChIP-seq study of a `pan-2` mutant has been identified in the sources
+  examined for this analysis. The chromatin state of the strain background used
+  for the mutation assay is therefore unknown. Possible differences between
+  mutant and wild-type strains and between mycelia and conidia remain untested
+  here. Literature support for developmental-state differences has not yet been
+  identified and verified for citation.
+- In the selected wild-type mycelial datasets, `pan-2` does not show the
+  consistently high genome-relative H3K4me1, H3K4me2, or H3K4me3 signal expected
+  of an H3K4me-rich locus. Signal is not uniformly zero, and the
+  gene-body-plus-or-minus-2-kb H3K4me3 percentiles are intermediate. This is
+  therefore a bounded descriptive conclusion rather than evidence of complete
+  absence.
+- This pattern argues against the simplest model in which the observed
+  mutation-frequency and indel-size changes depend directly on abundant
+  H3K4me1/2/3 at the assayed `pan-2` locus. It does not exclude a locus-local
+  effect and is also compatible with indirect effects mediated through gene
+  expression or with direct effects of larger-scale chromatin organization;
+  the present data do not distinguish these possibilities.
+- The complementary Kamei MNase/total-H3 and Ferraro ATAC reanalysis does not
+  support describing the entire `pan-2` locus as nucleosome-free or extremely
+  open. In both total-H3 replicates, the annotated gene body is high relative to
+  other protein-coding genes (81.3-94.0th percentile), whereas the promoter is
+  low (6.7-18.9th percentile). ATAC signal is intermediate at the promoter
+  (55.0-59.3th percentile), low in the gene body (18.4-24.8th percentile), and
+  higher when the plus-or-minus-2-kb flanks are included (66.9-75.0th
+  percentile); MNase estimates vary among replicates. These data therefore
+  support substantial nucleosome occupancy across the gene body while leaving
+  promoter-local depletion possible. They do not establish the state of the
+  mutation-assay `pan-2` mutant background or dormant conidia; detailed results
+  and QC are in [`output/reporter_loci_nucleosome`](output/reporter_loci_nucleosome).
 
 The RNA-seq runs SRR5177529 and SRR5177530 are not part of GSE154497. They come
 from a separate study and are not matched to these ChIP-seq cultures; they are
