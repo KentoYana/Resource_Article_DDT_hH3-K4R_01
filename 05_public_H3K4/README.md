@@ -102,6 +102,31 @@ figure. Following the color-scale example at
 `#0068b7`, 50 to white, and 100 to `#f39800`, with its color bar below the
 panels.
 
+### Ferraro-only manuscript display
+
+The revision manuscript uses the internally coherent Ferraro et al. (2021)
+series as its primary display because H3K4me1, H3K4me2, and H3K4me3 were
+generated within the same study. Generate the dedicated reporter-locus output
+without overwriting the cross-study sensitivity analysis with:
+
+```sh
+H3K4_STUDY_SELECTION=Ferraro2021 \
+  Rscript 05_public_H3K4/scripts/analyze_reporter_loci.R
+```
+
+This writes to `output/reporter_loci_ferraro`. For the repair/DDT target set,
+run:
+
+```sh
+H3K4_TARGET_SET=repair H3K4_STUDY_SELECTION=Ferraro2021 \
+  Rscript 05_public_H3K4/scripts/analyze_reporter_loci.R
+```
+
+This writes to `output/repair_genes_ferraro`. The existing `reporter_loci` and
+`repair_genes` directories retain the separately displayed Sasaki and Storck
+runs as sensitivity analyses. Reads and CPM values are not pooled across
+studies or histone marks.
+
 ## Repair/DDT-related gene inspection
 
 For Reviewer 1's question about a possible indirect effect through repair-gene

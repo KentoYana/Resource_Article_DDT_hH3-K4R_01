@@ -1003,7 +1003,7 @@ write_reporter_analysis_summary <- function(path, summary, runs, metrics) {
       "",
       "- No additional wet-lab experiment will be performed for this issue; the response will use the available public-data reanalysis with the limitations below.",
       "- No prior ChIP-seq study of a `pan-2` mutant has been identified in the sources examined for this analysis. The chromatin state of the strain background used for the mutation assay is therefore unknown. Possible differences between mutant and wild-type strains and between mycelia and conidia remain untested here; literature support for developmental-state differences has not yet been identified and verified for citation.",
-      "- In the selected wild-type mycelial datasets, `pan-2` does not show the consistently high genome-relative H3K4me1, H3K4me2, or H3K4me3 signal expected of an H3K4me-rich locus. Signal is not uniformly zero, and the gene-body-plus-or-minus-2-kb H3K4me3 percentiles are intermediate, so this is a bounded descriptive conclusion rather than evidence of complete absence.",
+      "- In the selected wild-type mycelial H3K4me runs, `pan-2` does not show the consistently high genome-relative H3K4me1, H3K4me2, or H3K4me3 signal expected of an H3K4me-rich locus. Signal is not uniformly zero, and the gene-body-plus-or-minus-2-kb H3K4me3 percentiles are intermediate, so this is a bounded descriptive conclusion rather than evidence of complete absence.",
       "- This pattern argues against the simplest model in which the observed mutation-frequency and indel-size changes depend directly on abundant H3K4me1/2/3 at the assayed `pan-2` locus. It does not exclude a locus-local effect and is also compatible with indirect effects mediated through gene expression or with direct effects of larger-scale chromatin organization; the present data do not distinguish these possibilities.",
       "- The complementary Kamei MNase/total-H3 and Ferraro ATAC reanalysis does not support describing the entire `pan-2` locus as nucleosome-free or extremely open. In both total-H3 replicates, the annotated gene body is high relative to other protein-coding genes (81.3-94.0th percentile), whereas the promoter is low (6.7-18.9th percentile). ATAC signal is intermediate at the promoter (55.0-59.3th percentile), low in the gene body (18.4-24.8th percentile), and higher when the plus-or-minus-2-kb flanks are included (66.9-75.0th percentile); MNase estimates vary among replicates. These data therefore support substantial nucleosome occupancy across the gene body while leaving promoter-local depletion possible. They do not establish the state of the mutation-assay `pan-2` mutant background or dormant conidia; detailed results and QC are in `output/reporter_loci_nucleosome`."
     ),
@@ -1033,7 +1033,7 @@ write_repair_analysis_summary <- function(path, summary, targets) {
     c(
       "# Repair/DDT-gene H3K4me descriptive summary",
       "",
-      "This table reports within-run genome-wide midrank percentiles from the nonduplicate tracks. Values separated by a hyphen give the range across the selected studies; studies are not treated as biological replicates and are not pooled.",
+      "This table reports within-run genome-wide midrank percentiles from the nonduplicate tracks. When more than one study is selected for a mark, values separated by a hyphen give the cross-study range; studies are not treated as biological replicates and are not pooled.",
       "",
       "| Gene | H3K4me1 promoter | H3K4me1 gene body | H3K4me2 promoter | H3K4me2 gene body | H3K4me3 promoter | H3K4me3 gene body |",
       "|---|---:|---:|---:|---:|---:|---:|"
@@ -1157,6 +1157,7 @@ write_parameters <- function(
     digest = as.character(packageVersion("digest")),
     reference_gff = basename(gff_path),
     reference_accession = "GCA_000182925.2",
+    selected_studies = unique(runs$study),
     input_bigwigs = input_bigwigs,
     runs = purrr::transpose(runs),
     targets = purrr::transpose(targets),
@@ -1448,6 +1449,13 @@ if (!target_set %in% c("reporter", "repair")) {
     call. = FALSE
   )
 }
+study_selection <- Sys.getenv("H3K4_STUDY_SELECTION", unset = "all")
+if (!study_selection %in% c("all", "Ferraro2021")) {
+  stop(
+    "H3K4_STUDY_SELECTION must be either 'all' or 'Ferraro2021'",
+    call. = FALSE
+  )
+}
 collection_label <- if (target_set == "repair") {
   "Repair/DDT-related genes"
 } else {
@@ -1463,7 +1471,10 @@ default_output_dir <- Sys.getenv(
   unset = here::here(
     "05_public_H3K4",
     "output",
-    if (target_set == "repair") "repair_genes" else "reporter_loci"
+    paste0(
+      if (target_set == "repair") "repair_genes" else "reporter_loci",
+      if (study_selection == "Ferraro2021") "_ferraro" else ""
+    )
   )
 )
 
@@ -1508,6 +1519,10 @@ runs <- tibble::tribble(
   "Ferraro2021_WT_H3K4me3", "Ferraro et al. 2021", "H3K4me3",
   "Storck2020_WT_H3K4me3", "Storck et al. 2020", "H3K4me3"
 )
+if (study_selection == "Ferraro2021") {
+  runs <- runs %>%
+    dplyr::filter(stringr::str_starts(sample_id, "Ferraro2021_"))
+}
 
 # Keep duplicate-retaining and nonduplicate tracks separate
 variants <- c(
@@ -1523,11 +1538,23 @@ plot_colors <- c(
   orange = "#f39800"
 )
 figure_width_in <- 7.5
-profile_heights_in <- if (target_set == "repair") {
+profile_heights_in <- if (target_set == "repair" && study_selection == "Ferraro2021") {
+  c(
+    H3K4me1 = 4.8,
+    H3K4me2 = 4.8,
+    H3K4me3 = 4.8
+  )
+} else if (target_set == "repair") {
   c(
     H3K4me1 = 4.8,
     H3K4me2 = 8.0,
     H3K4me3 = 8.0
+  )
+} else if (study_selection == "Ferraro2021") {
+  c(
+    H3K4me1 = 3.1,
+    H3K4me2 = 3.1,
+    H3K4me3 = 3.1
   )
 } else {
   c(
