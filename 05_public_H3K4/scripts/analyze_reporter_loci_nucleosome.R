@@ -1367,7 +1367,8 @@ run_analysis <- function(
   profile_heights_in,
   percentile_height_in
 ) {
-  options(digits = 15)
+  previous_options <- options(digits = 15)
+  on.exit(options(previous_options), add = TRUE)
   parsed_arguments <- parse_arguments(
     arguments,
     default_work_root,
