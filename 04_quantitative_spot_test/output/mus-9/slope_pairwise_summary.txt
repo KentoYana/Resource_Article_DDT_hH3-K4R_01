@@ -1,10 +1,10 @@
  contrast                                estimate       SE  df z.ratio p.value
- (wild-type) - (hH3-K4R)                 0.000255 0.000319 Inf   0.798  0.5098
- (wild-type) - (mus-9(FK129))            0.002891 0.000462 Inf   6.253 <0.0001
- (wild-type) - (mus-9(FK129) hH3-K4R)    0.002994 0.000476 Inf   6.292 <0.0001
- (hH3-K4R) - (mus-9(FK129))              0.002637 0.000471 Inf   5.592 <0.0001
- (hH3-K4R) - (mus-9(FK129) hH3-K4R)      0.002739 0.000485 Inf   5.651 <0.0001
- (mus-9(FK129)) - (mus-9(FK129) hH3-K4R) 0.000102 0.000564 Inf   0.181  0.8563
+ (wild-type) - (hH3-K4R)                 2.56e-04 0.000318 Inf   0.805  0.5046
+ (wild-type) - (mus-9(FK129))            2.90e-03 0.000461 Inf   6.279 <0.0001
+ (wild-type) - (mus-9(FK129) hH3-K4R)    2.99e-03 0.000476 Inf   6.282 <0.0001
+ (hH3-K4R) - (mus-9(FK129))              2.64e-03 0.000471 Inf   5.613 <0.0001
+ (hH3-K4R) - (mus-9(FK129) hH3-K4R)      2.73e-03 0.000485 Inf   5.639 <0.0001
+ (mus-9(FK129)) - (mus-9(FK129) hH3-K4R) 9.11e-05 0.000564 Inf   0.161  0.8717
 
-Results are averaged over the levels of: exp_ID 
-P value adjustment: BH method for 6 tests 
+Results are averaged over the levels of: exp_ID
+P value adjustment: BH method for 6 tests
