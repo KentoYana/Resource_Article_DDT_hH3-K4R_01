@@ -773,12 +773,6 @@ make_percentile_plot <- function(
       )
     )
 
-  variant_label <- stringr::str_replace_all(variant, "_", " ")
-  heatmap_collection_label <- if (collection_label == "Candidate reporter loci") {
-    "Candidate reporter"
-  } else {
-    collection_label
-  }
   ggplot2::ggplot(
     plot_data,
     ggplot2::aes(
@@ -790,7 +784,7 @@ make_percentile_plot <- function(
     ggplot2::geom_tile(color = "black", linewidth = 0.25) +
     ggplot2::geom_text(
       ggplot2::aes(label = percentile_label, color = label_color),
-      size = 2.4
+      size = 3
     ) +
     ggplot2::facet_wrap(~metric_label, nrow = 1) +
     ggplot2::scale_fill_gradientn(
@@ -799,7 +793,7 @@ make_percentile_plot <- function(
         space = "Lab"
       )(100),
       limits = c(0, 100),
-      name = "Within-run genome-wide\npercentile (midrank)"
+      name = "Within-run genome-wide percentile (midrank)"
     ) +
     ggplot2::guides(
       fill = ggplot2::guide_colourbar(
@@ -809,13 +803,13 @@ make_percentile_plot <- function(
       )
     ) +
     ggplot2::scale_color_identity() +
+    ggplot2::scale_y_discrete(
+      labels = function(labels) {
+        stringr::str_remove(labels, "^Ferraro et al\\. 2021\\n")
+      }
+    ) +
     ggplot2::labs(
-      title = paste0(
-        heatmap_collection_label,
-        " H3K4me signal percentiles (",
-        variant_label,
-        ")"
-      ),
+      title = NULL,
       x = NULL,
       y = NULL
     ) +
@@ -830,10 +824,15 @@ make_percentile_plot <- function(
       axis.text.x = ggplot2::element_text(
         angle = 45,
         hjust = 1,
-        size = 6,
+        size = 10,
+        face = "bold",
         colour = "black"
       ),
-      axis.text.y = ggplot2::element_text(size = 6, colour = "black"),
+      axis.text.y = ggplot2::element_text(
+        size = 10,
+        face = "bold",
+        colour = "black"
+      ),
       axis.ticks = ggplot2::element_blank(),
       strip.background = ggplot2::element_rect(
         fill = "white",
@@ -842,8 +841,8 @@ make_percentile_plot <- function(
       ),
       strip.text = ggplot2::element_text(size = 8, face = "bold"),
       plot.title = ggplot2::element_text(size = 11, hjust = 0.5),
-      legend.title = ggplot2::element_text(size = 6),
-      legend.text = ggplot2::element_text(size = 6, colour = "black"),
+      legend.title = ggplot2::element_text(size = 8),
+      legend.text = ggplot2::element_text(size = 8, colour = "black"),
       legend.position = "bottom",
       legend.direction = "horizontal",
       legend.key = ggplot2::element_blank(),
@@ -1219,6 +1218,7 @@ run_analysis <- function(
   default_work_root,
   default_output_dir,
   target_set,
+  study_selection,
   collection_label,
   file_prefix,
   targets,
@@ -1371,6 +1371,12 @@ run_analysis <- function(
   )
   file.remove(obsolete_profile_files[file.exists(obsolete_profile_files)])
 
+  legacy_percentile_files <- file.path(
+    output_dir,
+    paste0(file_prefix, "_percentiles.", names(variants), ".tex")
+  )
+  file.remove(legacy_percentile_files[file.exists(legacy_percentile_files)])
+
   for (variant in names(variants)) {
     for (mark in marks) {
       write_tikz_plot(
@@ -1387,7 +1393,14 @@ run_analysis <- function(
       percentile_plots[[variant]],
       file.path(
         output_dir,
-        paste0(file_prefix, "_percentiles.", variant, ".tex")
+        paste0(
+          file_prefix,
+          "_percentiles_",
+          variant,
+          "_",
+          study_selection,
+          ".tex"
+        )
       ),
       width = figure_width_in,
       height = percentile_height_in
@@ -1581,6 +1594,7 @@ run_analysis(
   default_work_root,
   default_output_dir,
   target_set,
+  study_selection,
   collection_label,
   file_prefix,
   targets,

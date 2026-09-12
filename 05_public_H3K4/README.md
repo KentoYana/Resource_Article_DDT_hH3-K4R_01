@@ -126,6 +126,9 @@ This writes to `output/repair_genes_ferraro`. The existing `reporter_loci` and
 `repair_genes` directories retain the separately displayed Sasaki and Storck
 runs as sensitivity analyses. Reads and CPM values are not pooled across
 studies or histone marks.
+Percentile-heatmap LaTeX filenames record both the track variant and selected
+dataset, for example
+`reporter_locus_percentiles_nonduplicate_Ferraro2021.tex`.
 
 ## Repair/DDT-related gene inspection
 
