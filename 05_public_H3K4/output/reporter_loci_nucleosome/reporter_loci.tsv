@@ -1,0 +1,8 @@
+display_name	locus_tag	role	chrom	start_1based	end_1based	strand	length_bp	gff_gene_name
+pan-2	NCU10048	focal	CM002241.1	3264327	3266119	-	1793	pan-2
+ad-3A	NCU03166	alternative	CM002236.1	4771247	4773157	-	1911	ad-3A
+ad-3B	NCU03194	alternative	CM002236.1	4864849	4867561	-	2713	NCU03194
+ad-8	NCU09789	alternative	CM002241.1	1125094	1129467	-	4374	ad-8
+his-3	NCU03139	alternative	CM002236.1	4694770	4697885	+	3116	his-3
+mtr	NCU06619	alternative	CM002239.1	1825042	1827519	-	2478	mtr
+csr-1	NCU00726	exploratory	CM002236.1	7403946	7406381	-	2436	csr-1

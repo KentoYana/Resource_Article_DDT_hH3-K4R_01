@@ -16,6 +16,7 @@ The repository is intended to support transparency and reproducibility of the an
 ├── 02_reversion_assay
 ├── 03_seq_analysis
 ├── 04_quantitative_spot_test
+├── 05_public_H3K4
 ├── 91_cross_information
 └── 99_pan-2_identification
 ```
@@ -139,6 +140,35 @@ Run the downstream statistical analysis from the repository root:
 Rscript 04_quantitative_spot_test/script_qSpot_test.R
 ```
 
+### `05_public_H3K4`
+
+This directory records the public wild-type H3K4me1, H3K4me2, and H3K4me3
+ChIP-seq dataset selected for locus-level inspection.
+
+Main files:
+
+- `README.md`: dataset identification, experimental metadata, primary sources,
+  control status, and interpretation limits.
+- `dataset/accessions.tsv`: machine-readable GEO, SRA, BioSample, antibody,
+  sequencing, genome-build, and publication metadata.
+- `scripts/reprocess_selected_h3k4_chipseq.sh`: resumable raw-read download,
+  QC, alignment, duplicate marking, and CPM bigWig workflow.
+- `scripts/analyze_reporter_loci.R`: R analysis of H3K4 signal at `pan-2` and
+  alternative reporter loci, including TikZ figure generation.
+- `output/reporter_loci/`: locus definitions, long-form signal summaries,
+  analysis parameters, checksums, and `tikzpicture` figure fragments.
+
+Run the reporter-locus analysis from the repository root:
+
+```sh
+Rscript 05_public_H3K4/scripts/analyze_reporter_loci.R
+```
+
+The same script can be opened and sourced in RStudio. Open this repository as
+the working project, then use **Source** on
+`05_public_H3K4/scripts/analyze_reporter_loci.R`. See the directory README for
+the external-SSD input path and environment-variable overrides.
+
 ### `91_cross_information`
 
 This directory contains the dataset and R script for segregation analysis related to `hH3-K4R`.
@@ -194,6 +224,16 @@ install.packages(c(
   "tikzDevice",
   "here"
 ))
+```
+
+The public H3K4 analysis additionally requires Bioconductor packages:
+
+```r
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+BiocManager::install(c("IRanges", "rtracklayer"))
+install.packages(c("digest", "jsonlite"))
 ```
 
 The scripts use the `here` package to locate files relative to the repository root. Run all commands from the repository root.

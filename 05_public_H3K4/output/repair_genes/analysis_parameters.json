@@ -1,0 +1,113 @@
+{
+  "analysis_script": "analyze_reporter_loci.R",
+  "target_set": "repair",
+  "R": "4.6.1",
+  "tidyverse": "2.0.0",
+  "ggplot2": "4.0.3",
+  "tikzDevice": "0.12.6",
+  "patchwork": "1.3.2",
+  "here": "1.0.2",
+  "rtracklayer": "1.72.0",
+  "IRanges": "2.46.0",
+  "jsonlite": "2.0.0",
+  "digest": "0.6.39",
+  "reference_gff": "GCA_000182925.2_NC12_genomic.gff",
+  "reference_accession": "GCA_000182925.2",
+  "input_bigwigs": ["Ferraro2021_WT_H3K4me1.q20.nonduplicate.cpm.bw", "Ferraro2021_WT_H3K4me2.q20.nonduplicate.cpm.bw", "Sasaki2014_WT_H3K4me2.q20.nonduplicate.cpm.bw", "Ferraro2021_WT_H3K4me3.q20.nonduplicate.cpm.bw", "Storck2020_WT_H3K4me3.q20.nonduplicate.cpm.bw", "Ferraro2021_WT_H3K4me1.q20.all_mapped.cpm.bw", "Ferraro2021_WT_H3K4me2.q20.all_mapped.cpm.bw", "Sasaki2014_WT_H3K4me2.q20.all_mapped.cpm.bw", "Ferraro2021_WT_H3K4me3.q20.all_mapped.cpm.bw", "Storck2020_WT_H3K4me3.q20.all_mapped.cpm.bw"],
+  "runs": [
+    {
+      "sample_id": "Ferraro2021_WT_H3K4me1",
+      "study": "Ferraro et al. 2021",
+      "mark": "H3K4me1"
+    },
+    {
+      "sample_id": "Ferraro2021_WT_H3K4me2",
+      "study": "Ferraro et al. 2021",
+      "mark": "H3K4me2"
+    },
+    {
+      "sample_id": "Sasaki2014_WT_H3K4me2",
+      "study": "Sasaki et al. 2014",
+      "mark": "H3K4me2"
+    },
+    {
+      "sample_id": "Ferraro2021_WT_H3K4me3",
+      "study": "Ferraro et al. 2021",
+      "mark": "H3K4me3"
+    },
+    {
+      "sample_id": "Storck2020_WT_H3K4me3",
+      "study": "Storck et al. 2020",
+      "mark": "H3K4me3"
+    }
+  ],
+  "targets": [
+    {
+      "display_name": "mus-9",
+      "locus_tag": "NCU11188",
+      "role": "checkpoint"
+    },
+    {
+      "display_name": "uvs-2",
+      "locus_tag": "NCU05210",
+      "role": "TLS"
+    },
+    {
+      "display_name": "mus-26",
+      "locus_tag": "NCU06577",
+      "role": "TLS"
+    },
+    {
+      "display_name": "polh",
+      "locus_tag": "NCU01936",
+      "role": "TLS"
+    },
+    {
+      "display_name": "qde-3",
+      "locus_tag": "NCU08598",
+      "role": "RecQ"
+    },
+    {
+      "display_name": "recQ2",
+      "locus_tag": "NCU03337",
+      "role": "RecQ"
+    },
+    {
+      "display_name": "mei-3",
+      "locus_tag": "NCU02741",
+      "role": "HR"
+    },
+    {
+      "display_name": "mus-11",
+      "locus_tag": "NCU04275",
+      "role": "HR"
+    }
+  ],
+  "normalization": "CPM; inherited from the uniformly generated bigWig inputs",
+  "minimum_mapping_quality": 20,
+  "profile_bin_bp": 10,
+  "window_flank_bp": 2000,
+  "plot_colors": {
+    "blue": "#0068b7",
+    "midpoint": "#ffffff",
+    "orange": "#f39800"
+  },
+  "plot_palette_reference": "https://okumuralab.org/~okumura/stat/colors.html",
+  "figure_width_in": 7.5,
+  "profile_heights_in": {
+    "H3K4me1": 4.8,
+    "H3K4me2": 8,
+    "H3K4me3": 8
+  },
+  "percentile_height_in": 3.2,
+  "tikz_lwd_unit": 0.7528,
+  "promoter_definition": "strand-aware TSS -1000 bp through +200 bp",
+  "gene_body_definition": "full NCBI GFF gene feature",
+  "ranking_population": "protein-coding genes on the seven NC12 nuclear chromosomes",
+  "percentile_method": "empirical midrank, calculated independently for each run, track variant, and region metric",
+  "exact_zero_treatment": "included as zero; counted separately in repair_gene_signal_summary.tsv",
+  "missing_treatment": "excluded from regional means and counted separately; NA retained when a region has no covered bases",
+  "random_seed": null,
+  "pooling": "none",
+  "figure_format": "TikZ fragments generated from ggplot2 objects with tikzDevice"
+}
