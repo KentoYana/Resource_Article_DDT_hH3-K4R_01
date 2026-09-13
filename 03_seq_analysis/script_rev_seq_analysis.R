@@ -177,44 +177,7 @@ lrt_nb <- anova(
 p_lrt <- lrt_nb$`Pr(Chi)`[2]
 
 ## Format p-value label
-p_label <- paste0("p = ", signif(p_lrt, 3))
-
-g <- ggplot(
-  indelData,
-  aes(
-    x = strain_legend,
-    y = indel_size,
-    color = strain_legend
-  )
-) +
-  geom_violin(
-    quantiles = 0.5,
-    quantile.linetype = "solid"
-  ) +
-  geom_point(size = 1, position = position_jitter(width = .15, height = 0)) +
-  annotate(
-    "text",
-    x = 2,
-    y = 30,
-    label = p_label,
-    size = 3.5
-  ) +
-  theme_bw(base_size = 10) +
-  ylab('Absolute indel size (unit{bp})') +
-  xlab('') +
-  scale_color_manual(values = c("#02010C", "#0068b7")) +
-  theme(
-    axis.text = element_text(size = 10, colour = "black"),
-    panel.background = element_rect(fill = "white", colour = "black", linewidth = 3),
-    legend.position = "none",
-    legend.title = element_blank(),
-    legend.key = element_blank(),
-    legend.key.height = unit(0.0, "cm"),
-    legend.box.spacing = unit(0.0, "cm"),
-    aspect.ratio = 1
-  )
-
-plot(g)
+p_label <- paste0("p = ", formatC(p_lrt, digits = 3, format = "f"))
 
 indelData_pos_count <- indelData %>%
   dplyr::count(
@@ -233,7 +196,7 @@ indelData_pos_count <- indelData %>%
 irs_single <- read.csv(here("03_seq_analysis", "output", "ir_pairs.csv"))
 
 ir_guides <- irs_single %>%
-  dplyr::transmute(
+  transmute(
     IR_ID,
     x1 = left_start,
     x2 = left_end,
@@ -241,78 +204,205 @@ ir_guides <- irs_single %>%
     y2 = right_end
   )
 
-facet_df <- tidyr::crossing(
-  strain_legend = unique(indelData_pos_count$strain_legend)
+ir_arms <- bind_rows(
+  irs_single %>%
+    transmute(IR_ID, xmin = left_start, xmax = left_end),
+  irs_single %>%
+    transmute(IR_ID, xmin = right_start, xmax = right_end)
 )
 
-ir_lines_all <- tidyr::crossing(ir_guides, facet_df)
-
-h <- ggplot(
-  indelData_pos_count,
-  aes(
-    x = mut_start,
-    y = mut_finish,
-    color = strain_legend
+ir_arms_by_genotype <- crossing(
+  strain_legend = levels(indelData$strain_legend),
+  ir_arms
+) %>%
+  mutate(
+    strain_legend = factor(
+      strain_legend,
+      levels = levels(indelData$strain_legend)
+    )
   )
-) +
-  geom_rect(
-    data = ir_lines_all,
-    aes(
-      xmin = x1,
-      xmax = x2,
-      ymin = -Inf,
-      ymax = Inf,
-      fill = IR_ID
-    ),
-    inherit.aes = FALSE,
-    alpha = 0.5
-  ) +
-  geom_rect(
-    data = ir_lines_all,
-    aes(
-      xmin = -Inf,
-      xmax = Inf,
-      ymin = y1,
-      ymax = y2,
-      fill = IR_ID
-    ),
-    inherit.aes = FALSE,
-    alpha = 0.5
-  ) +
-  geom_point(
-    aes(size = prop_percent),
-    shape = 1
-  ) +
-  scale_size_continuous(
-    range = c(1.5, 7.0),
-    name = "Revertants (%)"
-  ) +
-  geom_vline(xintercept = 56, linetype = "dashed", linewidth = 0.5) +
-  geom_hline(yintercept = 56, linetype = "dashed", linewidth = 0.5) +
-  geom_abline(intercept = 0, slope = 1, linetype = "dotted", linewidth = 0.5) +
-  theme_bw(base_size = 10) +
-  scale_x_continuous(limits = c(0, 90)) +
-  scale_y_continuous(limits = c(0, 90)) +
-  scale_color_manual(values = c("#02010C", "#0068b7")) +
-  scale_fill_brewer(palette = "Set2", name = "IR pair") +
-  ylab("3 prime -side boundaries \n relative to the start codon (bp)") +
-  xlab("5 prime -side boundaries relative to the start codon (bp)") +
-  facet_grid(~ strain_legend) +
+
+indel_plot_data <- indelData %>%
+  arrange(
+    strain_legend,
+    indel_size,
+    mut_start,
+    mut_finish,
+    mut_type,
+    expID,
+    seqID,
+    colony
+  ) %>%
+  group_by(strain_legend) %>%
+  mutate(event_row = rev(row_number())) %>%
+  ungroup()
+
+median_data <- indel_plot_data %>%
+  group_by(strain_legend) %>%
+  summarise(median_indel_size = median(indel_size), .groups = "drop")
+
+event_cols <- c("Insertion" = "#0068B7", "Deletion" = "#F39800")
+median_col <- "#009944"
+ir_cols <- c("IR1" = "#DDEBF7", "IR2" = "#FCE4D6", "IR3" = "#E2F0D9")
+
+indel_theme <- theme_bw(base_size = 9) +
   theme(
     axis.text = element_text(size = 10, colour = "black"),
-    panel.background = element_rect(fill = "white", colour = "black", linewidth = 3),
-    legend.position = "right",
-    legend.title = element_blank(),
-    legend.key = element_blank(),
-    legend.key.height = unit(0.0, "cm"),
-    legend.box.spacing = unit(0.0, "cm"),
-    aspect.ratio = 1
+    axis.title = element_text(size = 9),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.background = element_rect(fill = "white", colour = NA),
+    panel.border = element_rect(fill = NA, colour = "black", linewidth = 1.2),
+    strip.background = element_rect(fill = "#F2F2F2", colour = "black", linewidth = 1.2),
+    strip.text.y.left = element_text(angle = 90, face = "bold", size = 8),
+    plot.title = element_text(face = "bold", size = 10),
+    plot.title.position = "plot",
+    plot.margin = margin(5.5, 0, 5.5, 0)
+  )
+
+h <- ggplot() +
+  geom_rect(
+    data = ir_arms_by_genotype,
+    aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = IR_ID),
+    alpha = 0.58,
+    colour = NA
+  ) +
+  geom_vline(
+    xintercept = 56,
+    linetype = "22",
+    linewidth = 0.42,
+    colour = "#7A0019"
+  ) +
+  geom_segment(
+    data = indel_plot_data,
+    aes(
+      x = mut_start,
+      xend = mut_finish,
+      y = event_row,
+      yend = event_row,
+      colour = mut_type
+    ),
+    linewidth = 0.68,
+    lineend = "round"
+  ) +
+  geom_point(
+    data = indel_plot_data,
+    aes(x = mut_start, y = event_row, colour = mut_type),
+    shape = 21,
+    fill = "white",
+    stroke = 0.42,
+    size = 0.85
+  ) +
+  geom_point(
+    data = indel_plot_data,
+    aes(x = mut_finish, y = event_row, colour = mut_type),
+    shape = 21,
+    fill = "white",
+    stroke = 0.42,
+    size = 0.85
+  ) +
+  facet_grid(strain_legend ~ ., scales = "free_y", switch = "y") +
+  scale_x_continuous(
+    limits = c(0, 90),
+    breaks = seq(0, 90, 10),
+    expand = expansion(mult = c(0.005, 0.015))
+  ) +
+  scale_colour_manual(values = event_cols, drop = FALSE) +
+  scale_fill_manual(values = ir_cols, drop = FALSE) +
+  labs(
+    x = "Alignment position from pan-2 start codon (bp)",
+    y = NULL,
+    fill = "Predicted IR pair"
+  ) +
+  guides(
+    colour = "none",
+    fill = guide_legend(nrow = 1, byrow = TRUE)
+  ) +
+  indel_theme +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    plot.margin = margin(5.5, -8, 5.5, 0)
   )
 
 plot(h)
 
-merge_plot <- g + h +
-  plot_layout(widths = c(1, 2))
+g <- ggplot(indel_plot_data) +
+  geom_segment(
+    aes(x = 0, xend = indel_size, y = event_row, yend = event_row),
+    colour = "#333333",
+    linewidth = 0.72,
+    lineend = "round"
+  ) +
+  geom_point(
+    aes(x = indel_size, y = event_row),
+    colour = "#333333",
+    size = 0.9
+  ) +
+  geom_vline(
+    data = median_data,
+    aes(xintercept = median_indel_size),
+    linewidth = 0.55,
+    colour = median_col
+  ) +
+  geom_label(
+    data = median_data,
+    aes(
+      x = 5.5,
+      y = Inf,
+      label = paste0("median = ", median_indel_size, " bp")
+    ),
+    hjust = 0,
+    vjust = 1.2,
+    size = 2.0,
+    linewidth = 0,
+    label.padding = unit(0.08, "lines"),
+    fill = "white",
+    colour = median_col
+  ) +
+  geom_label(
+    data = tibble(
+      strain_legend = factor(
+        "hH3-K4R",
+        levels = levels(indel_plot_data$strain_legend)
+      ),
+      label = p_label
+    ),
+    aes(x = 34, y = Inf, label = label),
+    hjust = 1,
+    vjust = 1.2,
+    size = 2.2,
+    linewidth = 0,
+    label.padding = unit(0.08, "lines"),
+    fill = "white",
+    colour = "#333333"
+  ) +
+  facet_grid(strain_legend ~ ., scales = "free_y") +
+  scale_x_continuous(
+    limits = c(0, 36),
+    breaks = c(0, 5, 10, 20, 30, 35)
+  ) +
+  labs(
+    x = "Absolute indel size (bp)",
+    y = NULL
+  ) +
+  indel_theme +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "none",
+    strip.text = element_blank(),
+    strip.background = element_blank(),
+    plot.margin = margin(5.5, 0, 5.5, -8)
+  )
+
+plot(g)
+
+merge_plot <- (h | g) +
+  plot_layout(widths = c(3, 1), guides = "collect") &
+  theme(legend.position = "bottom")
 
 plot(merge_plot)
 
@@ -447,6 +537,7 @@ dev.off()
 tikz(
   here("03_seq_analysis", "output", "indel-plot.tex"),
   width = 8.25,
+  height = 4.6,
   lwdUnit = 72.27 / 96
 )
 plot(merge_plot)

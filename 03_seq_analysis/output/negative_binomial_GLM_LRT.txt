@@ -6,4 +6,4 @@ Response: indel_size
 2 genotype 1.637043       107       -556.1041 1 vs 2     1 5.205792 0.02251175
 
 Formatted p-value label used in plot:
-p = 0.0225 
+p = 0.023
