@@ -324,7 +324,7 @@ h <- ggplot() +
     axis.ticks.y = element_blank(),
     legend.position = "bottom",
     legend.direction = "horizontal",
-    plot.margin = margin(5.5, -8, 5.5, 0)
+    plot.margin = margin(5.5, 3, 5.5, 0)
   )
 
 plot(h)
@@ -390,12 +390,13 @@ g <- ggplot(indel_plot_data) +
   ) +
   indel_theme +
   theme(
+    aspect.ratio = (1 + sqrt(5)) / 2,
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank(),
     legend.position = "none",
     strip.text = element_blank(),
     strip.background = element_blank(),
-    plot.margin = margin(5.5, 0, 5.5, -8)
+    plot.margin = margin(5.5, 0, 5.5, 3)
   )
 
 plot(g)
@@ -537,7 +538,7 @@ dev.off()
 tikz(
   here("03_seq_analysis", "output", "indel-plot.tex"),
   width = 8.25,
-  height = 4.6,
+  height = 6.0,
   lwdUnit = 72.27 / 96
 )
 plot(merge_plot)
