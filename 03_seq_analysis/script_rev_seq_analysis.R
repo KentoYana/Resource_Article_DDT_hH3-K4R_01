@@ -395,7 +395,7 @@ g <- ggplot(indel_plot_data) +
 plot(g)
 
 merge_plot <- (h | g) +
-  plot_layout(widths = c(3.6, 1), guides = "collect") &
+  plot_layout(widths = c(3.05, 1), guides = "collect") &
   theme(legend.position = "bottom")
 
 plot(merge_plot)
@@ -531,7 +531,7 @@ dev.off()
 tikz(
   here("03_seq_analysis", "output", "indel-plot.tex"),
   width = 8.25,
-  height = 7.0,
+  height = 7.5,
   lwdUnit = 72.27 / 96
 )
 plot(merge_plot)
