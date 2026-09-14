@@ -363,7 +363,7 @@ g <- ggplot(indel_plot_data) +
       label = paste0("median = ", median_indel_size, " bp")
     ),
     hjust = 1,
-    vjust = 1.1,
+    vjust = 1.8,
     size = 3.5,
     linewidth = 0,
     label.padding = unit(0.08, "lines"),
@@ -385,7 +385,7 @@ g <- ggplot(indel_plot_data) +
     aspect.ratio = (1 + sqrt(5)) / 2,
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank(),
-    plot.title = element_text(face = "plain", size = 10, hjust = 0.5),
+    plot.title = element_text(face = "plain", size = 10, hjust = 0.68),
     legend.position = "none",
     strip.text = element_blank(),
     strip.background = element_blank(),
