@@ -269,9 +269,9 @@ h <- ggplot() +
   ) +
   geom_vline(
     xintercept = 56,
-    linetype = "22",
-    linewidth = 0.42,
-    colour = "#7A0019"
+    linetype = "dashed",
+    linewidth = 0.55,
+    colour = "black"
   ) +
   geom_segment(
     data = indel_plot_data,
@@ -318,7 +318,7 @@ h <- ggplot() +
   scale_colour_manual(values = event_cols, drop = FALSE) +
   scale_fill_manual(values = ir_cols, drop = FALSE) +
   labs(
-    x = "Alignment position from \\textit{pan-2} start codon (bp)",
+    x = "Indel-boundary position relative to the \\textit{pan-2} start codon (bp)",
     y = NULL,
     fill = "Predicted IR pair"
   ) +
@@ -370,29 +370,13 @@ g <- ggplot(indel_plot_data) +
     fill = "white",
     colour = median_col
   ) +
-  geom_label(
-    data = tibble(
-      strain_legend = factor(
-        "hH3-K4R",
-        levels = levels(indel_plot_data$strain_legend)
-      ),
-      label = p_label
-    ),
-    aes(x = 34, y = Inf, label = label),
-    hjust = 1,
-    vjust = 2.55,
-    size = 3.5,
-    linewidth = 0,
-    label.padding = unit(0.08, "lines"),
-    fill = "white",
-    colour = "#333333"
-  ) +
   facet_grid(strain_legend ~ ., scales = "free_y") +
   scale_x_continuous(
     limits = c(0, 36),
     breaks = c(0, 5, 10, 20, 30, 35)
   ) +
   labs(
+    title = paste0("Genotype effect: ", p_label),
     x = "Absolute indel size (bp)",
     y = NULL
   ) +
@@ -401,6 +385,7 @@ g <- ggplot(indel_plot_data) +
     aspect.ratio = (1 + sqrt(5)) / 2,
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank(),
+    plot.title = element_text(face = "plain", size = 10, hjust = 0.5),
     legend.position = "none",
     strip.text = element_blank(),
     strip.background = element_blank(),
