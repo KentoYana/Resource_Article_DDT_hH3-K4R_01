@@ -395,7 +395,7 @@ g <- ggplot(indel_plot_data) +
 plot(g)
 
 merge_plot <- (h | g) +
-  plot_layout(widths = c(4.2, 1), guides = "collect") &
+  plot_layout(widths = c(3.6, 1), guides = "collect") &
   theme(legend.position = "bottom")
 
 plot(merge_plot)
