@@ -531,7 +531,7 @@ dev.off()
 tikz(
   here("03_seq_analysis", "output", "indel-plot.tex"),
   width = 8.25,
-  height = 6.0,
+  height = 6.6,
   lwdUnit = 72.27 / 96
 )
 plot(merge_plot)
