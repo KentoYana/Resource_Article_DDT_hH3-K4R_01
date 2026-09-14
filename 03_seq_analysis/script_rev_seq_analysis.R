@@ -254,7 +254,7 @@ indel_theme <- theme_bw(base_size = 9) +
     panel.background = element_rect(fill = "white", colour = NA),
     panel.border = element_rect(fill = NA, colour = "black", linewidth = 1.2),
     strip.background = element_rect(fill = "#F2F2F2", colour = "black", linewidth = 1.2),
-    strip.text.y.left = element_text(angle = 90, face = "bold", size = 8),
+    strip.text.y.left = element_text(angle = 90, face = "plain", size = 8),
     plot.title = element_text(face = "bold", size = 10),
     plot.title.position = "plot",
     plot.margin = margin(5.5, 0, 5.5, 0)
@@ -282,7 +282,7 @@ h <- ggplot() +
       yend = event_row,
       colour = mut_type
     ),
-    linewidth = 0.68,
+    linewidth = 0.9,
     lineend = "round"
   ) +
   geom_point(
@@ -290,18 +290,26 @@ h <- ggplot() +
     aes(x = mut_start, y = event_row, colour = mut_type),
     shape = 21,
     fill = "white",
-    stroke = 0.42,
-    size = 0.85
+    stroke = 0.55,
+    size = 1.15
   ) +
   geom_point(
     data = indel_plot_data,
     aes(x = mut_finish, y = event_row, colour = mut_type),
     shape = 21,
     fill = "white",
-    stroke = 0.42,
-    size = 0.85
+    stroke = 0.55,
+    size = 1.15
   ) +
-  facet_grid(strain_legend ~ ., scales = "free_y", switch = "y") +
+  facet_grid(
+    strain_legend ~ .,
+    scales = "free_y",
+    switch = "y",
+    labeller = as_labeller(c(
+      "wild-type" = "wild type",
+      "hH3-K4R" = "\\textit{hH3-K4R}"
+    ))
+  ) +
   scale_x_continuous(
     limits = c(0, 90),
     breaks = seq(0, 90, 10),
@@ -310,7 +318,7 @@ h <- ggplot() +
   scale_colour_manual(values = event_cols, drop = FALSE) +
   scale_fill_manual(values = ir_cols, drop = FALSE) +
   labs(
-    x = "Alignment position from pan-2 start codon (bp)",
+    x = "Alignment position from \\textit{pan-2} start codon (bp)",
     y = NULL,
     fill = "Predicted IR pair"
   ) +
@@ -333,13 +341,13 @@ g <- ggplot(indel_plot_data) +
   geom_segment(
     aes(x = 0, xend = indel_size, y = event_row, yend = event_row),
     colour = "#333333",
-    linewidth = 0.72,
+    linewidth = 0.9,
     lineend = "round"
   ) +
   geom_point(
     aes(x = indel_size, y = event_row),
     colour = "#333333",
-    size = 0.9
+    size = 1.15
   ) +
   geom_vline(
     data = median_data,
@@ -350,13 +358,13 @@ g <- ggplot(indel_plot_data) +
   geom_label(
     data = median_data,
     aes(
-      x = 5.5,
+      x = 34,
       y = Inf,
       label = paste0("median = ", median_indel_size, " bp")
     ),
-    hjust = 0,
-    vjust = 1.2,
-    size = 2.0,
+    hjust = 1,
+    vjust = 1.1,
+    size = 3.5,
     linewidth = 0,
     label.padding = unit(0.08, "lines"),
     fill = "white",
@@ -372,8 +380,8 @@ g <- ggplot(indel_plot_data) +
     ),
     aes(x = 34, y = Inf, label = label),
     hjust = 1,
-    vjust = 1.2,
-    size = 2.2,
+    vjust = 2.55,
+    size = 3.5,
     linewidth = 0,
     label.padding = unit(0.08, "lines"),
     fill = "white",
@@ -402,7 +410,7 @@ g <- ggplot(indel_plot_data) +
 plot(g)
 
 merge_plot <- (h | g) +
-  plot_layout(widths = c(3, 1), guides = "collect") &
+  plot_layout(widths = c(4.2, 1), guides = "collect") &
   theme(legend.position = "bottom")
 
 plot(merge_plot)
