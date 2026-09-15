@@ -303,6 +303,11 @@ zsh 99_pan-2_identification/run_clustalo_pan-2_analysis.zsh
 
 Each workflow reads input files from its corresponding `dataset/` directory and writes generated files to its corresponding `output/` directory.
 
+The 2026-09-15 G3 revision reproducibility run, including clean-clone results,
+qSpot source correspondence, deterministic-output repairs, and the boundary
+between generated Resource plots and manuscript presentation copies, is
+recorded in [`docs/g3_issue_64_reproducibility_validation.md`](docs/g3_issue_64_reproducibility_validation.md).
+
 ## Output files
 
 The `output/` directories contain processed data tables, statistical summaries, model outputs, sequence-analysis products, and figure source files.

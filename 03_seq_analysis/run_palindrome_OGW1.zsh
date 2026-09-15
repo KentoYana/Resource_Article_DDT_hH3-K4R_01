@@ -54,6 +54,8 @@ print "Output: $PALINDROME_OUT"
 palindrome \
   -sequence "$INPUT_FASTA" \
   -outfile "$PALINDROME_OUT" \
+  -auto \
+  -overlap Y \
   -minpallen "$MIN_PAL_LEN" \
   -maxpallen "$MAX_PAL_LEN" \
   -gaplimit "$GAP_LIMIT" \
