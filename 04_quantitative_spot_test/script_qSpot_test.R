@@ -66,12 +66,12 @@ exp_list <- read_csv(here("04_quantitative_spot_test", "dataset", "exp_list.csv"
 analyze_qspot_target <- function(target_info) {
 
   target_name <- target_info$target
-  target_dose <- target_info$dose
+  target_image_suspension <- target_info$image_suspension
 
   cat("\n")
   cat("========================================\n")
   cat("Analyzing target:", target_name, "\n")
-  cat("Target suspension:", target_dose, "\n")
+  cat("Target image-suspension code:", target_image_suspension, "\n")
   cat("========================================\n")
 
   # Define target-specific output directory
@@ -107,23 +107,30 @@ analyze_qspot_target <- function(target_info) {
     here("04_quantitative_spot_test", "dataset", spotpath, "strain_list.csv")
   )
 
+  required_strain_columns <- c("row", "strain", "initial_conidia_per_ml")
+  if (!all(required_strain_columns %in% names(strain_list)) ||
+      any(!is.finite(strain_list$initial_conidia_per_ml)) ||
+      any(strain_list$initial_conidia_per_ml <= 0)) {
+    stop("Missing or invalid strain-specific conidial concentration for ", target_name)
+  }
+
   raw_csv <- raw_csv %>%
     mutate(exp_ID = str_extract(csv_path, '/results_.*/UV_')) %>%
     mutate(exp_ID = str_remove_all(exp_ID, '/results_|/UV_')) %>%
     mutate(csv_path = str_remove_all(csv_path, '.*data_availability')) %>%
-    separate(Image, c('exp_condition', 'suspension', 'dose', 'unit', 'photo_ID'), sep = '_') %>%
+    separate(Image, c('exp_condition', 'image_suspension', 'dose', 'unit', 'photo_ID'), sep = '_') %>%
     mutate(dose = as.numeric(dose)) %>%
-    mutate(suspension = as.numeric(suspension)) %>%
-    mutate(Conidia = 2 * 10^suspension / 5^(column - 1)) %>%
+    mutate(image_suspension = as.numeric(image_suspension)) %>%
     left_join(strain_list, by = 'row') %>%
-    filter(suspension == target_dose) %>%
+    filter(image_suspension == target_image_suspension) %>%
+    mutate(Conidia = initial_conidia_per_ml / 5^(column - 1)) %>%
     na.omit()
 
   raw_csv$strain <- factor(raw_csv$strain, levels = strain_list$strain)
 
   # calculate mean of each duplicate spot
   raw_csv_summarize <- raw_csv %>%
-    group_by(suspension, dose, strain, column, exp_ID, Conidia) %>%
+    group_by(image_suspension, dose, strain, initial_conidia_per_ml, column, exp_ID, Conidia) %>%
     summarize(
       Colony_mean = mean(Colony, na.rm = TRUE),
       .groups = "drop"
@@ -138,8 +145,9 @@ analyze_qspot_target <- function(target_info) {
   raw_csv_control_raw <- filter(raw_csv_summarize, dose == 0)
 
   raw_csv_control <- data.frame(
-    suspension = raw_csv_control_raw$suspension,
+    image_suspension = raw_csv_control_raw$image_suspension,
     strain = raw_csv_control_raw$strain,
+    initial_conidia_per_ml = raw_csv_control_raw$initial_conidia_per_ml,
     column = raw_csv_control_raw$column,
     exp_ID = raw_csv_control_raw$exp_ID,
     Colony_control = raw_csv_control_raw$Colony_mean,
@@ -149,7 +157,7 @@ analyze_qspot_target <- function(target_info) {
   raw_csv_summarize <- left_join(
     raw_csv_summarize,
     raw_csv_control,
-    by = c("suspension", "strain", "column", "exp_ID")
+    by = c("image_suspension", "strain", "initial_conidia_per_ml", "column", "exp_ID")
   )
 
   # A zero UV-control mean cannot define a normalized spot-coverage ratio.
@@ -169,9 +177,10 @@ analyze_qspot_target <- function(target_info) {
   # calculate ratio of Colony_mean to Control
   expData_raw <- data.frame(
     exp_ID = ratio_data$exp_ID,
-    suspension = ratio_data$suspension,
+    image_suspension = ratio_data$image_suspension,
     dose = ratio_data$dose,
     strain = ratio_data$strain,
+    initial_conidia_per_ml = ratio_data$initial_conidia_per_ml,
     column = ratio_data$column,
     Spot_ratio = ratio_data$Colony_mean / ratio_data$Colony_control,
     Conidia_ratio = ratio_data$Conidia / ratio_data$Conidia_control

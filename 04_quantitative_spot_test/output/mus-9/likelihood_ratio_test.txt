@@ -1,4 +1,4 @@
 Target: mus-9
-Likelihood Ratio Statistic: 112.3334
+Likelihood Ratio Statistic: 142.3737
 Degrees of Freedom Difference: 6
-p-value: 6.614443e-22
+p-value: 3.16161e-28

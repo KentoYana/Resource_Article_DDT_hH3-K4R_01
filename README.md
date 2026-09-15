@@ -94,7 +94,7 @@ This directory contains the original plate images, SpotScanner measurement files
 
 Main files and directories:
 
-- `dataset/exp_list.csv`: experiment list used by the R analysis.
+- `dataset/exp_list.csv`: experiment list and image-suspension code used to select the source-image series for each analysis.
 - `dataset/qSpot-*`: target-specific datasets containing original JPEG plate images, the corresponding SpotScanner result CSV files, and strain annotation tables.
 - `script_qSpot_test.R`: R script for importing SpotScanner results, calculating normalized spot-coverage ratios, beta-regression analysis, likelihood-ratio tests, slope comparisons, dose-wise comparisons, and figure generation.
 - `output/`: processed data, statistical summaries, target-specific output directories, and TikZ figure output.
@@ -111,6 +111,8 @@ The target-specific dataset directories are:
 Within each target-specific directory, subdirectories named `SpotYYMMDD` identify the experimental or plate-imaging date. Directories named `results_YYYY-MM-DD_HH-MM-SS` record the date and time at which the corresponding images were analyzed with SpotScanner. These dates may therefore differ; for example, an experiment performed on 2023-06-01 may have been processed on 2024-02-08.
 
 Each archived source image has a corresponding `*_results.csv` file, and each archived result CSV has a corresponding source image. The result CSV files are the direct quantitative inputs used by `script_qSpot_test.R`.
+
+Each target-specific `strain_list.csv` records the initial conidial concentration used for every strain. The image-suspension code in an image filename identifies the source-image series and is not assumed to be the actual starting concentration of every strain on that plate. For each strain, the analysis calculates the concentration at dilution column $d$ as `initial_conidia_per_ml / 5^(d - 1)`.
 
 For normalization, replicate spot measurements are averaged and rounded to two decimal places. Observations whose corresponding 0 J/m² control mean is zero are excluded before calculating the spot-coverage ratio. Each target's `output/<target>/excluded_zero_control.csv` records these observations (a header-only file indicates no exclusions). Ratios above one are capped at one, and the endpoint adjustment `(x * (n - 1) + 0.5) / n` uses the number of retained observations for that target. The same retained sample size is used to transform relative conidial input. For the mus-9 set, four zero-control observations are excluded, leaving 380 observations; the other five sets each retain 288 observations.
 
