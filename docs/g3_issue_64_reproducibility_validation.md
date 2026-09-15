@@ -108,6 +108,6 @@ underlying numerical CSV outputs and the values stated in the manuscript must
 remain the consistency criterion.
 
 The current H3K4 analysis adds `IRanges`, `rtracklayer`, `digest`, and `jsonlite`
-to `package_versions.csv`. Addition of those packages and their standard
-software citations to the manuscript's supplemental package table remains an
-author-controlled manuscript and citation change.
+to `package_versions.csv`. The author approved adding those packages and their
+standard software citations to the manuscript's supplemental package table on
+2026-09-15; the Article repository records the change in commit `0062183`.
