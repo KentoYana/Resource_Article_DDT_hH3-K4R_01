@@ -1,5 +1,5 @@
-row,strain
-1,wild-type
-2,hH3-K4R
-3,mei-3 KO
-4,mei-3 KO hH3-K4R
+row,strain,initial_conidia_per_ml
+1,wild-type,2e6
+2,hH3-K4R,2e6
+3,mei-3 KO,2e6
+4,mei-3 KO hH3-K4R,2e6

@@ -5,30 +5,30 @@ betareg(formula = Spot_ratio_scaled ~ dose * strain + Conidia_ratio_scaled +
 
 Quantile residuals:
     Min      1Q  Median      3Q     Max
--2.8352 -0.4237  0.3243  0.7498  2.3899
+-2.8541 -0.4807  0.3954  0.7023  1.9776
 
 Coefficients (mean model with logit link):
                                  Estimate Std. Error z value Pr(>|z|)
-(Intercept)                      1.664410   0.215850   7.711 1.25e-14 ***
-dose                            -0.002630   0.001573  -1.672   0.0945 .
-strainhH3-K4R                    0.063803   0.250471   0.255   0.7989
-strainmus-9(FK129)              -0.212936   0.254245  -0.838   0.4023
-strainmus-9(FK129) hH3-K4R      -0.417388   0.258678  -1.614   0.1066
-Conidia_ratio_scaled             0.987042   0.160984   6.131 8.72e-10 ***
-exp_ID2024-02-08_21-31-21        0.072830   0.168494   0.432   0.6656
-exp_ID2024-02-08_21-32-06       -0.046163   0.168949  -0.273   0.7847
-exp_ID2025-01-20_13-48-58       -0.003894   0.168783  -0.023   0.9816
-dose:strainhH3-K4R              -0.001653   0.002234  -0.740   0.4593
-dose:strainmus-9(FK129)         -0.011098   0.002289  -4.849 1.24e-06 ***
-dose:strainmus-9(FK129) hH3-K4R -0.010994   0.002312  -4.755 1.99e-06 ***
+(Intercept)                      1.858689   0.212569   8.744  < 2e-16 ***
+dose                            -0.002502   0.001560  -1.603  0.10888
+strainhH3-K4R                    0.051322   0.248906   0.206  0.83664
+strainmus-9(FK129)              -0.492784   0.257244  -1.916  0.05541 .
+strainmus-9(FK129) hH3-K4R      -0.690636   0.261921  -2.637  0.00837 **
+Conidia_ratio_scaled             1.791713   0.229799   7.797 6.35e-15 ***
+exp_ID2024-02-08_21-31-21        0.074297   0.166666   0.446  0.65575
+exp_ID2024-02-08_21-32-06       -0.033793   0.167042  -0.202  0.83968
+exp_ID2025-01-20_13-48-58       -0.005987   0.166943  -0.036  0.97139
+dose:strainhH3-K4R              -0.001535   0.002216  -0.693  0.48836
+dose:strainmus-9(FK129)         -0.011844   0.002264  -5.231 1.69e-07 ***
+dose:strainmus-9(FK129) hH3-K4R -0.011811   0.002287  -5.165 2.41e-07 ***
 
 Phi coefficients (precision model with identity link):
       Estimate Std. Error z value Pr(>|z|)
-(phi)  1.22131    0.08827   13.84   <2e-16 ***
+(phi)  1.31049    0.09675   13.54   <2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Type of estimator: ML (maximum likelihood)
-Log-likelihood: 712.6 on 13 Df
-Pseudo R-squared: 0.5335
-Number of iterations: 50 (BFGS) + 2 (Fisher scoring)
+Log-likelihood: 720.5 on 13 Df
+Pseudo R-squared: 0.5469
+Number of iterations: 44 (BFGS) + 1 (Fisher scoring)
