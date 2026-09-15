@@ -117,7 +117,12 @@ analyze_qspot_target <- function(target_info) {
   raw_csv <- raw_csv %>%
     mutate(exp_ID = str_extract(csv_path, '/results_.*/UV_')) %>%
     mutate(exp_ID = str_remove_all(exp_ID, '/results_|/UV_')) %>%
-    mutate(csv_path = str_remove_all(csv_path, '.*data_availability')) %>%
+    mutate(
+      csv_path = str_remove(
+        csv_path,
+        fixed(paste0(normalizePath(here()), "/"))
+      )
+    ) %>%
     separate(Image, c('exp_condition', 'image_suspension', 'dose', 'unit', 'photo_ID'), sep = '_') %>%
     mutate(dose = as.numeric(dose)) %>%
     mutate(image_suspension = as.numeric(image_suspension)) %>%

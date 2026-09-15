@@ -142,7 +142,7 @@ record_versions() {
     {
         printf 'generated_at\t%s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
         printf 'reference_accession\t%s\n' "${REFERENCE_ACCESSION}"
-        printf 'python\t%s\n' "$(pyenv which python)"
+        printf 'python_environment\tpyenv %s\n' "${PYTHON_VERSION}"
         "$(pyenv which python)" --version 2>&1
         prefetch --version 2>&1 | sed -n '1p' || true
         fasterq-dump --version 2>&1 | sed -n '1p' || true

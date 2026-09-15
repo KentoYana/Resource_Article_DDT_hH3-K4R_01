@@ -126,8 +126,11 @@ indelData <- expData %>%
   mutate(strain_legend = factor(strain_legend, levels = c("wild-type", "hH3-K4R")))
 
 indel_sample <- indelData %>%
+  # Select one example deterministically so repeated runs produce the same
+  # summary table. Experimental identifiers define the stable tie-break order.
+  arrange(mut_size, expID, seqID, strain, colony, rev_sequence_extract) %>%
   group_by(mut_size) %>%
-  slice_sample(n = 1) %>%
+  slice_head(n = 1) %>%
   ungroup() %>%
   dplyr::select(mut_type, delins_chk, mut_size, rev_sequence_extract)
 

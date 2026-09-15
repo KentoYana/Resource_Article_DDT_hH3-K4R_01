@@ -1,6 +1,6 @@
 # Repair/DDT-gene H3K4me descriptive summary
 
-This table reports within-run genome-wide midrank percentiles from the nonduplicate tracks. Values separated by a hyphen give the range across the selected studies; studies are not treated as biological replicates and are not pooled.
+This table reports within-run genome-wide midrank percentiles from the nonduplicate tracks. When more than one study is selected for a mark, values separated by a hyphen give the cross-study range; studies are not treated as biological replicates and are not pooled.
 
 | Gene | H3K4me1 promoter | H3K4me1 gene body | H3K4me2 promoter | H3K4me2 gene body | H3K4me3 promoter | H3K4me3 gene body |
 |---|---:|---:|---:|---:|---:|---:|
