@@ -9,7 +9,7 @@ This repository contains datasets, analysis scripts, and generated output files 
 The repository is intended to support transparency and reproducibility of the analyses reported in the manuscript. Each analysis directory contains the input data, analysis scripts, and output files used for the corresponding part of the study.
 
 The resource version prepared for the revised manuscript is archived as
-[GitHub Release v1.1.1](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.1).
+[GitHub Release v1.1.2](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.2).
 
 ## Repository structure
 
