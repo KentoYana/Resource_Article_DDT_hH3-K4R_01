@@ -1,0 +1,3 @@
+# TikZ files under analysis output directories are generated artifacts.
+**/output/*.tex linguist-generated=true
+**/output/**/*.tex linguist-generated=true
