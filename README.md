@@ -20,6 +20,7 @@ The resource version prepared for the revised manuscript is archived as
 ├── 03_seq_analysis
 ├── 04_quantitative_spot_test
 ├── 05_public_H3K4
+├── 06_hH3_sequence_validation
 ├── 91_cross_information
 └── 99_pan-2_identification
 ```
@@ -174,6 +175,25 @@ the working project, then use **Source** on
 `05_public_H3K4/scripts/analyze_reporter_loci.R`. See the directory README for
 the external-SSD input path and environment-variable overrides.
 
+### `06_hH3_sequence_validation`
+
+This directory contains the four original AB1 chromatograms and matching PHD
+exports used to validate the wild-type AAG and `hH3-K4R` AGA codons shown in
+Supplementary Figure S1. The R script verifies the bidirectional calls against
+the instrument exports and regenerates the editable TikZ trace panel and
+machine-readable verification outputs.
+
+Run from the repository root:
+
+```sh
+Rscript 06_hH3_sequence_validation/script_hH3_sequence_validation.R
+```
+
+The script can also be opened and sourced in RStudio. The raw AB1 metadata
+contain an author surname in the instrument plate identifier; publication of
+the unmodified files was explicitly approved as a documented exception. See
+the directory README for interpretation limits and provenance.
+
 ### `91_cross_information`
 
 This directory contains the dataset and R script for segregation analysis related to `hH3-K4R`.
@@ -301,6 +321,7 @@ zsh 03_seq_analysis/run_palindrome_OGW1.zsh
 Rscript 03_seq_analysis/script_rev_seq_analysis.R
 zsh 03_seq_analysis/run_clustalo_B36.zsh
 Rscript 04_quantitative_spot_test/script_qSpot_test.R
+Rscript 06_hH3_sequence_validation/script_hH3_sequence_validation.R
 Rscript 91_cross_information/script_segregation_hH3-K4R.R
 zsh 99_pan-2_identification/run_clustalo_pan-2_analysis.zsh
 ```
