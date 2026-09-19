@@ -1,3 +1,6 @@
 # TikZ files under analysis output directories are generated artifacts.
 **/output/*.tex linguist-generated=true
 **/output/**/*.tex linguist-generated=true
+
+# Preserve original instrument-export line endings and suppress text cleanup.
+06_hH3_sequence_validation/dataset/*.phd.1 binary

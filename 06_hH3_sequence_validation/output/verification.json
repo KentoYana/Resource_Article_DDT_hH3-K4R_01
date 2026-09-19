@@ -1,0 +1,62 @@
+{
+  "R": "R version 4.6.1 (2026-06-24)",
+  "seqinr": "4.2.44",
+  "traces": "R ABIF parser; DATA9-12/PBAS2/PLOC2; seqinr translation; native TikZ paths; independent scale; no smoothing or recalling",
+  "display": {
+    "upstream_bases": 6,
+    "translated_codons": 9,
+    "aa_label_style": "three-letter",
+    "translation_alignment": "second nucleotide",
+    "trace_baselines_cm": [3.75, 0.35],
+    "wild_type": "MARTKQTAR",
+    "K4R": "MARTRQTAR"
+  },
+  "sources": {
+    "28a-seq1_20211216_121424.ab1": "dd27a150715eb6d21920fd16b980b0cbd6330b1e089884f4c242efbb46418542",
+    "28a-seq2_20211216_135927.ab1": "b97467776b4686120114d388eb173e1ec153c3c99d5e140d74a448ccf1cd34be",
+    "87a-seq1_20211216_121425.ab1": "b2298496170dddab229914c09232778d85fdc1ffdd1dc39737408e5ceda653cf",
+    "87a-seq2_20211216_135928.ab1": "0fc05bb0142a723375f76f002dcfc2c1a2b9b81065c468d58508780c93010286",
+    "A9_28a-seq2_20211216_135927.phd.1": "cf0387ea09458c01b438dd924920c87813d8e160d1c8ff2d1dd05ef814e6c1b1",
+    "B9_87a-seq2_20211216_135928.phd.1": "82c058a17e32d6353625205bc118f6386a0779daddf0e945935d5eec44352ec7",
+    "E8_28a-seq1_20211216_121424.phd.1": "fddab6e72406341bace3ff8e069ccaa2ab8bbb63e25dd95eca26600d2469174b",
+    "F8_87a-seq1_20211216_121425.phd.1": "8c35e59e82a72a0a9741b6ac480d0c6366341091426340c0ba8f7a60f4e65051"
+  },
+  "checks": [
+    {
+      "read": "28a-seq1",
+      "codon": "AAG",
+      "positions": "164,165,166",
+      "Q": "62,62,62",
+      "length": 1049,
+      "phd_match": true,
+      "_row": "28a-seq1"
+    },
+    {
+      "read": "28a-seq2",
+      "codon": "AAG",
+      "positions": "386,385,384",
+      "Q": "59,59,59",
+      "length": 939,
+      "phd_match": true,
+      "_row": "28a-seq2"
+    },
+    {
+      "read": "87a-seq1",
+      "codon": "AGA",
+      "positions": "173,174,175",
+      "Q": "62,62,59",
+      "length": 1052,
+      "phd_match": true,
+      "_row": "87a-seq1"
+    },
+    {
+      "read": "87a-seq2",
+      "codon": "AGA",
+      "positions": "395,394,393",
+      "Q": "62,62,62",
+      "length": 1039,
+      "phd_match": true,
+      "_row": "87a-seq2"
+    }
+  ]
+}

@@ -117,3 +117,23 @@ The current H3K4 analysis adds `IRanges`, `rtracklayer`, `digest`, and `jsonlite
 to `package_versions.csv`. The author approved adding those packages and their
 standard software citations to the manuscript's supplemental package table on
 2026-09-15; the Article repository records the change in commit `0062183`.
+
+## Sequence-validation data addition (#182)
+
+After the initial #64 integration, the author approved adding the unmodified
+Sanger source files used for Supplementary Figure S1. The new
+`06_hH3_sequence_validation/` workflow contains four AB1 chromatograms, their
+matching PHD exports, a standalone and RStudio-source-compatible R script, and
+the regenerated verification and TikZ outputs.
+
+Both command-line execution and RStudio-style `source()` execution completed.
+All four PHD exports matched the corresponding AB1 sequence, quality scores,
+and peak positions. The two wild-type reads called AAG and the two mutant reads
+called AGA at the H3 K4 codon; the local codon quality scores were 59--62. The
+verification table matches the manuscript source exactly, and the generated
+TikZ trace content matches apart from its updated generator comment.
+
+The original AB1 metadata contain the plate identifier
+`Plate_20211216_120326_yanagisawa`. The author explicitly approved publication
+of the unmodified files as an exception. No metadata were stripped or rewritten,
+and the exception is disclosed in the workflow README and root README.
