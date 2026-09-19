@@ -6,6 +6,7 @@
 # available to use in this script
 library("tikzDevice")
 library("tidyverse")
+library("ggfortify")
 library("patchwork")
 library("here")
 library('MASS')
@@ -158,6 +159,10 @@ m_nb_null <- glm.nb(
 
 ## Model summary
 summary(m_nb)
+
+## Model diagnostic plots (active graphics device only; not exported via tikzDevice)
+m_nb_diagnostics <- autoplot(m_nb)
+print(m_nb_diagnostics)
 
 ## Likelihood ratio test
 lrt_nb <- anova(

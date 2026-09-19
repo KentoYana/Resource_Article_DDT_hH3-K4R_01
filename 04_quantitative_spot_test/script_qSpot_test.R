@@ -202,6 +202,10 @@ analyze_qspot_target <- function(target_info) {
     link = 'logit'
   )
 
+  ## Model diagnostic plots (active graphics device only; not exported via tikzDevice)
+  plot(spot_beta, which = 1:4, ask = FALSE)
+  plot(spot_beta_reduced, which = 1:4, ask = FALSE)
+
   lrt_result <- likelihood_ratio_test(spot_beta, spot_beta_reduced)
   lrt_result_df <- data.frame(
     target = target_name,

@@ -16,6 +16,7 @@ packages <- c(
   "tikzDevice",
   "betareg",
   "emmeans",
+  "ggfortify",
   "MASS",
   "seqinr",
   "patchwork",

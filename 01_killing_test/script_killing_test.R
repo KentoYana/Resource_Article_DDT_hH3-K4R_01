@@ -113,6 +113,9 @@ killing_beta <- betareg(
   data = expData_beta
 )
 
+## Model diagnostic plots (active graphics device only; not exported via tikzDevice)
+plot(killing_beta, which = 1:4, ask = FALSE)
+
 UV_list <- as.vector(unique(expData_beta$UV_dose, nmax = 4))
 
 emmeans_results <- emmeans(
