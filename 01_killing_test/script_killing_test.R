@@ -5,10 +5,7 @@
 # Make these packages and their associated functions
 # available to use in this script
 library("tikzDevice")
-library('RColorBrewer')
 library("tidyverse")
-library("ggfortify")
-library("patchwork")
 library("here")
 library("betareg")
 library("emmeans")
@@ -21,8 +18,6 @@ rm(list = ls())
 here::i_am("01_killing_test/script_killing_test.R")
 
 # Define directories
-script_dir  <- here("01_killing_test")
-dataset_dir <- here("01_killing_test", "dataset")
 output_dir  <- here("01_killing_test", "output")
 
 # Create output directory if it does not exist

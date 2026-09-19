@@ -5,24 +5,18 @@
 # make these packages and their associated functions
 # available to use in this script
 library("tikzDevice")
-library('RColorBrewer')
 library("tidyverse")
-library("ggfortify")
-library("patchwork")
 library("here")
 library('betareg')
 library('emmeans')
 
 # clear R's brain
 rm(list = ls())
-par(mfrow = c(2, 2), ask = FALSE)
 
 # Set project root
 here::i_am("04_quantitative_spot_test/script_qSpot_test.R")
 
 # Define directories
-script_dir  <- here("04_quantitative_spot_test")
-dataset_dir <- here("04_quantitative_spot_test", "dataset")
 output_dir  <- here("04_quantitative_spot_test", "output")
 
 # Create output directory if it does not exist
@@ -52,12 +46,6 @@ likelihood_ratio_test <- function(model1, model2) {
     p_value = as.numeric(p_value)
   ))
 }
-
-# palette("Okabe-Ito")
-colsBlack = brewer.pal(6, "Greys")
-colsOrange = brewer.pal(6, "Oranges")
-colsBlue = brewer.pal(6, "Blues")
-colsPurple = brewer.pal(5, "Purples")
 
 # Read experiment list
 exp_list <- read_csv(here("04_quantitative_spot_test", "dataset", "exp_list.csv"))

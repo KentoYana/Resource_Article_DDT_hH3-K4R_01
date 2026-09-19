@@ -16,7 +16,6 @@ packages <- c(
   "tikzDevice",
   "betareg",
   "emmeans",
-  "RColorBrewer",
   "MASS",
   "seqinr",
   "patchwork",

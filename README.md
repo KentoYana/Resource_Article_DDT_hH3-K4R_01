@@ -218,11 +218,9 @@ The following R packages are required:
 ```r
 install.packages(c(
   "tidyverse",
-  "ggfortify",
   "betareg",
   "emmeans",
   "patchwork",
-  "RColorBrewer",
   "ggh4x",
   "MASS",
   "seqinr",

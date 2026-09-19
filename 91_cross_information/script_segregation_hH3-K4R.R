@@ -4,35 +4,22 @@
 
 # make these packages and their associated functions
 # available to use in this script
-library("tikzDevice")
-library('RColorBrewer')
 library("tidyverse")
-library("ggfortify")
-library("patchwork")
 library("here")
 
 # clear R's brain
 rm(list = ls())
-par(mfrow = c(2, 2), ask = FALSE)
 
 # Set project root
 here::i_am("91_cross_information/script_segregation_hH3-K4R.R")
 
 # Define directories
-script_dir  <- here("91_cross_information")
-dataset_dir <- here("91_cross_information", "dataset")
 output_dir  <- here("91_cross_information", "output")
 
 # Create output directory if it does not exist
 if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)
 }
-
-# palette("Okabe-Ito")
-colsBlack  <- brewer.pal(6, "Greys")
-colsOrange <- brewer.pal(6, "Oranges")
-colsBlue   <- brewer.pal(6, "Blues")
-colsPurple <- brewer.pal(5, "Purples")
 
 # Read dataset
 raw_csv <- read_csv(

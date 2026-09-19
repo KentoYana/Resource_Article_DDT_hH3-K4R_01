@@ -5,10 +5,7 @@
 # Make these packages and their associated functions
 # available to use in this script
 library("tikzDevice")
-library('RColorBrewer')
 library("tidyverse")
-library("ggfortify")
-library("patchwork")
 library("here")
 library("ggh4x")
 
@@ -19,8 +16,6 @@ rm(list = ls())
 here::i_am("02_reversion_assay/script_reversion_frequency_AUC.R")
 
 # Define directories
-script_dir  <- here("02_reversion_assay")
-dataset_dir <- here("02_reversion_assay", "dataset")
 output_dir  <- here("02_reversion_assay", "output")
 
 # Create output directory if it does not exist
