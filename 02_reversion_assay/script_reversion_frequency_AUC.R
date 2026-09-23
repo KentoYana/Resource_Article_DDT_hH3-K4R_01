@@ -217,6 +217,17 @@ pair_results <- lapply(sibling_ids, function(x) analyze_auc_pair_unpaired(aucDat
 names(pair_results) <- sibling_ids
 
 pair_summary <- dplyr::bind_rows(lapply(pair_results, function(x) x$result_summary))
+pair_summary <- pair_summary %>%
+  dplyr::mutate(
+    p_value_Holm = p.adjust(p_value, method = "holm"),
+    significance_Holm = dplyr::case_when(
+      is.na(p_value_Holm) ~ "n.d.",
+      p_value_Holm < 0.001 ~ "***",
+      p_value_Holm < 0.01 ~ "**",
+      p_value_Holm < 0.05 ~ "*",
+      TRUE ~ "n.s."
+    )
+  )
 
 # Helper table for plotting AUC bars
 aucPlotData_pair <- aucData %>%
@@ -228,7 +239,7 @@ aucPlotData_pair <- aucData %>%
     .groups = "drop"
   ) %>%
   dplyr::left_join(
-    pair_summary %>% dplyr::select(sibling, significance),
+    pair_summary %>% dplyr::select(sibling, significance_Holm),
     by = "sibling"
   ) %>%
   dplyr::mutate(
@@ -257,9 +268,9 @@ plot_reversion_facet <- function(DataForPlot, pair_summary_df) {
         sibling %in% c("Op55", "Op51") ~ "set-1 KO"
       ),
       label = dplyr::case_when(
-        is.na(p_value)  ~ "Welch's t-test: n.d.",
-        p_value < 0.001 ~ "p < 0.001",
-        TRUE            ~ paste0("p = ", signif(p_value, 3))
+        is.na(p_value_Holm) ~ "Welch's t-test: n.d.",
+        p_value_Holm < 0.001 ~ "p < 0.001",
+        TRUE ~ paste0("p = ", signif(p_value_Holm, 3))
       ),
       allele = factor(allele, levels = c("B36", "OGW1")),
       genotype_label = factor(genotype_label, levels = c("hH3-K4R", "set-1 KO"))
@@ -396,7 +407,7 @@ plot_auc_facet <- function(DataForPlot) {
     dplyr::summarise(
       x = 1.5,
       y = max(ymax, na.rm = TRUE) + 0.05 * max(abs(AUC_bc_mean), na.rm = TRUE),
-      label = unique(significance)[1],
+      label = unique(significance_Holm)[1],
       .groups = "drop"
     ) %>%
     dplyr::filter(!is.na(label))
@@ -564,6 +575,11 @@ dev.off()
 # Print summaries to console
 aucData
 pair_summary
+
+writeLines(
+  capture.output(sessionInfo()),
+  here("02_reversion_assay", "output", "sessionInfo.txt")
+)
 
 pair_results$Op47$t_test
 pair_results$Op51$t_test

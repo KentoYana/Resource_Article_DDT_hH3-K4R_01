@@ -1,0 +1,26 @@
+Beta-regression response curves standardized at the pooled mean conidial covariate.
+Each experiment-specific curve was normalized to its predicted 0-J value before equal averaging.
+Raw AUC was integrated over the target-specific dose range by the trapezoidal rule.
+Delta-method uncertainty includes coefficient covariance and 0-J normalization.
+Holm correction was applied across all six pairwise strain contrasts within this target.
+
+# A tibble: 4 × 10
+  target strain  min_dose max_dose reference_Conidia_ra…¹ raw_AUC    SE lower.CL
+  <chr>  <chr>      <dbl>    <dbl>                  <dbl>   <dbl> <dbl>    <dbl>
+1 uvs-2  wild-t…        0       50                  0.209    49.1 0.660     47.8
+2 uvs-2  hH3-K4R        0       50                  0.209    50.0 0.577     48.9
+3 uvs-2  uvs-2 …        0       50                  0.209    30.7 1.08      28.6
+4 uvs-2  uvs-2 …        0       50                  0.209    34.5 1.16      32.3
+# ℹ abbreviated name: ¹​reference_Conidia_ratio_scaled
+# ℹ 2 more variables: upper.CL <dbl>, auc_group <chr>
+
+# A tibble: 6 × 11
+  target strain_1  strain_2 estimate    SE z.ratio lower.CL upper.CL p.value.raw
+  <chr>  <chr>     <chr>       <dbl> <dbl>   <dbl>    <dbl>    <dbl>       <dbl>
+1 uvs-2  wild-type hH3-K4R    -0.887 0.877   -1.01    -2.61    0.831    3.12e- 1
+2 uvs-2  wild-type uvs-2 KO   18.4   1.27    14.5     15.9    20.9      1.54e-47
+3 uvs-2  wild-type uvs-2 K…   14.6   1.34    10.9     12.0    17.2      1.11e-27
+4 uvs-2  hH3-K4R   uvs-2 KO   19.3   1.23    15.7     16.9    21.7      9.45e-56
+5 uvs-2  hH3-K4R   uvs-2 K…   15.5   1.30    11.9     12.9    18.0      9.10e-33
+6 uvs-2  uvs-2 KO  uvs-2 K…   -3.81  1.58    -2.41    -6.92   -0.707    1.61e- 2
+# ℹ 2 more variables: p.value.Holm <dbl>, significance.Holm <chr>

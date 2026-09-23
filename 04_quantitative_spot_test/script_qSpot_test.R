@@ -8,7 +8,6 @@ library("tikzDevice")
 library("tidyverse")
 library("here")
 library('betareg')
-library('emmeans')
 
 # clear R's brain
 rm(list = ls())
@@ -45,6 +44,43 @@ likelihood_ratio_test <- function(model1, model2) {
     df_diff = as.numeric(df_diff),
     p_value = as.numeric(p_value)
   ))
+}
+
+# Create a compact-letter display directly from the Holm-adjusted pairwise
+# tests. Maximal cliques of mutually non-significant genotypes share a letter;
+# overlapping cliques naturally produce labels such as "ab".
+compact_auc_letters <- function(strains, estimates, pairwise, alpha = 0.05) {
+  n <- length(strains)
+  nonsignificant <- diag(TRUE, n)
+  dimnames(nonsignificant) <- list(strains, strains)
+  for (i in seq_len(nrow(pairwise))) {
+    first <- match(pairwise$strain_1[i], strains)
+    second <- match(pairwise$strain_2[i], strains)
+    is_nonsignificant <- pairwise$p.value.Holm[i] >= alpha
+    nonsignificant[first, second] <- is_nonsignificant
+    nonsignificant[second, first] <- is_nonsignificant
+  }
+
+  candidate_cliques <- lapply(seq_len(2^n - 1), function(mask) {
+    which(as.logical(intToBits(mask)[seq_len(n)]))
+  })
+  candidate_cliques <- Filter(function(indices) {
+    all(nonsignificant[indices, indices, drop = FALSE])
+  }, candidate_cliques)
+  maximal_cliques <- Filter(function(indices) {
+    !any(vapply(candidate_cliques, function(other) {
+      length(other) > length(indices) && all(indices %in% other)
+    }, logical(1)))
+  }, candidate_cliques)
+  maximal_cliques <- maximal_cliques[order(vapply(maximal_cliques, function(indices) {
+    -max(estimates[indices])
+  }, numeric(1)))]
+
+  letter_codes <- letters[seq_along(maximal_cliques)]
+  labels <- vapply(seq_len(n), function(i) {
+    paste0(letter_codes[vapply(maximal_cliques, function(indices) i %in% indices, logical(1))], collapse = "")
+  }, character(1))
+  tibble(strain = strains, auc_group = labels)
 }
 
 # Read experiment list
@@ -188,7 +224,11 @@ analyze_qspot_target <- function(target_info) {
   expData_raw <- expData_raw %>%
     mutate(Spot_ratio_scaled = ifelse(Spot_ratio > 1, 1, Spot_ratio)) %>%
     mutate(Spot_ratio_scaled = (Spot_ratio_scaled * (n_observations - 1) + 0.5) / n_observations) %>%
-    mutate(Conidia_ratio_scaled = (Conidia_ratio * (n_observations - 1) + 0.5) / n_observations)
+    mutate(
+      Conidia_ratio_scaled = (Conidia_ratio * (n_observations - 1) + 0.5) / n_observations,
+      strain = factor(strain, levels = strain_list$strain),
+      exp_ID = factor(exp_ID)
+    )
 
   spot_beta <- betareg(
     Spot_ratio_scaled ~ dose * strain + Conidia_ratio_scaled + exp_ID,
@@ -214,89 +254,207 @@ analyze_qspot_target <- function(target_info) {
     p_value = lrt_result$p_value
   )
 
-  UV_dose <- as.vector(unique(expData_raw$dose, nmax = 4))
+  # Generate response-scale curves from the beta regression model. Predictions
+  # use the pooled mean conidial covariate. Within each experiment-specific
+  # predicted curve, divide by its predicted 0-J value; then average experiments
+  # with equal weight. This makes every displayed curve exactly one at 0 J.
+  mean_coefficients <- coef(spot_beta, model = "mean")
+  mean_covariance <- vcov(spot_beta)[
+    names(mean_coefficients), names(mean_coefficients), drop = FALSE
+  ]
+  observed_doses <- sort(unique(expData_raw$dose))
+  dense_doses <- sort(unique(c(
+    seq(min(observed_doses), max(observed_doses), length.out = 2001),
+    observed_doses
+  )))
+  exp_levels <- levels(expData_raw$exp_ID)
+  conidia_reference <- mean(expData_raw$Conidia_ratio_scaled)
 
-  dose_comparisons <- emmeans(
-    spot_beta,
-    ~ dose * strain,
-    type = 'response',
-    at = list(dose = UV_dose)
+  trapezoid_weights <- function(x) {
+    dx <- diff(x)
+    c(dx[1] / 2, (head(dx, -1) + tail(dx, -1)) / 2, tail(dx, 1) / 2)
+  }
+  auc_weights <- trapezoid_weights(dense_doses)
+
+  design_for_strain <- function(strain_value) {
+    newdata <- expand.grid(
+      dose = dense_doses,
+      strain = strain_value,
+      exp_ID = exp_levels,
+      KEEP.OUT.ATTRS = FALSE,
+      stringsAsFactors = FALSE
+    ) %>%
+      mutate(
+        strain = factor(strain, levels = strain_list$strain),
+        exp_ID = factor(exp_ID, levels = exp_levels),
+        Conidia_ratio_scaled = conidia_reference
+      )
+    design <- model.matrix(
+      ~ dose * strain + Conidia_ratio_scaled + exp_ID,
+      data = newdata
+    )
+    design[, names(mean_coefficients), drop = FALSE]
+  }
+
+  normalized_curve <- function(coefficients, design) {
+    predictions <- matrix(
+      plogis(as.vector(design %*% coefficients)),
+      nrow = length(dense_doses)
+    )
+    normalized_by_experiment <- sweep(
+      predictions, 2, predictions[1, ], FUN = "/"
+    )
+    rowMeans(normalized_by_experiment)
+  }
+
+  curve_and_gradient <- function(design) {
+    estimate <- normalized_curve(mean_coefficients, design)
+    gradient <- vapply(seq_along(mean_coefficients), function(j) {
+      step <- 1e-5 * max(1, abs(mean_coefficients[j]))
+      upper <- mean_coefficients
+      lower <- mean_coefficients
+      upper[j] <- upper[j] + step
+      lower[j] <- lower[j] - step
+      (normalized_curve(upper, design) - normalized_curve(lower, design)) / (2 * step)
+    }, numeric(length(dense_doses)))
+    list(estimate = estimate, gradient = gradient)
+  }
+
+  strain_results <- lapply(strain_list$strain, function(strain_value) {
+    result <- curve_and_gradient(design_for_strain(strain_value))
+    curve_variance <- rowSums((result$gradient %*% mean_covariance) * result$gradient)
+    curve_se <- sqrt(pmax(curve_variance, 0))
+    auc_estimate <- sum(auc_weights * result$estimate)
+    auc_gradient <- colSums(result$gradient * auc_weights)
+    tibble(
+      strain = strain_value,
+      dose = dense_doses,
+      response = result$estimate,
+      SE = curve_se,
+      lower.CL = result$estimate - qnorm(0.975) * curve_se,
+      upper.CL = result$estimate + qnorm(0.975) * curve_se
+    ) %>%
+      mutate(
+        response = if_else(dose == 0, 1, response),
+        SE = if_else(dose == 0, 0, SE),
+        lower.CL = if_else(dose == 0, 1, lower.CL),
+        upper.CL = if_else(dose == 0, 1, upper.CL),
+        strain = factor(strain, levels = strain_list$strain)
+      ) %>%
+      list(
+        curve = .,
+        auc = tibble(
+          target = target_name,
+          strain = strain_value,
+          min_dose = min(dense_doses),
+          max_dose = max(dense_doses),
+          reference_Conidia_ratio_scaled = conidia_reference,
+          raw_AUC = auc_estimate,
+          SE = sqrt(drop(auc_gradient %*% mean_covariance %*% auc_gradient)),
+          auc_gradient = list(auc_gradient)
+        )
+      )
+  })
+
+  plot_prediction <- bind_rows(lapply(strain_results, `[[`, "curve"))
+  auc_summary <- bind_rows(lapply(strain_results, `[[`, "auc")) %>%
+    mutate(
+      lower.CL = raw_AUC - qnorm(0.975) * SE,
+      upper.CL = raw_AUC + qnorm(0.975) * SE
+    )
+
+  auc_gradients <- do.call(rbind, auc_summary$auc_gradient)
+  auc_covariance <- auc_gradients %*% mean_covariance %*% t(auc_gradients)
+  strain_names <- as.character(auc_summary$strain)
+  pair_indices <- combn(seq_along(strain_names), 2)
+  auc_pairwise <- bind_rows(lapply(seq_len(ncol(pair_indices)), function(i) {
+    first <- pair_indices[1, i]
+    second <- pair_indices[2, i]
+    estimate <- auc_summary$raw_AUC[first] - auc_summary$raw_AUC[second]
+    variance <- auc_covariance[first, first] + auc_covariance[second, second] -
+      2 * auc_covariance[first, second]
+    SE <- sqrt(max(variance, 0))
+    tibble(
+      target = target_name,
+      strain_1 = strain_names[first],
+      strain_2 = strain_names[second],
+      estimate = estimate,
+      SE = SE,
+      z.ratio = estimate / SE,
+      lower.CL = estimate - qnorm(0.975) * SE,
+      upper.CL = estimate + qnorm(0.975) * SE,
+      p.value.raw = 2 * pnorm(-abs(z.ratio))
+    )
+  })) %>%
+    mutate(
+      p.value.Holm = p.adjust(p.value.raw, method = "holm"),
+      significance.Holm = case_when(
+        p.value.Holm < 0.001 ~ "***",
+        p.value.Holm < 0.01 ~ "**",
+        p.value.Holm < 0.05 ~ "*",
+        TRUE ~ "n.s."
+      )
+    )
+
+  auc_letters <- compact_auc_letters(
+    strain_names,
+    auc_summary$raw_AUC,
+    auc_pairwise
   )
-
-  slope_comparisons <- emtrends(
-    spot_beta,
-    specs = 'strain',
-    type = 'response',
-    var = 'dose'
+  auc_summary_output <- auc_summary %>%
+    select(-auc_gradient) %>%
+    left_join(auc_letters, by = "strain")
+  point_prediction <- plot_prediction %>% filter(dose %in% observed_doses)
+  strain_plot_labels <- switch(
+    target_name,
+    "mus-9" = c("wild type", "\\textit{hH3-K4R}", "\\textit{mus-9}", "\\textit{mus-9 hH3-K4R}"),
+    "uvs-2" = c("wild type", "\\textit{hH3-K4R}", "\\textit{$\\Delta$uvs-2}", "\\textit{$\\Delta$uvs-2 hH3-K4R}"),
+    "mei-3" = c("wild type", "\\textit{hH3-K4R}", "\\textit{$\\Delta$mei-3}", "\\textit{$\\Delta$mei-3 hH3-K4R}"),
+    "mus-11" = c("wild type", "\\textit{hH3-K4R}", "\\textit{$\\Delta$mus-11}", "\\textit{$\\Delta$mus-11 hH3-K4R}"),
+    "recQ" = c("wild type", "\\textit{hH3-K4R}", "\\textit{qde-3-RIP $\\Delta$recQ2}", "\\textit{qde-3-RIP $\\Delta$recQ2 hH3-K4R}"),
+    "mus-26-polh" = c("wild type", "\\textit{hH3-K4R}", "\\textit{$\\Delta$mus-26 $\\Delta$polh}", "\\textit{$\\Delta$mus-26 $\\Delta$polh hH3-K4R}")
   )
-
-  slope_pairwise <- contrast(
-    slope_comparisons,
-    method = "pairwise",
-    type = 'response',
-    adjust = 'BH'
-  )
-
-  plot_prediction <- as.data.frame(dose_comparisons)
-
-  end_points <- plot_prediction %>%
+  display_doses <- sort(unique(c(
+    dense_doses[seq(1, length(dense_doses), length.out = 201) %>% round()],
+    observed_doses
+  )))
+  plot_prediction_display <- plot_prediction %>% filter(dose %in% display_doses)
+  endpoint_letters <- plot_prediction %>%
     group_by(strain) %>%
     filter(dose == max(dose)) %>%
-    ungroup()
+    ungroup() %>%
+    left_join(auc_letters, by = "strain")
 
   g <- ggplot(
-    plot_prediction,
-    aes(
-      x = dose,
-      y = emmean * 100,
-      color = strain,
-      fill = strain,
-      shape = strain
-    )) +
-    geom_line(linewidth = 1) +
-    geom_point(size = 3) +
-    geom_errorbar(
-      # aes(
-      #   ymin = asymp.LCL*100,
-      #   ymax = asymp.UCL*100,
-      #   width = max(dose)/16
-      # ),
-      aes(
-        ymin = (emmean - SE) * 100,
-        ymax = (emmean + SE) * 100,
-        width = max(dose) / 16
-      ),
-      linewidth = 1
+    plot_prediction_display,
+    aes(x = dose, y = response, color = strain, fill = strain, shape = strain)
+  ) +
+    geom_ribbon(
+      aes(ymin = pmax(lower.CL, 0), ymax = upper.CL),
+      alpha = 0.12,
+      color = NA,
+      show.legend = FALSE
     ) +
+    geom_line(linewidth = 1) +
+    geom_point(data = point_prediction, size = 2.5) +
     geom_text(
-      data = end_points,
-      aes(
-        x = max(dose) * 1.1,
-        y = emmean * 100,
-        label = rep('xx', nrow(end_points))
-      ),
-      # hjust = -1,  # 右端に少し離して表示
+      data = endpoint_letters,
+      aes(x = max(dense_doses) * 1.1, y = response, label = auc_group),
       show.legend = FALSE,
       size = 4
     ) +
-    scale_y_log10(limits = c(NA, 100)) +
-    theme_bw(
-      base_size = 10
-    ) +
-    # geom_segment(
-    #   aes(
-    #     x = 1,
-    #     xend = 3,
-    #     y = 100,
-    #     yend = 100
-    #   ),
-    #   color = 'red',
-    #   linewidth = 0.8
-    # ) +
+    theme_bw(base_size = 10) +
     xlab('UV dose (unit{Jpersquaremeter})') +
-    ylab('Estimated spot-coverage ratio (unit{percent})') +
-    scale_shape_manual(values = c(15, 0, 16, 1)) +
-    scale_color_manual(values = c("#02010C", "#009944", "#0068b7", "#f39800")) +
+    ylab('Predicted response') +
+    scale_shape_manual(values = c(15, 0, 16, 1), labels = strain_plot_labels) +
+    scale_color_manual(
+      values = c("#02010C", "#009944", "#0068b7", "#f39800"),
+      labels = strain_plot_labels
+    ) +
+    scale_fill_manual(
+      values = c("#02010C", "#009944", "#0068b7", "#f39800"),
+      labels = strain_plot_labels
+    ) +
     theme(
       axis.text = element_text(size = 10, colour = "black"),
       panel.background = element_rect(fill = "white", colour = "black", linewidth = 3),
@@ -309,7 +467,7 @@ analyze_qspot_target <- function(target_info) {
       # aspect.ratio = (1+sqrt(5)) / 2
       # aspect.ratio = 4/6
     ) +
-    guides(shape = guide_legend(nrow = 2, byrow = TRUE))
+    guides(shape = guide_legend(nrow = 2, byrow = FALSE))
 
   plot(g)
 
@@ -354,20 +512,14 @@ analyze_qspot_target <- function(target_info) {
   )
 
   write.csv(
-    as.data.frame(summary(dose_comparisons)),
-    file = here("04_quantitative_spot_test", "output", target_name, "dose_comparisons.csv"),
+    auc_summary_output,
+    file = here("04_quantitative_spot_test", "output", target_name, "auc_summary.csv"),
     row.names = FALSE
   )
 
   write.csv(
-    as.data.frame(summary(slope_comparisons)),
-    file = here("04_quantitative_spot_test", "output", target_name, "slope_comparisons.csv"),
-    row.names = FALSE
-  )
-
-  write.csv(
-    as.data.frame(summary(slope_pairwise)),
-    file = here("04_quantitative_spot_test", "output", target_name, "slope_pairwise.csv"),
+    auc_pairwise,
+    file = here("04_quantitative_spot_test", "output", target_name, "auc_pairwise.csv"),
     row.names = FALSE
   )
 
@@ -385,16 +537,15 @@ analyze_qspot_target <- function(target_info) {
   print(summary(spot_beta_reduced))
   sink()
 
-  sink(here("04_quantitative_spot_test", "output", target_name, "dose_comparisons_summary.txt"))
-  print(summary(dose_comparisons))
-  sink()
-
-  sink(here("04_quantitative_spot_test", "output", target_name, "slope_comparisons_summary.txt"))
-  print(summary(slope_comparisons))
-  sink()
-
-  sink(here("04_quantitative_spot_test", "output", target_name, "slope_pairwise_summary.txt"))
-  print(summary(slope_pairwise))
+  sink(here("04_quantitative_spot_test", "output", target_name, "auc_analysis_summary.txt"))
+  cat("Beta-regression response curves standardized at the pooled mean conidial covariate.\n")
+  cat("Each experiment-specific curve was normalized to its predicted 0-J value before equal averaging.\n")
+  cat("Raw AUC was integrated over the target-specific dose range by the trapezoidal rule.\n")
+  cat("Delta-method uncertainty includes coefficient covariance and 0-J normalization.\n")
+  cat("Holm correction was applied across all six pairwise strain contrasts within this target.\n\n")
+  print(auc_summary_output)
+  cat("\n")
+  print(auc_pairwise)
   sink()
 
   sink(here("04_quantitative_spot_test", "output", target_name, "likelihood_ratio_test.txt"))
@@ -414,6 +565,7 @@ analyze_qspot_target <- function(target_info) {
   tikz(
     tikz_file,
     width = 2.75,
+    height = 7,
     lwdUnit = 72.27 / 96
   )
 
@@ -436,9 +588,8 @@ analyze_qspot_target <- function(target_info) {
     spot_beta = spot_beta,
     spot_beta_reduced = spot_beta_reduced,
     lrt_result = lrt_result_df,
-    dose_comparisons = dose_comparisons,
-    slope_comparisons = slope_comparisons,
-    slope_pairwise = slope_pairwise,
+    auc_summary = auc_summary_output,
+    auc_pairwise = auc_pairwise,
     plot_prediction = plot_prediction,
     plot = g
   ))
@@ -478,57 +629,68 @@ write.csv(
   row.names = FALSE
 )
 
-slope_pairwise_all <- bind_rows(
+auc_pairwise_all <- bind_rows(
   lapply(qspot_results, function(x) {
     if (is.null(x)) {
       return(NULL)
     } else {
-      as.data.frame(summary(x$slope_pairwise)) %>%
-        mutate(target = x$target, .before = 1)
+      x$auc_pairwise
     }
   })
 )
 
 write.csv(
-  slope_pairwise_all,
-  file = here("04_quantitative_spot_test", "output", "slope_pairwise_all_targets.csv"),
+  auc_pairwise_all,
+  file = here("04_quantitative_spot_test", "output", "auc_pairwise_all_targets.csv"),
   row.names = FALSE
 )
 
-slope_comparisons_all <- bind_rows(
+auc_summary_all <- bind_rows(
   lapply(qspot_results, function(x) {
     if (is.null(x)) {
       return(NULL)
     } else {
-      as.data.frame(summary(x$slope_comparisons)) %>%
-        mutate(target = x$target, .before = 1)
+      x$auc_summary
     }
   })
 )
 
 write.csv(
-  slope_comparisons_all,
-  file = here("04_quantitative_spot_test", "output", "slope_comparisons_all_targets.csv"),
+  auc_summary_all,
+  file = here("04_quantitative_spot_test", "output", "auc_summary_all_targets.csv"),
   row.names = FALSE
 )
 
-dose_comparisons_all <- bind_rows(
-  lapply(qspot_results, function(x) {
-    if (is.null(x)) {
-      return(NULL)
-    } else {
-      as.data.frame(summary(x$dose_comparisons)) %>%
-        mutate(target = x$target, .before = 1)
-    }
-  })
+primary_contrasts <- tibble(
+  target = c("mus-9", "uvs-2", "mei-3", "mus-11", "recQ", "mus-26-polh"),
+  background = c(
+    "mus-9(FK129)", "uvs-2 KO", "mei-3 KO", "mus-11 KO",
+    "qde-3-RIP recQ2 KO", "mus-26 polh dKO"
+  ),
+  plus_hH3_K4R = c(
+    "mus-9(FK129) hH3-K4R", "uvs-2 KO hH3-K4R",
+    "mei-3 KO hH3-K4R", "mus-11 KO hH3-K4R",
+    "qde-3-RIP recQ2 KO hH3-K4R", "mus-26 polh dKO hH3-K4R"
+  )
 )
 
-write.csv(
-  dose_comparisons_all,
-  file = here("04_quantitative_spot_test", "output", "dose_comparisons_all_targets.csv"),
-  row.names = FALSE
+auc_primary_contrasts <- auc_pairwise_all %>%
+  inner_join(primary_contrasts, by = "target") %>%
+  filter(strain_1 == background, strain_2 == plus_hH3_K4R) %>%
+  select(
+    target, background, plus_hH3_K4R, estimate, SE, z.ratio,
+    lower.CL, upper.CL, p.value.raw, p.value.Holm, significance.Holm
+  )
+
+write.csv(auc_primary_contrasts,
+  file = here("04_quantitative_spot_test", "output", "auc_primary_contrasts.csv"),
+  row.names = FALSE)
+
+writeLines(
+  capture.output(sessionInfo()),
+  here("04_quantitative_spot_test", "output", "sessionInfo.txt")
 )
 
 # Print combined summaries to console
 lrt_all
-slope_pairwise_all
+auc_primary_contrasts

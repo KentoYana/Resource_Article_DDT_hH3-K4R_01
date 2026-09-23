@@ -1,207 +1,150 @@
 # script_killing_test.R
 # Kento Yanagisawa
-# This script is for the analysis of killing test
+# This script analyzes UV killing-test data using raw area under the curve (AUC).
 
-# Make these packages and their associated functions
-# available to use in this script
 library("tikzDevice")
 library("tidyverse")
 library("here")
-library("betareg")
-library("emmeans")
 
-
-# Clear R's brain
 rm(list = ls())
-
-# Set project root
 here::i_am("01_killing_test/script_killing_test.R")
 
-# Define directories
-output_dir  <- here("01_killing_test", "output")
+output_dir <- here("01_killing_test", "output")
+if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
-# Create output directory if it does not exist
-if (!dir.exists(output_dir)) {
-  dir.create(output_dir, recursive = TRUE)
+calc_auc_trapz <- function(x, y) {
+  ord <- order(x)
+  x <- x[ord]
+  y <- y[ord]
+  sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
 }
 
-# Read dataset
-raw_csv <- read.csv(here("01_killing_test", "dataset", "killing_data.csv"))
-
-# Correct data
-raw_csv <- raw_csv %>%
+raw_csv <- read.csv(here("01_killing_test", "dataset", "killing_data.csv")) %>%
   mutate(Survival_fold = Survival / Fold)
 
-# Summarize results of technical replicates
+# Technical replicates are averaged before normalization. Each biological
+# replicate is one experimental date.
 expData_raw <- raw_csv %>%
   group_by(Date, Strain, UV_dose) %>%
   summarise(
-    Suv_samples = n(),
+    Suv_samples = sum(!is.na(Survival_fold)),
     Suv_ave = mean(Survival_fold, na.rm = TRUE),
-    Suv_se = sd(Survival_fold, na.rm = TRUE) / sqrt(sum(!is.na(Survival_fold))),
+    Suv_se = sd(Survival_fold, na.rm = TRUE) / sqrt(Suv_samples),
     .groups = "drop"
   )
 
-# Standardize using 0 J UV controls and calculate survival rate
 Control_0J <- expData_raw %>%
   filter(UV_dose == 0) %>%
-  reframe(
-    Date,
-    Strain,
-    Standard_ave = Suv_ave,
-    Standard_se = Suv_se
+  transmute(Date, Strain, Standard_ave = Suv_ave)
+
+expData_raw <- expData_raw %>%
+  left_join(Control_0J, by = c("Date", "Strain")) %>%
+  mutate(Suv_rate = Suv_ave / Standard_ave)
+
+strain_list <- read.csv(here("01_killing_test", "dataset", "strain_list.csv"))
+expData <- expData_raw %>%
+  left_join(strain_list, by = "Strain") %>%
+  mutate(genotype = factor(genotype, levels = unique(strain_list$genotype)))
+
+required_doses <- c(0, 100, 200, 400)
+aucData <- expData %>%
+  group_by(Date, genotype) %>%
+  filter(all(required_doses %in% UV_dose)) %>%
+  arrange(UV_dose, .by_group = TRUE) %>%
+  summarise(
+    min_dose = min(UV_dose),
+    max_dose = max(UV_dose),
+    AUC = calc_auc_trapz(UV_dose, Suv_rate),
+    .groups = "drop"
   )
 
-expData_raw <- left_join(
-  expData_raw,
-  Control_0J,
-  by = c("Date", "Strain")
-)
-
-# Calculate survival rate
-expData_raw <- expData_raw %>%
-  mutate(Suv_rate = (Suv_ave * 100) / Standard_ave)
-
-# Calculate propagation of error
-propagate_error_division <- function(A, A_err, B, B_err) {
-  sqrt((A_err / A)^2 + (B_err / B)^2) * (A / B) * 100
+if (n_distinct(aucData$Date) < 2 || any(table(aucData$Date) != 3)) {
+  stop("Paired AUC analysis requires every retained date to contain all three genotypes.")
 }
 
-expData_raw <- expData_raw %>%
+aucSummary <- aucData %>%
+  group_by(genotype) %>%
+  summarise(
+    n = sum(!is.na(AUC)),
+    mean_AUC = mean(AUC, na.rm = TRUE),
+    sd_AUC = sd(AUC, na.rm = TRUE),
+    se_AUC = sd_AUC / sqrt(n),
+    .groups = "drop"
+  )
+
+auc_wide <- aucData %>%
+  select(Date, genotype, AUC) %>%
+  pivot_wider(names_from = genotype, values_from = AUC)
+genotypes <- levels(expData$genotype)
+pair_indices <- combn(seq_along(genotypes), 2)
+
+aucPairwise <- bind_rows(lapply(seq_len(ncol(pair_indices)), function(i) {
+  genotype_1 <- genotypes[pair_indices[1, i]]
+  genotype_2 <- genotypes[pair_indices[2, i]]
+  difference <- auc_wide[[genotype_1]] - auc_wide[[genotype_2]]
+  test_result <- t.test(auc_wide[[genotype_1]], auc_wide[[genotype_2]], paired = TRUE)
+  tibble(
+    genotype_1 = genotype_1,
+    genotype_2 = genotype_2,
+    n_pairs = sum(complete.cases(auc_wide[[genotype_1]], auc_wide[[genotype_2]])),
+    estimate = mean(difference, na.rm = TRUE),
+    SE = sd(difference, na.rm = TRUE) / sqrt(sum(!is.na(difference))),
+    df = unname(test_result$parameter),
+    lower.CL = test_result$conf.int[1],
+    upper.CL = test_result$conf.int[2],
+    p.value.raw = test_result$p.value
+  )
+})) %>%
   mutate(
-    Suv_rate_se = propagate_error_division(
-      Suv_ave,
-      Suv_se,
-      Standard_ave,
-      Standard_se
+    p.value.Holm = p.adjust(p.value.raw, method = "holm"),
+    significance.Holm = case_when(
+      p.value.Holm < 0.001 ~ "***",
+      p.value.Holm < 0.01 ~ "**",
+      p.value.Holm < 0.05 ~ "*",
+      TRUE ~ "n.s."
     )
   )
 
-# Input genotype
-strain_list <- read.csv(here("01_killing_test", "dataset", "strain_list.csv"))
-
-expData <- left_join(expData_raw, strain_list, by = "Strain")
-
-expData$genotype <- factor(expData$genotype, levels = strain_list$genotype)
-
-# Summarize results of biological replicates
+# Means and SEs are calculated across biological-replicate normalized ratios.
+# At 0 J every replicate equals one, so its SE is exactly zero.
 plotData <- expData %>%
   group_by(genotype, UV_dose) %>%
-  summarize(
-    Survival = mean(Suv_rate, na.rm = TRUE),
-    Survival_se = sqrt(sum(Suv_rate_se^2) / sum(!is.na(Suv_rate_se))),
+  summarise(
+    n = sum(!is.na(Suv_rate)),
+    Survival = mean(Suv_rate, na.rm = TRUE) * 100,
+    Survival_se = sd(Suv_rate, na.rm = TRUE) / sqrt(n) * 100,
     .groups = "drop"
   )
 
-# Prepare beta-regression data
-expData_beta <- expData %>%
-  reframe(
-    genotype,
-    UV_dose,
-    Survival = Suv_rate / 100
+auc_labels <- tibble(
+  genotype = factor(genotypes, levels = genotypes),
+  auc_group = c("a", "b", "a")
+) %>%
+  left_join(
+    plotData %>% group_by(genotype) %>% filter(UV_dose == max(UV_dose)) %>% ungroup(),
+    by = "genotype"
   )
 
-expData_beta$Survival <- ifelse(expData_beta$Survival > 1, 1, expData_beta$Survival)
-
-expData_beta$Survival <- (
-  expData_beta$Survival * (nrow(expData_beta) - 1) + 0.5
-) / nrow(expData_beta)
-
-# Beta regression
-killing_beta <- betareg(
-  Survival ~ UV_dose * genotype,
-  data = expData_beta
-)
-
-## Model diagnostic plots (active graphics device only; not exported via tikzDevice)
-plot(killing_beta, which = 1:4, ask = FALSE)
-
-UV_list <- as.vector(unique(expData_beta$UV_dose, nmax = 4))
-
-emmeans_results <- emmeans(
-  killing_beta,
-  ~ genotype * UV_dose,
-  type = "response",
-  at = list(UV_dose = UV_list),
-  adjust = "holm"
-)
-
-contrast_results <- contrast(
-  emmeans_results,
-  method = "pairwise",
-  by = "UV_dose",
-  adjust = "holm"
-)
-
-UV_dose_pvalues <- joint_tests(
-  killing_beta,
-  at = list(UV_dose = UV_list),
-  by = "UV_dose"
-)
-
-slope_comparisons <- emtrends(
-  killing_beta,
-  specs = "genotype",
-  type = "response",
-  var = "UV_dose",
-  adjust = "holm"
-)
-
-slope_pairwise <- contrast(
-  slope_comparisons,
-  method = "pairwise",
-  type = "response",
-  adjust = "holm"
-)
-
-end_points <- plotData %>%
-  group_by(genotype) %>%
-  filter(UV_dose == max(UV_dose)) %>%
-  ungroup()
-
-# Plot
-g <- ggplot(
-  plotData,
-  aes(
-    x = UV_dose,
-    y = Survival,
-    color = genotype,
-    shape = genotype
-  )
-) +
+g <- ggplot(plotData, aes(x = UV_dose, y = Survival, color = genotype, shape = genotype)) +
   geom_line(linewidth = 1) +
   geom_point(size = 3) +
-  scale_y_log10() +
+  geom_errorbar(
+    aes(ymin = Survival - Survival_se, ymax = Survival + Survival_se),
+    width = max(plotData$UV_dose) / 16,
+    linewidth = 1
+  ) +
   geom_text(
-    data = end_points,
-    aes(
-      x = max(UV_dose) * 1.075,
-      y = Survival,
-      label = c("xx", "xx", "xx")
-    ),
+    data = auc_labels,
+    aes(x = max(plotData$UV_dose) * 1.075, y = Survival, label = auc_group),
     show.legend = FALSE,
     size = 4
   ) +
-  geom_errorbar(
-    aes(
-      ymin = Survival - Survival_se,
-      ymax = Survival + Survival_se,
-      width = max(UV_dose) / 16
-    ),
-    linewidth = 1
-  ) +
+  scale_y_log10() +
   theme_bw(base_size = 10) +
   xlab("UV dose (unit{Jpersquaremeter})") +
   ylab("Survival rate(unit{percent})") +
-  scale_shape_manual(values = c(15, 0, 16, 1)) +
-  scale_color_manual(
-    values = c(
-      "#02010C",
-      "#0068b7",
-      "#f39800",
-      "#009944"
-    )
-  ) +
+  scale_shape_manual(values = c(15, 0, 16)) +
+  scale_color_manual(values = c("#02010C", "#0068b7", "#f39800")) +
   theme(
     axis.text = element_text(size = 10, colour = "black"),
     panel.background = element_rect(fill = "white", colour = "black", linewidth = 3),
@@ -215,104 +158,32 @@ g <- ggplot(
 
 plot(g)
 
-# Output results
+write.csv(raw_csv, here("01_killing_test", "output", "raw_csv_corrected.csv"), row.names = FALSE)
+write.csv(expData_raw, here("01_killing_test", "output", "expData_raw.csv"), row.names = FALSE)
+write.csv(expData, here("01_killing_test", "output", "expData.csv"), row.names = FALSE)
+write.csv(plotData, here("01_killing_test", "output", "plotData.csv"), row.names = FALSE)
+write.csv(aucData, here("01_killing_test", "output", "aucData.csv"), row.names = FALSE)
+write.csv(aucSummary, here("01_killing_test", "output", "auc_summary.csv"), row.names = FALSE)
+write.csv(aucPairwise, here("01_killing_test", "output", "auc_pairwise_paired_t_tests.csv"), row.names = FALSE)
+writeLines(capture.output(sessionInfo()), here("01_killing_test", "output", "sessionInfo.txt"))
 
-# Output processed data
-write.csv(
-  raw_csv,
-  here("01_killing_test", "output", "raw_csv_corrected.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  expData_raw,
-  here("01_killing_test", "output", "expData_raw.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  expData,
-  here("01_killing_test", "output", "expData.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  plotData,
-  here("01_killing_test", "output", "plotData.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  expData_beta,
-  here("01_killing_test", "output", "expData_beta.csv"),
-  row.names = FALSE
-)
-
-# Output statistical results as CSV
-write.csv(
-  as.data.frame(summary(emmeans_results)),
-  here("01_killing_test", "output", "emmeans_results.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  as.data.frame(summary(contrast_results)),
-  here("01_killing_test", "output", "contrast_results.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  as.data.frame(UV_dose_pvalues),
-  here("01_killing_test", "output", "UV_dose_pvalues.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  as.data.frame(summary(slope_comparisons)),
-  here("01_killing_test", "output", "slope_comparisons.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  as.data.frame(summary(slope_pairwise)),
-  here("01_killing_test", "output", "slope_pairwise.csv"),
-  row.names = FALSE
-)
-
-# Output model and statistical summaries as text
-sink(here("01_killing_test", "output", "killing_beta_summary.txt"))
-print(summary(killing_beta))
+sink(here("01_killing_test", "output", "auc_pairwise_paired_t_tests.txt"))
+cat("Raw AUC of survival normalized to 0 J within Date x Strain.\n")
+cat("Integration range: 0--400 J/m2; trapezoidal rule.\n")
+cat("Paired two-sided t-tests by experimental date; Holm correction across three comparisons.\n\n")
+print(aucSummary)
+cat("\n")
+print(aucPairwise)
 sink()
 
-sink(here("01_killing_test", "output", "emmeans_summary.txt"))
-print(summary(emmeans_results))
-sink()
-
-sink(here("01_killing_test", "output", "contrast_summary.txt"))
-print(summary(contrast_results))
-sink()
-
-sink(here("01_killing_test", "output", "slope_comparisons_summary.txt"))
-print(summary(slope_comparisons))
-sink()
-
-sink(here("01_killing_test", "output", "slope_pairwise_summary.txt"))
-print(summary(slope_pairwise))
-sink()
-
-# Output figure as TikZ
 tikz(
   here("01_killing_test", "output", "killing_uv.tex"),
   width = 3.25,
-  height = 3.25,
+  height = 7,
   lwdUnit = 72.27 / 96
 )
 plot(g)
 dev.off()
 
-# Print summaries to console
-summary(killing_beta)
-summary(emmeans_results)
-summary(contrast_results)
-summary(slope_comparisons)
-summary(slope_pairwise)
+aucSummary
+aucPairwise

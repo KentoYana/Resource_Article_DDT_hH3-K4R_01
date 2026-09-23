@@ -35,8 +35,8 @@ Main files:
 
 - `dataset/killing_data.csv`: raw killing-test data.
 - `dataset/strain_list.csv`: strain and genotype annotation table.
-- `script_killing_test.R`: R script for data processing, beta-regression analysis, post hoc comparisons, and figure generation.
-- `output/`: processed data, statistical summaries, comparison results, and TikZ figure output.
+- `script_killing_test.R`: R script for data processing, within-experiment normalization, raw-AUC analysis, paired Holm-adjusted comparisons, and figure generation.
+- `output/`: processed data, replicate-level AUC values, statistical summaries, comparison results, session information, and TikZ figure output.
 
 Run from the repository root:
 
@@ -53,8 +53,8 @@ Main files:
 - `dataset/reversion_data.csv`: raw reversion-assay data.
 - `dataset/strain_list.csv`: strain annotation table.
 - `dataset/genotype_list.csv`: genotype annotation table.
-- `script_reversion_frequency_AUC.R`: R script for reversion-frequency calculation, baseline-corrected AUC analysis, pairwise comparisons, and figure generation.
-- `output/`: processed data, AUC data, pairwise comparison results, Welch's t-test summaries, and TikZ figure output.
+- `script_reversion_frequency_AUC.R`: R script for reversion-frequency calculation, baseline-corrected raw-AUC analysis, Holm-adjusted Welch comparisons, and figure generation.
+- `output/`: processed data, AUC data, pairwise comparison results, Welch-test summaries, session information, and TikZ figure output.
 
 Run from the repository root:
 
@@ -100,8 +100,8 @@ Main files and directories:
 
 - `dataset/exp_list.csv`: experiment list and image-suspension code used to select the source-image series for each analysis.
 - `dataset/qSpot-*`: target-specific datasets containing original JPEG plate images, the corresponding SpotScanner result CSV files, and strain annotation tables.
-- `script_qSpot_test.R`: R script for importing SpotScanner results, calculating normalized spot-coverage ratios, beta-regression analysis, likelihood-ratio tests, slope comparisons, dose-wise comparisons, and figure generation.
-- `output/`: processed data, statistical summaries, target-specific output directories, and TikZ figure output.
+- `script_qSpot_test.R`: R script for importing SpotScanner results, fitting beta-regression response curves, normalizing model predictions to 0 J within experiment, raw-AUC contrasts with delta-method uncertainty and Holm correction, and figure generation.
+- `output/`: processed data, model summaries, standardized response curves with pointwise confidence intervals, target-specific raw-AUC results, session information, and TikZ figure output.
 
 The target-specific dataset directories are:
 
@@ -353,7 +353,7 @@ These files are editable figure sources. Axis labels, legend labels, panel label
 
 Rerunning an analysis script may overwrite manual TeX-level edits. Keep a separate copy of edited TeX files or reapply the edits after regeneration.
 
-Some generated TikZ files contain placeholder labels such as `xx`. These placeholders are intentional. The analysis scripts generate the figures in a single automated run, whereas significance-group annotations (for example, `a`, `b`, and `ab`) are assigned manually in the manuscript figure sources after inspection of the corresponding statistical output.
+The killing-test and qSpot scripts assign compact-letter groups (`a`, `b`, `ab`, and so forth) from the Holm-adjusted AUC comparisons. The tracked presentation copies retain the established figure layout. Because `tikzDevice` emits an oversized outer drawing region for these plots, their bounding boxes and unit typography are corrected manually after regeneration.
 
 ## Repository hygiene
 
