@@ -2,7 +2,7 @@ Beta-regression response curves standardized at the pooled mean conidial covaria
 Each experiment-specific curve was normalized to its predicted 0-J value before equal averaging.
 Raw AUC was integrated over the target-specific dose range by the trapezoidal rule.
 Delta-method uncertainty includes coefficient covariance and 0-J normalization.
-Holm correction was applied across all six pairwise strain contrasts within this target.
+BH correction was applied across all six pairwise strain contrasts within this target.
 
 # A tibble: 4 × 10
   target strain  min_dose max_dose reference_Conidia_ra…¹ raw_AUC    SE lower.CL
@@ -23,12 +23,12 @@ Holm correction was applied across all six pairwise strain contrasts within this
 4 recQ   hH3-K4R   qde-3-R…    99.3   16.4  6.04      67.1     132.     1.49e- 9
 5 recQ   hH3-K4R   qde-3-R…   101.    16.3  6.18      68.7     133.     6.43e-10
 6 recQ   qde-3-RI… qde-3-R…     1.27  15.8  0.0806   -29.7      32.3    9.36e- 1
-# ℹ 2 more variables: p.value.Holm <dbl>, significance.Holm <chr>
+# ℹ 2 more variables: p.value.BH <dbl>, significance.BH <chr>
 
-Formal AUC interaction contrast; Holm correction across the six target backgrounds.
+Formal AUC interaction contrast; BH correction across the six target backgrounds.
 # A tibble: 1 × 14
   target contrast      wild_type hH3_K4R background double_mutant estimate    SE
   <chr>  <chr>         <chr>     <chr>   <chr>      <chr>            <dbl> <dbl>
 1 recQ   (double - ba… wild-type hH3-K4R qde-3-RIP… qde-3-RIP re…     24.2  22.4
 # ℹ 6 more variables: z.ratio <dbl>, lower.CL <dbl>, upper.CL <dbl>,
-#   p.value.raw <dbl>, p.value.Holm <dbl>, significance.Holm <chr>
+#   p.value.raw <dbl>, p.value.BH <dbl>, significance.BH <chr>

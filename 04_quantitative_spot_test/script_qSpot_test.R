@@ -46,7 +46,7 @@ likelihood_ratio_test <- function(model1, model2) {
   ))
 }
 
-# Create a compact-letter display directly from the Holm-adjusted pairwise
+# Create a compact-letter display directly from the BH-adjusted pairwise
 # tests. Maximal cliques of mutually non-significant genotypes share a letter;
 # overlapping cliques naturally produce labels such as "ab".
 compact_auc_letters <- function(strains, estimates, pairwise, alpha = 0.05) {
@@ -56,7 +56,7 @@ compact_auc_letters <- function(strains, estimates, pairwise, alpha = 0.05) {
   for (i in seq_len(nrow(pairwise))) {
     first <- match(pairwise$strain_1[i], strains)
     second <- match(pairwise$strain_2[i], strains)
-    is_nonsignificant <- pairwise$p.value.Holm[i] >= alpha
+    is_nonsignificant <- pairwise$p.value.BH[i] >= alpha
     nonsignificant[first, second] <- is_nonsignificant
     nonsignificant[second, first] <- is_nonsignificant
   }
@@ -387,11 +387,11 @@ analyze_qspot_target <- function(target_info) {
     )
   })) %>%
     mutate(
-      p.value.Holm = p.adjust(p.value.raw, method = "holm"),
-      significance.Holm = case_when(
-        p.value.Holm < 0.001 ~ "***",
-        p.value.Holm < 0.01 ~ "**",
-        p.value.Holm < 0.05 ~ "*",
+      p.value.BH = p.adjust(p.value.raw, method = "BH"),
+      significance.BH = case_when(
+        p.value.BH < 0.001 ~ "***",
+        p.value.BH < 0.01 ~ "**",
+        p.value.BH < 0.05 ~ "*",
         TRUE ~ "n.s."
       )
     )
@@ -568,7 +568,7 @@ analyze_qspot_target <- function(target_info) {
   cat("Each experiment-specific curve was normalized to its predicted 0-J value before equal averaging.\n")
   cat("Raw AUC was integrated over the target-specific dose range by the trapezoidal rule.\n")
   cat("Delta-method uncertainty includes coefficient covariance and 0-J normalization.\n")
-  cat("Holm correction was applied across all six pairwise strain contrasts within this target.\n\n")
+  cat("BH correction was applied across all six pairwise strain contrasts within this target.\n\n")
   print(auc_summary_output)
   cat("\n")
   print(auc_pairwise)
@@ -665,11 +665,11 @@ auc_interaction_all <- bind_rows(
   })
 ) %>%
   mutate(
-    p.value.Holm = p.adjust(p.value.raw, method = "holm"),
-    significance.Holm = case_when(
-      p.value.Holm < 0.001 ~ "***",
-      p.value.Holm < 0.01 ~ "**",
-      p.value.Holm < 0.05 ~ "*",
+    p.value.BH = p.adjust(p.value.raw, method = "BH"),
+    significance.BH = case_when(
+      p.value.BH < 0.001 ~ "***",
+      p.value.BH < 0.01 ~ "**",
+      p.value.BH < 0.05 ~ "*",
       TRUE ~ "n.s."
     )
   )
@@ -703,11 +703,11 @@ for (target_name in names(qspot_results)) {
     here("04_quantitative_spot_test", "output", target_name, "auc_analysis_summary.txt"),
     append = TRUE
   )
-  cat("\nFormal AUC interaction contrast; Holm correction across the six target backgrounds.\n")
+  cat("\nFormal AUC interaction contrast; BH correction across the six target backgrounds.\n")
   print(interaction_row)
   sink()
 
-  p_label <- format_interaction_p(interaction_row$p.value.Holm)
+  p_label <- format_interaction_p(interaction_row$p.value.BH)
   max_dose <- max(result$plot_prediction$dose)
   annotated_plot <- result$plot +
     annotate(
@@ -750,7 +750,7 @@ auc_primary_contrasts <- auc_pairwise_all %>%
   filter(strain_1 == background, strain_2 == plus_hH3_K4R) %>%
   select(
     target, background, plus_hH3_K4R, estimate, SE, z.ratio,
-    lower.CL, upper.CL, p.value.raw, p.value.Holm, significance.Holm
+    lower.CL, upper.CL, p.value.raw, p.value.BH, significance.BH
   )
 
 write.csv(auc_primary_contrasts,
