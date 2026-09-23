@@ -1,2 +1,2 @@
-"target","contrast","wild_type","hH3_K4R","background","double_mutant","estimate","SE","z.ratio","lower.CL","upper.CL","p.value.raw","p.value.BH","significance.BH"
-"mus-26-polh","(double - background) - (hH3-K4R - wild type)","wild-type","hH3-K4R","mus-26 polh dKO","mus-26 polh dKO hH3-K4R",11.5776196704549,2.24383509762622,5.15974622319753,7.17978369186063,15.9754556490492,2.47284808515349e-07,7.41854425546048e-07,"***"
+"target","contrast","wild_type","hH3_K4R","background","double_mutant","estimate","SE","z.ratio","lower.CL","upper.CL","p.value.raw","p.value.Holm","significance.Holm"
+"mus-26-polh","(double - background) - (hH3-K4R - wild type)","wild-type","hH3-K4R","mus-26 polh dKO","mus-26 polh dKO hH3-K4R",11.5776196704549,2.24383509762622,5.15974622319753,7.17978369186063,15.9754556490492,2.47284808515349e-07,1.23642404257675e-06,"***"

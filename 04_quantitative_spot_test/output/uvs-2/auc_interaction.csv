@@ -1,2 +1,2 @@
-"target","contrast","wild_type","hH3_K4R","background","double_mutant","estimate","SE","z.ratio","lower.CL","upper.CL","p.value.raw","p.value.BH","significance.BH"
-"uvs-2","(double - background) - (hH3-K4R - wild type)","wild-type","hH3-K4R","uvs-2 KO","uvs-2 KO hH3-K4R",2.92585043095558,1.81250591647243,1.61425703737838,-0.626595887096146,6.4782967490073,0.106471684798185,0.159707527197277,"n.s."
+"target","contrast","wild_type","hH3_K4R","background","double_mutant","estimate","SE","z.ratio","lower.CL","upper.CL","p.value.raw","p.value.Holm","significance.Holm"
+"uvs-2","(double - background) - (hH3-K4R - wild type)","wild-type","hH3-K4R","uvs-2 KO","uvs-2 KO hH3-K4R",2.92585043095558,1.81250591647243,1.61425703737838,-0.626595887096146,6.4782967490073,0.106471684798185,0.319415054394554,"n.s."

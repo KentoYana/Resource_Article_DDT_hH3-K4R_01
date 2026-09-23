@@ -1,2 +1,2 @@
-"target","contrast","wild_type","hH3_K4R","background","double_mutant","estimate","SE","z.ratio","lower.CL","upper.CL","p.value.raw","p.value.BH","significance.BH"
+"target","contrast","wild_type","hH3_K4R","background","double_mutant","estimate","SE","z.ratio","lower.CL","upper.CL","p.value.raw","p.value.Holm","significance.Holm"
 "mus-11","(double - background) - (hH3-K4R - wild type)","wild-type","hH3-K4R","mus-11 KO","mus-11 KO hH3-K4R",-44.8189878581211,8.35719855821259,-5.36292006776333,-61.1987960438678,-28.4391796723743,8.1887248575705e-08,4.9132349145423e-07,"***"
