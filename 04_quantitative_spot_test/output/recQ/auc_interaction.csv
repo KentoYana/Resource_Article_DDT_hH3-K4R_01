@@ -1,0 +1,2 @@
+"target","contrast","wild_type","hH3_K4R","background","double_mutant","estimate","SE","z.ratio","lower.CL","upper.CL","p.value.raw","p.value.BH","significance.BH"
+"recQ","(double - background) - (hH3-K4R - wild type)","wild-type","hH3-K4R","qde-3-RIP recQ2 KO","qde-3-RIP recQ2 KO hH3-K4R",24.2069741943069,22.4356706227317,1.07895032875819,-19.7661321952505,68.1800805838642,0.280609871088362,0.336731845306035,"n.s."

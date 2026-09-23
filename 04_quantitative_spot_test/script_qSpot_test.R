@@ -46,7 +46,7 @@ likelihood_ratio_test <- function(model1, model2) {
   ))
 }
 
-# Create a compact-letter display directly from the Holm-adjusted pairwise
+# Create a compact-letter display directly from the BH-adjusted pairwise
 # tests. Maximal cliques of mutually non-significant genotypes share a letter;
 # overlapping cliques naturally produce labels such as "ab".
 compact_auc_letters <- function(strains, estimates, pairwise, alpha = 0.05) {
@@ -56,7 +56,7 @@ compact_auc_letters <- function(strains, estimates, pairwise, alpha = 0.05) {
   for (i in seq_len(nrow(pairwise))) {
     first <- match(pairwise$strain_1[i], strains)
     second <- match(pairwise$strain_2[i], strains)
-    is_nonsignificant <- pairwise$p.value.Holm[i] >= alpha
+    is_nonsignificant <- pairwise$p.value.BH[i] >= alpha
     nonsignificant[first, second] <- is_nonsignificant
     nonsignificant[second, first] <- is_nonsignificant
   }
@@ -387,14 +387,38 @@ analyze_qspot_target <- function(target_info) {
     )
   })) %>%
     mutate(
-      p.value.Holm = p.adjust(p.value.raw, method = "holm"),
-      significance.Holm = case_when(
-        p.value.Holm < 0.001 ~ "***",
-        p.value.Holm < 0.01 ~ "**",
-        p.value.Holm < 0.05 ~ "*",
+      p.value.BH = p.adjust(p.value.raw, method = "BH"),
+      significance.BH = case_when(
+        p.value.BH < 0.001 ~ "***",
+        p.value.BH < 0.01 ~ "**",
+        p.value.BH < 0.05 ~ "*",
         TRUE ~ "n.s."
       )
     )
+
+  if (length(strain_names) != 4) {
+    stop("AUC interaction analysis requires four ordered genotypes for ", target_name)
+  }
+  interaction_weights <- c(1, -1, -1, 1)
+  interaction_estimate <- sum(interaction_weights * auc_summary$raw_AUC)
+  interaction_gradient <- colSums(auc_gradients * interaction_weights)
+  interaction_se <- sqrt(drop(
+    interaction_gradient %*% mean_covariance %*% interaction_gradient
+  ))
+  auc_interaction <- tibble(
+    target = target_name,
+    contrast = "(double - background) - (hH3-K4R - wild type)",
+    wild_type = strain_names[1],
+    hH3_K4R = strain_names[2],
+    background = strain_names[3],
+    double_mutant = strain_names[4],
+    estimate = interaction_estimate,
+    SE = interaction_se,
+    z.ratio = interaction_estimate / interaction_se,
+    lower.CL = interaction_estimate - qnorm(0.975) * interaction_se,
+    upper.CL = interaction_estimate + qnorm(0.975) * interaction_se,
+    p.value.raw = 2 * pnorm(-abs(z.ratio))
+  )
 
   auc_letters <- compact_auc_letters(
     strain_names,
@@ -443,6 +467,8 @@ analyze_qspot_target <- function(target_info) {
       show.legend = FALSE,
       size = 4
     ) +
+    coord_cartesian(ylim = c(0, 1.06)) +
+    scale_y_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1.00)) +
     theme_bw(base_size = 10) +
     xlab('UV dose (unit{Jpersquaremeter})') +
     ylab('Predicted response') +
@@ -542,7 +568,7 @@ analyze_qspot_target <- function(target_info) {
   cat("Each experiment-specific curve was normalized to its predicted 0-J value before equal averaging.\n")
   cat("Raw AUC was integrated over the target-specific dose range by the trapezoidal rule.\n")
   cat("Delta-method uncertainty includes coefficient covariance and 0-J normalization.\n")
-  cat("Holm correction was applied across all six pairwise strain contrasts within this target.\n\n")
+  cat("BH correction was applied across all six pairwise strain contrasts within this target.\n\n")
   print(auc_summary_output)
   cat("\n")
   print(auc_pairwise)
@@ -554,29 +580,6 @@ analyze_qspot_target <- function(target_info) {
   cat("Degrees of Freedom Difference:", lrt_result$df_diff, "\n")
   cat("p-value:", lrt_result$p_value, "\n")
   sink()
-
-  tikz_file <- here(
-    "04_quantitative_spot_test",
-    "output",
-    target_name,
-    paste0("qSpot_", target_name, ".tex")
-  )
-
-  tikz(
-    tikz_file,
-    width = 2.75,
-    height = 7,
-    lwdUnit = 72.27 / 96
-  )
-
-  tryCatch(
-    {
-      plot(g)
-    },
-    finally = {
-      dev.off()
-    }
-  )
 
   # Return result object
   return(list(
@@ -590,6 +593,7 @@ analyze_qspot_target <- function(target_info) {
     lrt_result = lrt_result_df,
     auc_summary = auc_summary_output,
     auc_pairwise = auc_pairwise,
+    auc_interaction = auc_interaction,
     plot_prediction = plot_prediction,
     plot = g
   ))
@@ -655,6 +659,68 @@ auc_summary_all <- bind_rows(
   })
 )
 
+auc_interaction_all <- bind_rows(
+  lapply(qspot_results, function(x) {
+    if (is.null(x)) NULL else x$auc_interaction
+  })
+) %>%
+  mutate(
+    p.value.BH = p.adjust(p.value.raw, method = "BH"),
+    significance.BH = case_when(
+      p.value.BH < 0.001 ~ "***",
+      p.value.BH < 0.01 ~ "**",
+      p.value.BH < 0.05 ~ "*",
+      TRUE ~ "n.s."
+    )
+  )
+
+write.csv(
+  auc_interaction_all,
+  file = here("04_quantitative_spot_test", "output", "auc_interaction_all_targets.csv"),
+  row.names = FALSE
+)
+
+format_interaction_p <- function(p_value) {
+  if (p_value < 0.0001) {
+    "p < 0.0001"
+  } else if (p_value < 0.1) {
+    paste0("p = ", formatC(p_value, format = "f", digits = 4))
+  } else {
+    paste0("p = ", formatC(p_value, format = "f", digits = 3))
+  }
+}
+
+for (target_name in names(qspot_results)) {
+  result <- qspot_results[[target_name]]
+  if (is.null(result)) next
+  interaction_row <- auc_interaction_all %>% filter(target == target_name)
+  write.csv(
+    interaction_row,
+    file = here("04_quantitative_spot_test", "output", target_name, "auc_interaction.csv"),
+    row.names = FALSE
+  )
+  sink(
+    here("04_quantitative_spot_test", "output", target_name, "auc_analysis_summary.txt"),
+    append = TRUE
+  )
+  cat("\nFormal AUC interaction contrast; BH correction across the six target backgrounds.\n")
+  print(interaction_row)
+  sink()
+
+  p_label <- format_interaction_p(interaction_row$p.value.BH)
+  max_dose <- max(result$plot_prediction$dose)
+  annotated_plot <- result$plot + annotate(
+    "text", x = max_dose * 0.04, y = 0.30,
+    label = p_label, hjust = 0, size = 3.5
+  )
+  tikz_file <- here(
+    "04_quantitative_spot_test", "output", target_name,
+    paste0("qSpot_", target_name, ".tex")
+  )
+  tikz(tikz_file, width = 2.75, height = 7, lwdUnit = 72.27 / 96)
+  tryCatch(plot(annotated_plot), finally = dev.off())
+}
+
 write.csv(
   auc_summary_all,
   file = here("04_quantitative_spot_test", "output", "auc_summary_all_targets.csv"),
@@ -679,7 +745,7 @@ auc_primary_contrasts <- auc_pairwise_all %>%
   filter(strain_1 == background, strain_2 == plus_hH3_K4R) %>%
   select(
     target, background, plus_hH3_K4R, estimate, SE, z.ratio,
-    lower.CL, upper.CL, p.value.raw, p.value.Holm, significance.Holm
+    lower.CL, upper.CL, p.value.raw, p.value.BH, significance.BH
   )
 
 write.csv(auc_primary_contrasts,

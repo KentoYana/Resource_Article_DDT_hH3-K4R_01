@@ -1,0 +1,2 @@
+"target","contrast","wild_type","hH3_K4R","background","double_mutant","estimate","SE","z.ratio","lower.CL","upper.CL","p.value.raw","p.value.BH","significance.BH"
+"mus-9","(double - background) - (hH3-K4R - wild type)","wild-type","hH3-K4R","mus-9(FK129)","mus-9(FK129) hH3-K4R",-1.39115750187651,9.67300319892911,-0.143818571468117,-20.3498953941183,17.5675803903653,0.885643737423712,0.885643737423712,"n.s."

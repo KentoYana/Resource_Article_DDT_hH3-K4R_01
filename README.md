@@ -100,8 +100,8 @@ Main files and directories:
 
 - `dataset/exp_list.csv`: experiment list and image-suspension code used to select the source-image series for each analysis.
 - `dataset/qSpot-*`: target-specific datasets containing original JPEG plate images, the corresponding SpotScanner result CSV files, and strain annotation tables.
-- `script_qSpot_test.R`: R script for importing SpotScanner results, fitting beta-regression response curves, normalizing model predictions to 0 J within experiment, raw-AUC contrasts with delta-method uncertainty and Holm correction, and figure generation.
-- `output/`: processed data, model summaries, standardized response curves with pointwise confidence intervals, target-specific raw-AUC results, session information, and TikZ figure output.
+- `script_qSpot_test.R`: R script for importing SpotScanner results, fitting beta-regression response curves, normalizing model predictions to 0 J within experiment, raw-AUC pairwise and formal interaction contrasts with delta-method uncertainty and BH correction, and figure generation.
+- `output/`: processed data, model summaries, standardized response curves with pointwise confidence intervals, target-specific raw-AUC pairwise and interaction results, session information, and TikZ figure output.
 
 The target-specific dataset directories are:
 
@@ -353,7 +353,7 @@ These files are editable figure sources. Axis labels, legend labels, panel label
 
 Rerunning an analysis script may overwrite manual TeX-level edits. Keep a separate copy of edited TeX files or reapply the edits after regeneration.
 
-The killing-test and qSpot scripts assign compact-letter groups (`a`, `b`, `ab`, and so forth) from the Holm-adjusted AUC comparisons. The tracked presentation copies retain the established figure layout. Because `tikzDevice` emits an oversized outer drawing region for these plots, their bounding boxes and unit typography are corrected manually after regeneration.
+The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script assigns them from BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted formal AUC interaction test for each target. The tracked presentation copies retain the established figure layout. Because `tikzDevice` emits an oversized outer drawing region for these plots, their bounding boxes, clip regions, and unit typography are corrected manually after regeneration.
 
 ## Repository hygiene
 
