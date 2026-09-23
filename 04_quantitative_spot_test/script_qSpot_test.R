@@ -709,10 +709,15 @@ for (target_name in names(qspot_results)) {
 
   p_label <- format_interaction_p(interaction_row$p.value.BH)
   max_dose <- max(result$plot_prediction$dose)
-  annotated_plot <- result$plot + annotate(
-    "text", x = max_dose * 0.04, y = 0.30,
-    label = p_label, hjust = 0, size = 3.5
-  )
+  annotated_plot <- result$plot +
+    annotate(
+      "text", x = max_dose * 0.04, y = 0.1875,
+      label = "Genetic interaction:", hjust = 0, size = 3.5
+    ) +
+    annotate(
+      "text", x = max_dose * 0.04, y = 0.0625,
+      label = p_label, hjust = 0, size = 3.5
+    )
   tikz_file <- here(
     "04_quantitative_spot_test", "output", target_name,
     paste0("qSpot_", target_name, ".tex")
