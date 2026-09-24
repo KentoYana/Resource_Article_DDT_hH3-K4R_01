@@ -353,7 +353,7 @@ These files are editable figure sources. Axis labels, legend labels, panel label
 
 Rerunning an analysis script may overwrite manual TeX-level edits. Keep a separate copy of edited TeX files or reapply the edits after regeneration.
 
-The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script assigns them from BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted formal AUC interaction test for each target. The tracked presentation copies retain the established figure layout. Because `tikzDevice` emits an oversized outer drawing region for these plots, their bounding boxes, clip regions, and unit typography are corrected manually after regeneration.
+The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script assigns them from BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted formal AUC interaction test for each target. The tracked presentation copies retain the established figure layout. Because `tikzDevice` emits an oversized outer drawing region and can place endpoint group letters too close to one another, their bounding boxes, clip regions, unit typography, and overlapping letter coordinates are corrected manually after regeneration.
 
 ## Repository hygiene
 
