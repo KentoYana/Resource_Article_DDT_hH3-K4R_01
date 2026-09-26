@@ -318,10 +318,11 @@ h <- ggplot() +
   labs(
     x = "Indel-boundary position relative to the \\textit{pan-2} start codon (bp)",
     y = NULL,
+    colour = "Indel type",
     fill = "Predicted IR pair"
   ) +
   guides(
-    colour = "none",
+    colour = guide_legend(nrow = 1, byrow = TRUE),
     fill = guide_legend(nrow = 1, byrow = TRUE)
   ) +
   indel_theme +
