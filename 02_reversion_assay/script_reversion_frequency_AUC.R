@@ -254,17 +254,17 @@ plot_reversion_facet <- function(DataForPlot, pair_summary_df) {
     dplyr::filter(UV_dose > 0) %>%
     dplyr::mutate(
       genotype_label = dplyr::case_when(
-        sibling == "Op46" ~ "Panel #1: hH3-K4R",
-        sibling == "Op55" ~ "Panel #2: set-1 KO",
-        sibling == "Op47" ~ "Panel #3: hH3-K4R",
-        sibling == "Op51" ~ "Panel #4: set-1 KO"
+        sibling == "Op46" ~ "Panel \\#1: hH3-K4R",
+        sibling == "Op55" ~ "Panel \\#2: set-1 KO",
+        sibling == "Op47" ~ "Panel \\#3: hH3-K4R",
+        sibling == "Op51" ~ "Panel \\#4: set-1 KO"
       ),
       allele = factor(allele, levels = c("B36", "OGW1")),
       genotype_label = factor(
         genotype_label,
         levels = c(
-          "Panel #1: hH3-K4R", "Panel #2: set-1 KO",
-          "Panel #3: hH3-K4R", "Panel #4: set-1 KO"
+          "Panel \\#1: hH3-K4R", "Panel \\#2: set-1 KO",
+          "Panel \\#3: hH3-K4R", "Panel \\#4: set-1 KO"
         )
       )
     )
@@ -272,10 +272,10 @@ plot_reversion_facet <- function(DataForPlot, pair_summary_df) {
   pval_df <- pair_summary_df %>%
     dplyr::mutate(
       genotype_label = dplyr::case_when(
-        sibling == "Op46" ~ "Panel #1: hH3-K4R",
-        sibling == "Op55" ~ "Panel #2: set-1 KO",
-        sibling == "Op47" ~ "Panel #3: hH3-K4R",
-        sibling == "Op51" ~ "Panel #4: set-1 KO"
+        sibling == "Op46" ~ "Panel \\#1: hH3-K4R",
+        sibling == "Op55" ~ "Panel \\#2: set-1 KO",
+        sibling == "Op47" ~ "Panel \\#3: hH3-K4R",
+        sibling == "Op51" ~ "Panel \\#4: set-1 KO"
       ),
       label = dplyr::case_when(
         is.na(p_value_Holm) ~ "Welch's t-test: n.d.",
@@ -286,8 +286,8 @@ plot_reversion_facet <- function(DataForPlot, pair_summary_df) {
       genotype_label = factor(
         genotype_label,
         levels = c(
-          "Panel #1: hH3-K4R", "Panel #2: set-1 KO",
-          "Panel #3: hH3-K4R", "Panel #4: set-1 KO"
+          "Panel \\#1: hH3-K4R", "Panel \\#2: set-1 KO",
+          "Panel \\#3: hH3-K4R", "Panel \\#4: set-1 KO"
         )
       )
     ) %>%
@@ -362,17 +362,17 @@ plot_reversion_0J_facet <- function(DataForPlot) {
     dplyr::filter(UV_dose == 0) %>%
     dplyr::mutate(
       genotype_label = dplyr::case_when(
-        sibling == "Op46" ~ "Panel #1: hH3-K4R",
-        sibling == "Op55" ~ "Panel #2: set-1 KO",
-        sibling == "Op47" ~ "Panel #3: hH3-K4R",
-        sibling == "Op51" ~ "Panel #4: set-1 KO"
+        sibling == "Op46" ~ "Panel \\#1: hH3-K4R",
+        sibling == "Op55" ~ "Panel \\#2: set-1 KO",
+        sibling == "Op47" ~ "Panel \\#3: hH3-K4R",
+        sibling == "Op51" ~ "Panel \\#4: set-1 KO"
       ),
       allele = factor(allele, levels = c("B36", "OGW1")),
       genotype_label = factor(
         genotype_label,
         levels = c(
-          "Panel #1: hH3-K4R", "Panel #2: set-1 KO",
-          "Panel #3: hH3-K4R", "Panel #4: set-1 KO"
+          "Panel \\#1: hH3-K4R", "Panel \\#2: set-1 KO",
+          "Panel \\#3: hH3-K4R", "Panel \\#4: set-1 KO"
         )
       )
     )
@@ -419,17 +419,17 @@ plot_auc_facet <- function(DataForPlot) {
   FilteredData <- DataForPlot %>%
     dplyr::mutate(
       genotype_label = dplyr::case_when(
-        sibling == "Op46" ~ "Panel #1: hH3-K4R",
-        sibling == "Op55" ~ "Panel #2: set-1 KO",
-        sibling == "Op47" ~ "Panel #3: hH3-K4R",
-        sibling == "Op51" ~ "Panel #4: set-1 KO"
+        sibling == "Op46" ~ "Panel \\#1: hH3-K4R",
+        sibling == "Op55" ~ "Panel \\#2: set-1 KO",
+        sibling == "Op47" ~ "Panel \\#3: hH3-K4R",
+        sibling == "Op51" ~ "Panel \\#4: set-1 KO"
       ),
       allele = factor(allele, levels = c("B36", "OGW1")),
       genotype_label = factor(
         genotype_label,
         levels = c(
-          "Panel #1: hH3-K4R", "Panel #2: set-1 KO",
-          "Panel #3: hH3-K4R", "Panel #4: set-1 KO"
+          "Panel \\#1: hH3-K4R", "Panel \\#2: set-1 KO",
+          "Panel \\#3: hH3-K4R", "Panel \\#4: set-1 KO"
         )
       )
     )
