@@ -471,7 +471,7 @@ analyze_qspot_target <- function(target_info) {
     scale_y_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1.00)) +
     theme_bw(base_size = 10) +
     xlab('UV dose (unit{Jpersquaremeter})') +
-    ylab('Predicted response') +
+    ylab('Normalized spot coverage') +
     scale_shape_manual(values = c(15, 0, 16, 1), labels = strain_plot_labels) +
     scale_color_manual(
       values = c("#02010C", "#009944", "#0068b7", "#f39800"),
