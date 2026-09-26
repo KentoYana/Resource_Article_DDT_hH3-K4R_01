@@ -313,7 +313,11 @@ h <- ggplot() +
     breaks = seq(0, 90, 10),
     expand = expansion(mult = c(0.005, 0.015))
   ) +
-  scale_colour_manual(values = event_cols, drop = FALSE) +
+  scale_colour_manual(
+    values = event_cols,
+    breaks = c("Insertion", "Deletion"),
+    drop = FALSE
+  ) +
   scale_fill_manual(values = ir_cols, drop = FALSE) +
   labs(
     x = "Indel-boundary position relative to the \\textit{pan-2} start codon (bp)",
