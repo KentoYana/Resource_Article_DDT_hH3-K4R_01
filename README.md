@@ -6,7 +6,7 @@ This repository contains datasets, analysis scripts, and generated output files 
 > **Histone H3K4 methylation-related chromatin regulation modulates DNA damage-tolerance pathway use following UV irradiation in *Neurospora crassa*.**
 > Manuscript under revision.
 
-The repository is intended to support transparency and reproducibility of the analyses reported in the manuscript. Each analysis directory contains the input data, analysis scripts, and output files used for the corresponding part of the study.
+This repository provides the input data, analysis scripts, and output files needed to inspect and reproduce the analyses reported in the manuscript. The files are organized by analysis.
 
 The resource version prepared for the revised manuscript is archived as
 [GitHub Release v1.1.4](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.4).
@@ -29,7 +29,7 @@ The resource version prepared for the revised manuscript is archived as
 
 ### `01_killing_test`
 
-This directory contains the dataset and R script for the UV killing-test analysis.
+This directory provides the data and R script for the UV killing-test analysis.
 
 Main files:
 
@@ -46,7 +46,7 @@ Rscript 01_killing_test/script_killing_test.R
 
 ### `02_reversion_assay`
 
-This directory contains the dataset and R script for the reversion-frequency analysis.
+This directory provides the data and R script for the reversion-frequency analysis.
 
 Main files:
 
@@ -64,7 +64,7 @@ Rscript 02_reversion_assay/script_reversion_frequency_AUC.R
 
 ### `03_seq_analysis`
 
-This directory contains the datasets and scripts for sequence-based analysis of `pan-2` revertants.
+This directory provides the data and scripts for sequence-based analysis of `pan-2` revertants.
 
 Main files:
 
@@ -90,11 +90,11 @@ Rscript 03_seq_analysis/script_rev_seq_analysis.R
 zsh 03_seq_analysis/run_clustalo_B36.zsh
 ```
 
-The first step must be completed before the R script is run because `script_rev_seq_analysis.R` reads `output/ir_pairs.csv`.
+Run the first step before the R script because `script_rev_seq_analysis.R` reads `output/ir_pairs.csv`.
 
 ### `04_quantitative_spot_test`
 
-This directory contains the original plate images, SpotScanner measurement files, strain annotations, and R script used for quantitative spot-test analysis.
+This directory provides the original plate images, SpotScanner measurements, strain annotations, and R script for quantitative spot-test analysis.
 
 Main files and directories:
 
@@ -112,33 +112,35 @@ The target-specific dataset directories are:
 - `qSpot-recQ`
 - `qSpot-uvs-2`
 
-Within each target-specific directory, subdirectories named `SpotYYMMDD` identify the experimental or plate-imaging date. Directories named `results_YYYY-MM-DD_HH-MM-SS` record the date and time at which the corresponding images were analyzed with SpotScanner. These dates may therefore differ; for example, an experiment performed on 2023-06-01 may have been processed on 2024-02-08.
+Within each target-specific directory, subdirectories named `SpotYYMMDD` identify the experimental or plate-imaging date. Directories named `results_YYYY-MM-DD_HH-MM-SS` record when SpotScanner analyzed the corresponding images. The dates can differ; for example, an experiment performed on 2023-06-01 was processed on 2024-02-08.
 
-Each archived source image has a corresponding `*_results.csv` file, and each archived result CSV has a corresponding source image. The result CSV files are the direct quantitative inputs used by `script_qSpot_test.R`.
+Each archived source image has a corresponding `*_results.csv` file, and each archived result CSV has a corresponding source image. `script_qSpot_test.R` uses these CSV files as its direct quantitative inputs.
 
 Each target-specific `strain_list.csv` records the initial conidial concentration used for every strain. The image-suspension code in an image filename identifies the source-image series and is not assumed to be the actual starting concentration of every strain on that plate. For each strain, the analysis calculates the concentration at dilution column $d$ as `initial_conidia_per_ml / 5^(d - 1)`.
 
-For normalization, replicate spot measurements are averaged and rounded to two decimal places. Observations whose corresponding 0 J/m² control mean is zero are excluded before calculating the spot-coverage ratio. Each target's `output/<target>/excluded_zero_control.csv` records these observations (a header-only file indicates no exclusions). Ratios above one are capped at one, and the endpoint adjustment `(x * (n - 1) + 0.5) / n` uses the number of retained observations for that target. The same retained sample size is used to transform relative conidial input. For the mus-9 set, four zero-control observations are excluded, leaving 380 observations; the other five sets each retain 288 observations.
+For normalization, replicate spot measurements are averaged and rounded to two decimal places. Observations with a corresponding 0 J/m² control mean of zero are excluded before calculation of the spot-coverage ratio. Each target's `output/<target>/excluded_zero_control.csv` lists these observations; a header-only file indicates that none were excluded.
+
+Ratios above one are capped at one. The endpoint adjustment `(x * (n - 1) + 0.5) / n` uses the number of observations retained for that target, as does the transformation of relative conidial input. Four zero-control observations are excluded from the mus-9 set, leaving 380 observations. Each of the other five sets retains 288 observations.
 
 #### SpotScanner image analysis
 
 Plate images were quantified using SpotScanner version 7.0.0. The software is available at <https://github.com/KentoYana/spotscanner>.
 
-Most images were processed in batch mode using:
+Most images were processed in batch mode:
 
 ```sh
 spotscanner -a pipette -m
 ```
 
-The `pipette` analysis mode was used with the default threshold value of 7. Batch mode (`-m`) applies the same single-image processing routine used by the `-s` option to each input image.
+The `pipette` analysis mode used the default threshold of 7. Batch mode (`-m`) applies the single-image routine invoked by `-s` to each input image.
 
-For a small number of images that could not be analyzed appropriately with the default threshold, the image was processed individually using an explicitly specified threshold:
+A small number of images required individual processing with an explicit threshold:
 
 ```sh
 spotscanner -a pipette -s <image-file> -t <threshold>
 ```
 
-SpotScanner records the threshold actually used for each image in the corresponding output CSV file. The archived CSV files include the analysis timestamp, image identifier, threshold, row and column coordinates, and measured colony coverage. Image-specific threshold adjustments can therefore be identified directly from the archived SpotScanner output.
+SpotScanner records the threshold used for each image in the corresponding output CSV file. The archived CSV files also contain the analysis timestamp, image identifier, row and column coordinates, and measured colony coverage. These records identify any image-specific threshold adjustment.
 
 Run the downstream statistical analysis from the repository root:
 
@@ -148,8 +150,8 @@ Rscript 04_quantitative_spot_test/script_qSpot_test.R
 
 ### `05_public_H3K4`
 
-This directory records the public wild-type H3K4me1, H3K4me2, and H3K4me3
-ChIP-seq dataset selected for locus-level inspection.
+This directory contains the public wild-type H3K4me1, H3K4me2, and H3K4me3
+ChIP-seq data selected for locus-level inspection.
 
 Main files:
 
@@ -170,17 +172,17 @@ Run the reporter-locus analysis from the repository root:
 Rscript 05_public_H3K4/scripts/analyze_reporter_loci.R
 ```
 
-The same script can be opened and sourced in RStudio. Open this repository as
-the working project, then use **Source** on
-`05_public_H3K4/scripts/analyze_reporter_loci.R`. See the directory README for
+The same script can be sourced in RStudio. Open this repository as the working
+project and use **Source** on
+`05_public_H3K4/scripts/analyze_reporter_loci.R`. The directory README documents
 the external-SSD input path and environment-variable overrides.
 
 ### `06_hH3_sequence_validation`
 
 This directory contains the four original AB1 chromatograms and matching PHD
 exports used to validate the wild-type AAG and `hH3-K4R` AGA codons shown in
-Supplementary Figure S1. The R script verifies the bidirectional calls against
-the instrument exports and regenerates the editable TikZ trace panel and
+Supplementary Figure S1. The R script checks the bidirectional calls against
+the instrument exports. It also regenerates the editable TikZ trace panel and
 machine-readable verification outputs.
 
 Run from the repository root:
@@ -189,10 +191,10 @@ Run from the repository root:
 Rscript 06_hH3_sequence_validation/script_hH3_sequence_validation.R
 ```
 
-The script can also be opened and sourced in RStudio. The raw AB1 metadata
-contain an author surname in the instrument plate identifier; publication of
-the unmodified files was explicitly approved as a documented exception. See
-the directory README for interpretation limits and provenance.
+The script can also be sourced in RStudio. The raw AB1 metadata contain an
+author surname in the instrument plate identifier. Publication of the
+unmodified files was explicitly approved as a documented exception. The
+directory README records the interpretation limits and provenance.
 
 ### `91_cross_information`
 
@@ -229,7 +231,7 @@ zsh 99_pan-2_identification/run_clustalo_pan-2_analysis.zsh
 
 ## Requirements
 
-The analyses were performed using R scripts and zsh shell scripts. Software and package versions used for the manuscript are recorded in the manuscript supplemental tables and, where applicable, in `package_versions.csv`.
+The analyses use R scripts and zsh shell scripts. Software and package versions used for the manuscript are recorded in the supplemental tables and, where applicable, in `package_versions.csv`.
 
 ### R
 
@@ -312,7 +314,7 @@ The shell workflows are written for zsh. On macOS, zsh is included with the oper
 
 ## Reproducing the analyses
 
-After cloning the repository and installing the required software, run the following commands from the repository root:
+After cloning the repository and installing the required software, run these commands from the repository root:
 
 ```sh
 Rscript 01_killing_test/script_killing_test.R
@@ -326,7 +328,7 @@ Rscript 91_cross_information/script_segregation_hH3-K4R.R
 zsh 99_pan-2_identification/run_clustalo_pan-2_analysis.zsh
 ```
 
-Each workflow reads input files from its corresponding `dataset/` directory and writes generated files to its corresponding `output/` directory.
+Each workflow reads from its `dataset/` directory and writes generated files to its `output/` directory.
 
 The 2026-09-15 G3 revision reproducibility run, including clean-clone results,
 qSpot source correspondence, deterministic-output repairs, and the boundary
@@ -335,7 +337,7 @@ recorded in [`docs/g3_issue_64_reproducibility_validation.md`](docs/g3_issue_64_
 
 ## Output files
 
-The `output/` directories contain processed data tables, statistical summaries, model outputs, sequence-analysis products, and figure source files.
+The `output/` directories contain processed tables, statistical summaries, model outputs, sequence-analysis products, and figure sources.
 
 Common output file types include:
 
@@ -353,7 +355,9 @@ These files are editable figure sources. Axis labels, legend labels, panel label
 
 Rerunning an analysis script may overwrite manual TeX-level edits. Keep a separate copy of edited TeX files or reapply the edits after regeneration.
 
-The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script assigns them from BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted formal AUC interaction test for each target. The tracked presentation copies retain the established figure layout. Because `tikzDevice` emits an oversized outer drawing region, can place endpoint group letters too close to one another, and does not preserve all gene-name italics, bounding boxes, clip regions, unit typography, overlapping letter coordinates, and gene-name typography are corrected manually after regeneration.
+The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script uses BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted formal AUC interaction test for each target. The tracked presentation copies retain the established figure layout.
+
+Some presentation details require manual correction after regeneration. `tikzDevice` emits an oversized outer drawing region, can place endpoint group letters too close together, and does not preserve all gene-name italics. The corrected details include bounding boxes, clip regions, unit typography, overlapping letter coordinates, and gene-name typography.
 
 ## Repository hygiene
 
@@ -371,7 +375,7 @@ The published repository should remain free of these files.
 
 ## License
 
-The licensing scheme for material created for this repository is:
+Material created for this repository uses the following licenses:
 
 - Analysis scripts and shell scripts: MIT License; see `LICENSE-MIT`.
 - Original datasets, processed outputs, figure source files, and documentation: Creative Commons Attribution 4.0 International License (CC BY 4.0); see `LICENSE-CC-BY-4.0`.
@@ -383,11 +387,11 @@ The following externally sourced sequence files retain the licensing and attribu
 - `03_seq_analysis/dataset/pan-2_genomic.fasta`
 - `99_pan-2_identification/dataset/pan-2_genomic.fasta`
 
-  These files contain the original `pan-2` genomic sequence obtained from FungiDB, a VEuPathDB resource. They are included for research reproducibility and are not relicensed by this repository. Reuse remains subject to the applicable FungiDB/VEuPathDB terms, attribution requirements, and any conditions imposed by the original genome-sequence provider.
+  These files contain the original `pan-2` genomic sequence obtained from FungiDB, a VEuPathDB resource. This repository includes them for reproducibility but does not relicense them. Reuse remains subject to the applicable FungiDB/VEuPathDB terms, attribution requirements, and any conditions imposed by the original genome-sequence provider.
 
 - `99_pan-2_identification/dataset/PTHR20881.fasta`
 
-  This file contains the PANTHER protein-family sequence dataset for family PTHR20881. PANTHER data and data products are licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). Accordingly, this file is redistributed under CC BY 4.0 with attribution to PANTHER. Copyright and other intellectual property rights remain with the respective rights holder, as stated in the PANTHER website terms and conditions.
+  This file contains the PANTHER protein-family sequence dataset for family PTHR20881. PANTHER data and data products use the Creative Commons Attribution 4.0 International License (CC BY 4.0), so this file is redistributed under CC BY 4.0 with attribution to PANTHER. Copyright and other intellectual-property rights remain with the respective rights holder under the PANTHER website terms and conditions.
 
 Users redistributing or reusing these files should retain the source attribution and comply with the current terms of the relevant source database.
 

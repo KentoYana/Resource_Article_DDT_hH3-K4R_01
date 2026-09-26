@@ -1,17 +1,16 @@
 # Public H3K4 ChIP-seq dataset
 
-This directory records the public wild-type *Neurospora crassa* H3K4
-ChIP-seq datasets selected for locus-level inspection. It includes a raw-read
-reprocessing workflow and the resulting reporter-locus and repair/DDT-gene
-summaries.
+This directory contains the public wild-type *Neurospora crassa* H3K4
+ChIP-seq datasets selected for locus-level inspection, a raw-read reprocessing
+workflow, and the resulting reporter-locus and repair/DDT-gene summaries.
 
 ## Dataset identification
 
-The selected series is
-[GSE154497](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154497),
+The selected series,
+[GSE154497](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154497), is
 "Chromatin accessibility profiling in *Neurospora crassa* reveals features
-associated with accessible and inaccessible chromatin." The series contains
-wild-type mycelial ChIP-seq samples for H3K4me1, H3K4me2, and H3K4me3.
+associated with accessible and inaccessible chromatin." It contains wild-type
+mycelial ChIP-seq samples for H3K4me1, H3K4me2, and H3K4me3.
 
 The H3K4me2 sample relevant to inspection of the `pan-2` locus is:
 
@@ -19,10 +18,9 @@ The H3K4me2 sample relevant to inspection of the `pan-2` locus is:
 - SRA experiment: [SRX8737830](https://www.ncbi.nlm.nih.gov/sra/SRX8737830)
 - SRA run: [SRR12229307](https://www.ncbi.nlm.nih.gov/sra/SRR12229307)
 
-The series includes a public CPM-normalized bigWig for each of the three H3K4
-marks. These deposited tracks are the preferred starting point for reproducing
-a browser view because they retain the processing selected by the original
-authors.
+The series includes a public CPM-normalized bigWig for each H3K4 mark. These
+deposited tracks retain the original authors' processing and are the preferred
+starting point for reproducing a browser view.
 
 The Ferraro et al. accession and sample crosswalk is recorded in
 [`dataset/accessions.tsv`](dataset/accessions.tsv).
@@ -36,42 +34,40 @@ downloads and uniformly processes five selected wild-type H3K4 ChIP-seq runs:
 - Sasaki et al. (2014): SRR1295547; and
 - Storck et al. (2020): SRR12202381.
 
-By default, all downloaded data and generated outputs are kept outside this
-repository in `/Volumes/Garage/Re_analysis/260906_issue69_H3K4`. The workflow
-can be inspected without downloading data by running:
+By default, downloaded data and generated outputs remain outside this
+repository in `/Volumes/Garage/Re_analysis/260906_issue69_H3K4`. To inspect the
+workflow without downloading data, run:
 
 ```sh
 ./05_public_H3K4/scripts/reprocess_selected_h3k4_chipseq.sh check
 ```
 
 Run `--help` to list the resumable stages. The workflow obtains raw SRA data
-and the NC12 reference anew, performs raw and trimmed FastQC, maps all runs to
-the same reference, marks duplicate reads without destroying them, and creates
-both duplicate-retaining and nonduplicate CPM bigWig tracks. It intentionally
-does not pool studies or call peaks without a matched input.
+and the NC12 reference, performs raw and trimmed FastQC, and maps all runs to
+the same reference. It marks duplicate reads without discarding them and
+creates duplicate-retaining and nonduplicate CPM bigWig tracks. Studies are
+not pooled, and peaks are not called without a matched input.
 
 After bigWig generation, the `reporters` stage runs
 [`scripts/analyze_reporter_loci.R`](scripts/analyze_reporter_loci.R). It
 compares `pan-2` with `ad-3A`, `ad-3B`, `ad-8`, `his-3`, `mtr`, and the
-exploratory `csr-1` locus. Coordinates and strand are read from the downloaded
-NC12 GFF. The analysis reports strand-aware promoter (-1 kb to +200 bp), gene
-body, and gene-body-plus-or-minus-2-kb CPM values, while retaining exact zero
-and missing bases as distinct states. Percentiles are calculated independently
-for each run and track variant across all protein-coding genes on the seven
-nuclear chromosomes.
+exploratory `csr-1` locus. Coordinates and strand come from the downloaded NC12
+GFF. The analysis reports strand-aware promoter (-1 kb to +200 bp), gene-body,
+and gene-body-plus-or-minus-2-kb CPM values. Exact zero and missing bases remain
+distinct. Percentiles are calculated separately for each run and track variant
+across all protein-coding genes on the seven nuclear chromosomes.
 
 The reporter analysis requires R with `tidyverse`, `tikzDevice`, `patchwork`,
 `here`, `IRanges`, `rtracklayer`, `digest`, and `jsonlite`. The workflow's
 `check` stage verifies these packages in the active R library before starting
 an analysis.
 
-As with the other Resource analyses, the script can also be opened in RStudio
-and run with **Source**. It uses `here::i_am()` to locate the repository root,
-so open this repository as the RStudio working project before sourcing
-`scripts/analyze_reporter_loci.R`. The figures are first drawn on the standard
-R graphics device for inspection in RStudio's Plots pane, then drawn again with
-`tikzDevice` for final output. The default bigWig and reference location is the
-external SSD path
+The script can also be sourced in RStudio. It uses `here::i_am()` to locate the
+repository root, so open this repository as the RStudio project before sourcing
+`scripts/analyze_reporter_loci.R`. The script first draws figures on the
+standard R graphics device for inspection in the Plots pane. It then redraws
+them with `tikzDevice` for final output. By default, bigWig and reference files
+are read from the external SSD path
 `/Volumes/Garage/Re_analysis/260906_issue69_H3K4`.
 Set `H3K4_WORK_ROOT` before sourcing to use a different analysis directory:
 
@@ -88,26 +84,27 @@ variable set, output is written to `05_public_H3K4/output/reporter_loci`.
 ```
 
 Tables and fixed-scale TikZ figures are written to
-[`output/reporter_loci`](output/reporter_loci). Each profile-plot row shares
-one y-axis across all seven loci, but y-axes are not shared across studies or
-histone marks. Profile figures are separated into H3K4me1, H3K4me2, and
-H3K4me3 outputs so that labels and annotations remain legible at the target
-width. Both duplicate-retaining and nonduplicate results are kept; the studies
-are never pooled. The figure files are LaTeX fragments containing
-`tikzpicture` environments generated from `ggplot2`/`patchwork` objects with
-`tikzDevice`; they require TikZ when included in a document. TikZ figures use
-the same 7.5-inch width and `lwdUnit = 72.27 / 96` as the reversion-assay
-figure. Following the color-scale example at
+[`output/reporter_loci`](output/reporter_loci). Each profile-plot row shares a
+y-axis across all seven loci; y-axes are not shared across studies or histone
+marks. Separate H3K4me1, H3K4me2, and H3K4me3 files keep labels and annotations
+legible at the target width. Duplicate-retaining and nonduplicate results are
+both retained, and studies are not pooled.
+
+The figure files are LaTeX fragments containing `tikzpicture` environments
+generated from `ggplot2`/`patchwork` objects with `tikzDevice`. They require
+TikZ when included in a document. The files use the same 7.5-inch width and
+`lwdUnit = 72.27 / 96` as the reversion-assay figure. Following the color-scale
+example at
 <https://okumuralab.org/~okumura/stat/colors.html>, the heatmap maps 0 to
 `#0068b7`, 50 to white, and 100 to `#f39800`, with its color bar below the
 panels.
 
 ### Ferraro-only manuscript display
 
-The revision manuscript uses the internally coherent Ferraro et al. (2021)
-series as its primary display because H3K4me1, H3K4me2, and H3K4me3 were
-generated within the same study. Generate the dedicated reporter-locus output
-without overwriting the cross-study sensitivity analysis with:
+The revision manuscript uses the Ferraro et al. (2021) series as its primary
+display because all three H3K4 marks were generated within that study. Generate
+the dedicated reporter-locus output without overwriting the cross-study
+sensitivity analysis:
 
 ```sh
 H3K4_STUDY_SELECTION=Ferraro2021 \
@@ -144,8 +141,8 @@ Run only this analysis stage from the shell with:
 ./05_public_H3K4/scripts/reprocess_selected_h3k4_chipseq.sh repairs
 ```
 
-The same analysis can be run from RStudio by setting the target collection
-before sourcing the script:
+To run the same analysis in RStudio, set the target collection before sourcing
+the script:
 
 ```r
 Sys.setenv(H3K4_TARGET_SET = "repair")
@@ -160,19 +157,18 @@ The studies are displayed separately and are not pooled. These basal wild-type
 profiles cannot determine transcriptional effects of `hH3-K4R` or changes after
 UV irradiation or replication stress.
 
-In the nonduplicate tracks, the promoter profiles are heterogeneous rather
-than uniformly H3K4me-rich. `uvs-2`, `mus-26`, and `mus-11` have high H3K4me1
-and H3K4me2 promoter percentiles, and `mus-26` and `mus-11` also have high
-H3K4me3 promoter percentiles. In contrast, `recQ2` has low H3K4me2 and H3K4me3
-promoter percentiles, while `qde-3` and `mei-3` are not consistently high for
-H3K4me3. These descriptive patterns make a gene-specific indirect effect
-plausible but do not establish altered expression or causality.
+The nonduplicate promoter profiles are heterogeneous rather than uniformly
+H3K4me-rich. `uvs-2`, `mus-26`, and `mus-11` have high H3K4me1 and H3K4me2
+promoter percentiles; `mus-26` and `mus-11` also have high H3K4me3 promoter
+percentiles. By contrast, `recQ2` has low H3K4me2 and H3K4me3 promoter
+percentiles, while `qde-3` and `mei-3` are not consistently high for H3K4me3.
+These descriptive patterns make a gene-specific indirect effect plausible but
+do not establish altered expression or causality.
 
 ## Nucleosome occupancy and accessibility workflow
 
-Low H3K4me ChIP-seq signal can reflect either a low fraction of methylated H3
-or low local nucleosome occupancy. To distinguish these explanations using
-existing public data,
+Low H3K4me ChIP-seq signal can reflect a low fraction of methylated H3 or low
+local nucleosome occupancy. To examine these alternatives with public data,
 [`scripts/reprocess_selected_nucleosome_occupancy.sh`](scripts/reprocess_selected_nucleosome_occupancy.sh)
 uniformly reprocesses the paired-end raw reads listed in
 [`dataset/nucleosome_accessions.tsv`](dataset/nucleosome_accessions.tsv):
@@ -184,18 +180,18 @@ uniformly reprocesses the paired-end raw reads listed in
 
 By default, the workflow stores raw and intermediate data on the external SSD
 at `/Volumes/Garage/Re_analysis/260907_issue69_nucleosome`. It downloads NC12
-and all seven SRA runs anew, performs paired-end trimming and alignment, retains
-proper primary pairs with MAPQ at least 20 on the seven nuclear chromosomes,
-and marks duplicates without discarding them. Both duplicate-retaining and
-nonduplicate tracks are generated.
+and all seven SRA runs, then performs paired-end trimming and alignment. The
+workflow retains proper primary pairs with MAPQ of at least 20 on the seven
+nuclear chromosomes and marks duplicates without discarding them. It generates
+both duplicate-retaining and nonduplicate tracks.
 
 MNase tracks count the central three bases of 130-200-bp fragments as
 nucleosome dyads. Total-H3 tracks represent paired-fragment coverage. ATAC
-tracks represent Tn5-shifted cut sites; 10-bp tracks are used for the R
-analysis and separate 1-bp tracks are retained for IGV. ATAC is interpreted as
-accessibility, not as a direct measurement of nucleosome occupancy. Every run
-is normalized to CPM independently; assays and biological replicates are not
-pooled.
+tracks represent Tn5-shifted cut sites. The R analysis uses 10-bp ATAC tracks,
+while separate 1-bp tracks are retained for IGV. ATAC is interpreted as
+accessibility rather than a direct measurement of nucleosome occupancy. Each
+run is normalized to CPM independently; assays and biological replicates are
+not pooled.
 
 Run the complete resumable workflow with:
 
@@ -230,10 +226,10 @@ command-line software versions recorded during preprocessing.
 
 ## Experimental metadata
 
-The GEO records describe the samples as wild-type mycelial cultures grown in
-Vogel's medium with 1.5% sucrose. The associated paper specifies shaking at
-32 degrees C for 18 hours. Libraries were sequenced on an Illumina NextSeq 500
-as single-end reads with a nominal length of 75 bp.
+The GEO records describe wild-type mycelial cultures grown in Vogel's medium
+with 1.5% sucrose. The associated paper specifies 18 hours of shaking at 32
+degrees C. Libraries were sequenced as nominal 75-bp single-end reads on an
+Illumina NextSeq 500.
 
 The deposited processing description reports:
 
@@ -285,10 +281,10 @@ features associated with accessible and inaccessible chromatin."
   stated here.
 - No prior ChIP-seq study of a `pan-2` mutant has been identified in the sources
   examined for this analysis. The chromatin state of the strain background used
-  for the mutation assay is therefore unknown. Possible differences between
-  mutant and wild-type strains and between mycelia and conidia remain untested
-  here. Literature support for developmental-state differences has not yet been
-  identified and verified for citation.
+  for the mutation assay is unknown. Differences between mutant and wild-type
+  strains and between mycelia and conidia remain untested. Literature support
+  for developmental-state differences has not yet been identified and verified
+  for citation.
 - In the selected wild-type mycelial datasets, `pan-2` does not show the
   consistently high genome-relative H3K4me1, H3K4me2, or H3K4me3 signal expected
   of an H3K4me-rich locus. Signal is not uniformly zero, and the
@@ -298,9 +294,9 @@ features associated with accessible and inaccessible chromatin."
 - This pattern argues against the simplest model in which the observed
   mutation-frequency and indel-size changes depend directly on abundant
   H3K4me1/2/3 at the assayed `pan-2` locus. It does not exclude a locus-local
-  effect and is also compatible with indirect effects mediated through gene
-  expression or with direct effects of larger-scale chromatin organization;
-  the present data do not distinguish these possibilities.
+  effect. It is also compatible with indirect effects mediated through gene
+  expression or with direct effects of larger-scale chromatin organization.
+  The present data do not distinguish these possibilities.
 - The complementary Kamei MNase/total-H3 and Ferraro ATAC reanalysis does not
   support describing the entire `pan-2` locus as nucleosome-free or extremely
   open. In both total-H3 replicates, the annotated gene body is high relative to
@@ -308,24 +304,24 @@ features associated with accessible and inaccessible chromatin."
   low (6.7-18.9th percentile). ATAC signal is intermediate at the promoter
   (55.0-59.3th percentile), low in the gene body (18.4-24.8th percentile), and
   higher when the plus-or-minus-2-kb flanks are included (66.9-75.0th
-  percentile); MNase estimates vary among replicates. These data therefore
-  support substantial nucleosome occupancy across the gene body while leaving
+  percentile). MNase estimates vary among replicates. These data support
+  substantial nucleosome occupancy across the gene body while leaving
   promoter-local depletion possible. They do not establish the state of the
-  mutation-assay `pan-2` mutant background or dormant conidia; detailed results
+  mutation-assay `pan-2` mutant background or dormant conidia. Detailed results
   and QC are in [`output/reporter_loci_nucleosome`](output/reporter_loci_nucleosome).
 
 The RNA-seq runs SRR5177529 and SRR5177530 are not part of GSE154497. They come
-from a separate study and are not matched to these ChIP-seq cultures; they are
-therefore not included in the ChIP-seq accession table.
+from a separate study and are not matched to these ChIP-seq cultures, so the
+ChIP-seq accession table does not include them.
 
 ## Selection boundary
 
-GSE154497 is selected as the best-supported public source for the wild-type
-H3K4 browser tracks. A browser screenshot without track metadata is not, by
-itself, sufficient to prove that the displayed track is byte-for-byte identical
-to the deposited bigWig. This identification therefore records the public
-dataset and the evidence-supported correspondence without treating an
-unlabelled screenshot as the primary data source.
+GSE154497 is the best-supported public source identified for the wild-type
+H3K4 browser tracks. A browser screenshot without track metadata cannot show
+that the displayed track is byte-for-byte identical to the deposited bigWig.
+The identification therefore records the public dataset and the
+evidence-supported correspondence without treating an unlabelled screenshot
+as the primary data source.
 
 ## Primary metadata sources
 
