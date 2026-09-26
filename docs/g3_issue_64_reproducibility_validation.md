@@ -58,14 +58,14 @@ inverted-repeat pairs are unchanged.
   likelihood-ratio result (`p = 0.023`). Figure 3's integrated indel plot was
   reproduced byte-for-byte apart from its generated timestamp. The example
   sequence previously selected for each indel size was not reproducible because
-  the script used unseeded random sampling; it is now selected deterministically
-  by stable experimental identifiers. Counts, model inputs, model results, and
-  Figure 3 are unaffected.
+  the script used unseeded random sampling. The script now selects it
+  deterministically using stable experimental identifiers. Counts, model
+  inputs, model results, and Figure 3 are unaffected.
 - All six qSpot analyses reproduced their committed model inputs and numerical
   results. For `mus-9`, four zero-control observations were excluded and 380
   observations were retained; each other target retained 288 observations.
-  The regenerated raw input tables were identical after excluding the former
-  machine-specific absolute-path column. That column now records a
+  The regenerated raw input tables were identical after removal of the former
+  machine-specific absolute-path column. The replacement column records a
   repository-relative path.
 - The two Ferraro-only H3K4 output sets used by the manuscript reproduced
   byte-for-byte. The cross-study reporter and repair output sets reproduced
@@ -135,5 +135,5 @@ TikZ trace content matches apart from its updated generator comment.
 
 The original AB1 metadata contain the plate identifier
 `Plate_20211216_120326_yanagisawa`. The author explicitly approved publication
-of the unmodified files as an exception. No metadata were stripped or rewritten,
-and the exception is disclosed in the workflow README and root README.
+of the unmodified files as an exception. No metadata were stripped or rewritten.
+The workflow README and root README disclose the exception.

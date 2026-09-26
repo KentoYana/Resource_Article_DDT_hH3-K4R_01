@@ -6,7 +6,7 @@ This repository contains datasets, analysis scripts, and generated output files 
 > **Histone H3K4 methylation-related chromatin regulation modulates DNA damage-tolerance pathway use following UV irradiation in *Neurospora crassa*.**
 > Manuscript under revision.
 
-The repository is intended to support transparency and reproducibility of the analyses reported in the manuscript. Each analysis directory contains the input data, analysis scripts, and output files used for the corresponding part of the study.
+This repository provides the input data, analysis scripts, and output files needed to inspect and reproduce the analyses reported in the manuscript. The files are organized by analysis.
 
 The resource version prepared for the revised manuscript is archived as
 [GitHub Release v1.1.4](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.4).
@@ -112,7 +112,7 @@ The target-specific dataset directories are:
 - `qSpot-recQ`
 - `qSpot-uvs-2`
 
-Within each target-specific directory, subdirectories named `SpotYYMMDD` identify the experimental or plate-imaging date. Directories named `results_YYYY-MM-DD_HH-MM-SS` record the date and time at which the corresponding images were analyzed with SpotScanner. These dates may therefore differ; for example, an experiment performed on 2023-06-01 may have been processed on 2024-02-08.
+Within each target-specific directory, subdirectories named `SpotYYMMDD` identify the experimental or plate-imaging date. Directories named `results_YYYY-MM-DD_HH-MM-SS` record when SpotScanner analyzed the corresponding images. The dates can differ; for example, an experiment performed on 2023-06-01 was processed on 2024-02-08.
 
 Each archived source image has a corresponding `*_results.csv` file, and each archived result CSV has a corresponding source image. The result CSV files are the direct quantitative inputs used by `script_qSpot_test.R`.
 
@@ -138,7 +138,7 @@ For a small number of images that could not be analyzed appropriately with the d
 spotscanner -a pipette -s <image-file> -t <threshold>
 ```
 
-SpotScanner records the threshold actually used for each image in the corresponding output CSV file. The archived CSV files include the analysis timestamp, image identifier, threshold, row and column coordinates, and measured colony coverage. Image-specific threshold adjustments can therefore be identified directly from the archived SpotScanner output.
+SpotScanner records the threshold used for each image in the corresponding output CSV file. The archived CSV files also contain the analysis timestamp, image identifier, row and column coordinates, and measured colony coverage. These records identify any image-specific threshold adjustment.
 
 Run the downstream statistical analysis from the repository root:
 
@@ -148,8 +148,8 @@ Rscript 04_quantitative_spot_test/script_qSpot_test.R
 
 ### `05_public_H3K4`
 
-This directory records the public wild-type H3K4me1, H3K4me2, and H3K4me3
-ChIP-seq dataset selected for locus-level inspection.
+This directory contains the public wild-type H3K4me1, H3K4me2, and H3K4me3
+ChIP-seq data selected for locus-level inspection.
 
 Main files:
 
@@ -179,8 +179,8 @@ the external-SSD input path and environment-variable overrides.
 
 This directory contains the four original AB1 chromatograms and matching PHD
 exports used to validate the wild-type AAG and `hH3-K4R` AGA codons shown in
-Supplementary Figure S1. The R script verifies the bidirectional calls against
-the instrument exports and regenerates the editable TikZ trace panel and
+Supplementary Figure S1. The R script checks the bidirectional calls against
+the instrument exports. It also regenerates the editable TikZ trace panel and
 machine-readable verification outputs.
 
 Run from the repository root:
@@ -229,7 +229,7 @@ zsh 99_pan-2_identification/run_clustalo_pan-2_analysis.zsh
 
 ## Requirements
 
-The analyses were performed using R scripts and zsh shell scripts. Software and package versions used for the manuscript are recorded in the manuscript supplemental tables and, where applicable, in `package_versions.csv`.
+The analyses use R scripts and zsh shell scripts. Software and package versions used for the manuscript are recorded in the supplemental tables and, where applicable, in `package_versions.csv`.
 
 ### R
 
@@ -353,7 +353,9 @@ These files are editable figure sources. Axis labels, legend labels, panel label
 
 Rerunning an analysis script may overwrite manual TeX-level edits. Keep a separate copy of edited TeX files or reapply the edits after regeneration.
 
-The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script assigns them from BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted formal AUC interaction test for each target. The tracked presentation copies retain the established figure layout. Because `tikzDevice` emits an oversized outer drawing region, can place endpoint group letters too close to one another, and does not preserve all gene-name italics, bounding boxes, clip regions, unit typography, overlapping letter coordinates, and gene-name typography are corrected manually after regeneration.
+The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script uses BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted formal AUC interaction test for each target. The tracked presentation copies retain the established figure layout.
+
+Some presentation details require manual correction after regeneration. `tikzDevice` emits an oversized outer drawing region, can place endpoint group letters too close together, and does not preserve all gene-name italics. The corrected details include bounding boxes, clip regions, unit typography, overlapping letter coordinates, and gene-name typography.
 
 ## Repository hygiene
 

@@ -8,10 +8,10 @@ to validate the H3 K4 codon shown in Supplementary Figure S1.
 - `dataset/`: four original AB1 chromatograms and their matching PHD exports
   for C1-T10-28a (wild type) and KNT-Op3-87a (`hH3-K4R`), sequenced in both
   directions.
-- `script_hH3_sequence_validation.R`: parses the ABIF tags directly, verifies
-  that each PHD export matches the corresponding AB1 sequence, quality scores,
-  and peak positions, checks the AAG/AGA K4 codons, and writes the trace panel
-  as editable TikZ.
+- `script_hH3_sequence_validation.R`: parses the ABIF tags directly and checks
+  each PHD export against the corresponding AB1 sequence, quality scores, and
+  peak positions. It checks the AAG/AGA K4 codons and writes the trace panel as
+  editable TikZ.
 - `output/`: verification tables and metadata, the R session record, and the
   generated TikZ trace panel.
 
@@ -28,7 +28,7 @@ as the project working directory.
 
 The four saved AB1/PHD pairs confirm AAG in C1-T10-28a and AGA in
 KNT-Op3-87a in both sequencing directions. The displayed traces are from the
-forward reads; signal heights are scaled independently and are not allele
+forward reads. Their signal heights are scaled independently and are not allele
 fractions. These files do not independently document strain 84A, the reported
 full-length checks, or nuclear purity. The manuscript interprets homokaryotic
 status using the combined molecular validation, stable vegetative propagation,

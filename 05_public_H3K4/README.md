@@ -1,9 +1,8 @@
 # Public H3K4 ChIP-seq dataset
 
-This directory records the public wild-type *Neurospora crassa* H3K4
-ChIP-seq datasets selected for locus-level inspection. It includes a raw-read
-reprocessing workflow and the resulting reporter-locus and repair/DDT-gene
-summaries.
+This directory contains the public wild-type *Neurospora crassa* H3K4
+ChIP-seq datasets selected for locus-level inspection, a raw-read reprocessing
+workflow, and the resulting reporter-locus and repair/DDT-gene summaries.
 
 ## Dataset identification
 
@@ -160,13 +159,13 @@ The studies are displayed separately and are not pooled. These basal wild-type
 profiles cannot determine transcriptional effects of `hH3-K4R` or changes after
 UV irradiation or replication stress.
 
-In the nonduplicate tracks, the promoter profiles are heterogeneous rather
-than uniformly H3K4me-rich. `uvs-2`, `mus-26`, and `mus-11` have high H3K4me1
-and H3K4me2 promoter percentiles, and `mus-26` and `mus-11` also have high
-H3K4me3 promoter percentiles. In contrast, `recQ2` has low H3K4me2 and H3K4me3
-promoter percentiles, while `qde-3` and `mei-3` are not consistently high for
-H3K4me3. These descriptive patterns make a gene-specific indirect effect
-plausible but do not establish altered expression or causality.
+The nonduplicate promoter profiles are heterogeneous rather than uniformly
+H3K4me-rich. `uvs-2`, `mus-26`, and `mus-11` have high H3K4me1 and H3K4me2
+promoter percentiles; `mus-26` and `mus-11` also have high H3K4me3 promoter
+percentiles. By contrast, `recQ2` has low H3K4me2 and H3K4me3 promoter
+percentiles, while `qde-3` and `mei-3` are not consistently high for H3K4me3.
+These descriptive patterns make a gene-specific indirect effect plausible but
+do not establish altered expression or causality.
 
 ## Nucleosome occupancy and accessibility workflow
 
@@ -298,9 +297,9 @@ features associated with accessible and inaccessible chromatin."
 - This pattern argues against the simplest model in which the observed
   mutation-frequency and indel-size changes depend directly on abundant
   H3K4me1/2/3 at the assayed `pan-2` locus. It does not exclude a locus-local
-  effect and is also compatible with indirect effects mediated through gene
-  expression or with direct effects of larger-scale chromatin organization;
-  the present data do not distinguish these possibilities.
+  effect. It is also compatible with indirect effects mediated through gene
+  expression or with direct effects of larger-scale chromatin organization.
+  The present data do not distinguish these possibilities.
 - The complementary Kamei MNase/total-H3 and Ferraro ATAC reanalysis does not
   support describing the entire `pan-2` locus as nucleosome-free or extremely
   open. In both total-H3 replicates, the annotated gene body is high relative to
@@ -320,12 +319,12 @@ therefore not included in the ChIP-seq accession table.
 
 ## Selection boundary
 
-GSE154497 is selected as the best-supported public source for the wild-type
-H3K4 browser tracks. A browser screenshot without track metadata is not, by
-itself, sufficient to prove that the displayed track is byte-for-byte identical
-to the deposited bigWig. This identification therefore records the public
-dataset and the evidence-supported correspondence without treating an
-unlabelled screenshot as the primary data source.
+GSE154497 is the best-supported public source identified for the wild-type
+H3K4 browser tracks. A browser screenshot without track metadata cannot show
+that the displayed track is byte-for-byte identical to the deposited bigWig.
+The identification therefore records the public dataset and the
+evidence-supported correspondence without treating an unlabelled screenshot
+as the primary data source.
 
 ## Primary metadata sources
 
