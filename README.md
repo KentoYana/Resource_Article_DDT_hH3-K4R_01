@@ -35,8 +35,10 @@ Main files:
 
 - `dataset/killing_data.csv`: raw killing-test data.
 - `dataset/strain_list.csv`: strain and genotype annotation table.
-- `script_killing_test.R`: R script for data processing, within-experiment normalization, raw-AUC analysis, paired Holm-adjusted comparisons, and figure generation.
+- `script_killing_test.R`: R script for data processing, within-biological-replicate normalization, AUC analysis, paired Holm-adjusted comparisons, and figure generation.
 - `output/`: processed data, replicate-level AUC values, statistical summaries, comparison results, session information, and TikZ figure output.
+
+In `killing_data.csv`, `Date` identifies the biological replicate. The four biological replicates were initiated independently from the strain stocks. The three rows for each strain and ultraviolet dose within a biological replicate are technical replicates; the script averages them before normalization and AUC calculation.
 
 Run from the repository root:
 
@@ -53,8 +55,10 @@ Main files:
 - `dataset/reversion_data.csv`: raw reversion-assay data.
 - `dataset/strain_list.csv`: strain annotation table.
 - `dataset/genotype_list.csv`: genotype annotation table.
-- `script_reversion_frequency_AUC.R`: R script for reversion-frequency calculation, baseline-corrected raw-AUC analysis, Holm-adjusted Welch comparisons, and figure generation.
+- `script_reversion_frequency_AUC.R`: R script for reversion-frequency calculation, baseline-corrected AUC analysis, Holm-adjusted Welch comparisons, and figure generation.
 - `output/`: processed data, AUC data, pairwise comparison results, Welch-test summaries, session information, and TikZ figure output.
+
+In `reversion_data.csv`, `Date` identifies the biological replicate. Technical replicates are averaged within each biological replicate, strain, and ultraviolet dose before the reversion frequency and baseline-corrected AUC are calculated.
 
 Run from the repository root:
 
@@ -100,8 +104,8 @@ Main files and directories:
 
 - `dataset/exp_list.csv`: experiment list and image-suspension code used to select the source-image series for each analysis.
 - `dataset/qSpot-*`: target-specific datasets containing original JPEG plate images, the corresponding SpotScanner result CSV files, and strain annotation tables.
-- `script_qSpot_test.R`: R script for importing SpotScanner results, fitting beta-regression response curves, normalizing model predictions to 0 J within experiment, raw-AUC pairwise and formal interaction contrasts with delta-method uncertainty and BH correction, and figure generation.
-- `output/`: processed data, model summaries, standardized response curves with pointwise confidence intervals, target-specific raw-AUC pairwise and interaction results, session information, and TikZ figure output.
+- `script_qSpot_test.R`: R script for importing SpotScanner results, fitting beta-regression response curves, normalizing model predictions to 0 J within each biological replicate, calculating pairwise and interaction AUC contrasts with delta-method uncertainty and BH correction, and generating figures.
+- `output/`: processed data, model summaries, standardized response curves with pointwise confidence intervals, target-specific pairwise and interaction AUC results, session information, and TikZ figure output.
 
 The target-specific dataset directories are:
 
@@ -112,13 +116,15 @@ The target-specific dataset directories are:
 - `qSpot-recQ`
 - `qSpot-uvs-2`
 
-Within each target-specific directory, subdirectories named `SpotYYMMDD` identify the experimental or plate-imaging date. Directories named `results_YYYY-MM-DD_HH-MM-SS` record when SpotScanner analyzed the corresponding images. The dates can differ; for example, an experiment performed on 2023-06-01 was processed on 2024-02-08.
+Within each target-specific directory, every `SpotYYMMDD` subdirectory corresponds to one biological replicate and records its plate-imaging date. Cultures for different biological replicates were initiated independently from the corresponding strain stocks. Directories named `results_YYYY-MM-DD_HH-MM-SS` record when SpotScanner analyzed the corresponding images. The imaging and analysis dates can differ; for example, plates imaged on 2023-06-01 were processed on 2024-02-08.
+
+The `exp_ID` field used internally by `script_qSpot_test.R` is the identifier for the biological replicate.
 
 Each archived source image has a corresponding `*_results.csv` file, and each archived result CSV has a corresponding source image. `script_qSpot_test.R` uses these CSV files as its direct quantitative inputs.
 
 Each target-specific `strain_list.csv` records the initial conidial concentration used for every strain. The image-suspension code in an image filename identifies the source-image series and is not assumed to be the actual starting concentration of every strain on that plate. For each strain, the analysis calculates the concentration at dilution column $d$ as `initial_conidia_per_ml / 5^(d - 1)`.
 
-For normalization, replicate spot measurements are averaged and rounded to two decimal places. Observations with a corresponding 0 J/m² control mean of zero are excluded before calculation of the spot-coverage ratio. Each target's `output/<target>/excluded_zero_control.csv` lists these observations; a header-only file indicates that none were excluded.
+For every biological replicate and ultraviolet dose, the two plates prepared from the same conidial suspension are technical replicates. Their available spot measurements are averaged within genotype and dilution step and rounded to two decimal places. Observations with a corresponding 0 J/m² control mean of zero are excluded before calculation of the spot-coverage ratio. Each target's `output/<target>/excluded_zero_control.csv` lists these observations; a header-only file indicates that none were excluded.
 
 Ratios above one are capped at one. The endpoint adjustment `(x * (n - 1) + 0.5) / n` uses the number of observations retained for that target, as does the transformation of relative conidial input. Four zero-control observations are excluded from the mus-9 set, leaving 380 observations. Each of the other five sets retains 288 observations.
 
@@ -140,7 +146,7 @@ A small number of images required individual processing with an explicit thresho
 spotscanner -a pipette -s <image-file> -t <threshold>
 ```
 
-SpotScanner records the threshold used for each image in the corresponding output CSV file. The archived CSV files also contain the analysis timestamp, image identifier, row and column coordinates, and measured colony coverage. These records identify any image-specific threshold adjustment.
+SpotScanner reports the fraction of each predefined grid-based region of interest covered by the detected spot, calculated from the covered pixels. It records the threshold used for each image in the corresponding output CSV file. The archived CSV files also contain the analysis timestamp, image identifier, row and column coordinates, and measured spot coverage. These records identify any image-specific threshold adjustment.
 
 Run the downstream statistical analysis from the repository root:
 
@@ -355,7 +361,7 @@ These files are editable figure sources. Axis labels, legend labels, panel label
 
 Rerunning an analysis script may overwrite manual TeX-level edits. Keep a separate copy of edited TeX files or reapply the edits after regeneration.
 
-The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script uses BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted formal AUC interaction test for each target. The tracked presentation copies retain the established figure layout.
+The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script uses BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted AUC interaction test for each target. The tracked presentation copies retain the established figure layout.
 
 Some presentation details require manual correction after regeneration. `tikzDevice` emits an oversized outer drawing region, can place endpoint group letters too close together, and does not preserve all gene-name italics. The corrected details include bounding boxes, clip regions, unit typography, overlapping letter coordinates, and gene-name typography.
 
