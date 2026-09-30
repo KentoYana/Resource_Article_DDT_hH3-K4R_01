@@ -397,9 +397,151 @@ g <- ggplot(indel_plot_data) +
 
 plot(g)
 
-merge_plot <- (h | g) +
-  plot_layout(widths = c(3.05, 1), guides = "collect") &
-  theme(legend.position = "bottom")
+panel_levels <- c("Panel 1: Indel size", "Panel 2: Indel distribution")
+
+size_panel_data <- indel_plot_data %>%
+  mutate(panel = factor(panel_levels[1], levels = panel_levels))
+
+distribution_panel_data <- indel_plot_data %>%
+  mutate(panel = factor(panel_levels[2], levels = panel_levels))
+
+ir_panel_data <- ir_arms_by_genotype %>%
+  mutate(panel = factor(panel_levels[2], levels = panel_levels))
+
+median_panel_data <- median_data %>%
+  mutate(panel = factor(panel_levels[1], levels = panel_levels))
+
+p_annotation <- size_panel_data %>%
+  filter(strain_legend == "wild-type") %>%
+  summarise(
+    strain_legend = first(strain_legend),
+    panel = first(panel),
+    x = 35,
+    y = max(event_row) * 0.86,
+    .groups = "drop"
+  )
+
+merge_plot <- ggplot() +
+  geom_rect(
+    data = ir_panel_data,
+    aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = IR_ID),
+    alpha = 0.58,
+    colour = NA
+  ) +
+  geom_vline(
+    data = distribution_panel_data %>% distinct(strain_legend, panel),
+    aes(xintercept = 56),
+    linetype = "dashed",
+    linewidth = 0.55,
+    colour = "black"
+  ) +
+  geom_segment(
+    data = distribution_panel_data,
+    aes(
+      x = mut_start,
+      xend = mut_finish,
+      y = event_row,
+      yend = event_row,
+      colour = mut_type
+    ),
+    linewidth = 0.9,
+    lineend = "round"
+  ) +
+  geom_point(
+    data = distribution_panel_data,
+    aes(x = mut_start, y = event_row, colour = mut_type),
+    shape = 21,
+    fill = "white",
+    stroke = 0.55,
+    size = 1.15
+  ) +
+  geom_point(
+    data = distribution_panel_data,
+    aes(x = mut_finish, y = event_row, colour = mut_type),
+    shape = 21,
+    fill = "white",
+    stroke = 0.55,
+    size = 1.15
+  ) +
+  geom_segment(
+    data = size_panel_data,
+    aes(x = 0, xend = indel_size, y = event_row, yend = event_row),
+    colour = "#333333",
+    linewidth = 0.9,
+    lineend = "round"
+  ) +
+  geom_point(
+    data = size_panel_data,
+    aes(x = indel_size, y = event_row),
+    colour = "#333333",
+    size = 1.15
+  ) +
+  geom_vline(
+    data = median_panel_data,
+    aes(xintercept = median_indel_size),
+    linewidth = 0.55,
+    colour = median_col
+  ) +
+  geom_label(
+    data = median_panel_data,
+    aes(
+      x = 34,
+      y = Inf,
+      label = paste0("median = ", median_indel_size, " bp")
+    ),
+    hjust = 1,
+    vjust = 1.8,
+    size = 3.5,
+    linewidth = 0,
+    label.padding = unit(0.08, "lines"),
+    fill = "white",
+    colour = median_col
+  ) +
+  geom_text(
+    data = p_annotation,
+    aes(x = x, y = y, label = paste0("Genotype effect: ", p_label)),
+    hjust = 1,
+    size = 3.5,
+    colour = "black"
+  ) +
+  facet_grid(
+    strain_legend ~ panel,
+    scales = "free",
+    space = "free_x",
+    switch = "y",
+    labeller = labeller(
+      strain_legend = as_labeller(c(
+        "wild-type" = "wild type",
+        "hH3-K4R" = "\\textit{hH3-K4R}"
+      )),
+      panel = label_value
+    )
+  ) +
+  scale_colour_manual(
+    values = event_cols,
+    breaks = c("Insertion", "Deletion"),
+    drop = FALSE
+  ) +
+  scale_fill_manual(values = ir_cols, drop = FALSE) +
+  labs(
+    x = "Absolute size or indel-boundary position (bp)",
+    y = NULL,
+    colour = "Indel type",
+    fill = "Predicted IR pair"
+  ) +
+  guides(
+    colour = guide_legend(nrow = 1, byrow = TRUE),
+    fill = guide_legend(nrow = 1, byrow = TRUE)
+  ) +
+  indel_theme +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    strip.text.x = element_text(face = "bold", size = 9),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    plot.margin = margin(5.5, 3, 5.5, 0)
+  )
 
 plot(merge_plot)
 
