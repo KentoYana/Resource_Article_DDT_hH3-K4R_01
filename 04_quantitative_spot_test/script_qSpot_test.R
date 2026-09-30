@@ -751,7 +751,7 @@ write.csv(
 
 format_p_value <- function(p_value) {
   if (p_value < 0.0001) {
-    "p < 0.0001"
+    paste0("p = ", formatC(p_value, format = "e", digits = 2))
   } else if (p_value < 0.1) {
     paste0("p = ", formatC(p_value, format = "f", digits = 4))
   } else {
@@ -763,7 +763,25 @@ for (target_name in names(qspot_results)) {
   result <- qspot_results[[target_name]]
   if (is.null(result)) next
   interaction_row <- auc_interaction_all %>% filter(target == target_name)
+  primary_contrast_row <- auc_primary_contrasts %>% filter(target == target_name)
   equivalence_row <- auc_equivalence_all %>% filter(target == target_name)
+  background_group <- result$auc_summary$auc_group[
+    match(equivalence_row$background, result$auc_summary$strain)
+  ]
+  plus_hH3_K4R_group <- result$auc_summary$auc_group[
+    match(equivalence_row$plus_hH3_K4R, result$auc_summary$strain)
+  ]
+  same_auc_group <- identical(background_group, plus_hH3_K4R_group)
+  displayed_test <- if (same_auc_group) {
+    "Genetic equivalence"
+  } else {
+    "Genetic difference"
+  }
+  displayed_p_value <- if (same_auc_group) {
+    equivalence_row$p.value.TOST.BH
+  } else {
+    primary_contrast_row$p.value.BH
+  }
   write.csv(
     interaction_row,
     file = here("04_quantitative_spot_test", "output", target_name, "auc_interaction.csv"),
@@ -785,16 +803,16 @@ for (target_name in names(qspot_results)) {
   print(equivalence_row)
   sink()
 
-  p_label <- format_p_value(equivalence_row$p.value.TOST.BH)
+  p_label <- format_p_value(displayed_p_value)
   max_dose <- max(result$plot_prediction$dose)
   annotated_plot <- result$plot +
     annotate(
       "text", x = max_dose * 0.04, y = 0.1875,
-      label = "AUC equivalence:", hjust = 0, size = 3.5
+      label = displayed_test, hjust = 0, size = 3.5
     ) +
     annotate(
       "text", x = max_dose * 0.04, y = 0.0625,
-      label = paste0("BH ", p_label), hjust = 0, size = 3.5
+      label = p_label, hjust = 0, size = 3.5
     )
   tikz_file <- here(
     "04_quantitative_spot_test", "output", target_name,
