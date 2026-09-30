@@ -104,8 +104,8 @@ Main files and directories:
 
 - `dataset/exp_list.csv`: experiment list and image-suspension code used to select the source-image series for each analysis.
 - `dataset/qSpot-*`: target-specific datasets containing original JPEG plate images, the corresponding SpotScanner result CSV files, and strain annotation tables.
-- `script_qSpot_test.R`: R script for importing SpotScanner results, fitting beta-regression response curves, normalizing model predictions to 0 J within each biological replicate, calculating pairwise and interaction AUC contrasts with delta-method uncertainty and BH correction, and generating figures.
-- `output/`: processed data, model summaries, standardized response curves with pointwise confidence intervals, target-specific pairwise and interaction AUC results, session information, and TikZ figure output.
+- `script_qSpot_test.R`: R script for importing SpotScanner results, fitting beta-regression response curves, normalizing model predictions to 0 J within each biological replicate, calculating pairwise and interaction AUC contrasts with delta-method uncertainty, testing AUC equivalence, applying BH correction, and generating figures.
+- `output/`: processed data, model summaries, standardized response curves with pointwise confidence intervals, target-specific pairwise, interaction, and equivalence AUC results, session information, and TikZ figure output.
 
 The target-specific dataset directories are:
 
@@ -361,7 +361,7 @@ These files are editable figure sources. Axis labels, legend labels, panel label
 
 Rerunning an analysis script may overwrite manual TeX-level edits. Keep a separate copy of edited TeX files or reapply the edits after regeneration.
 
-The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script uses BH-adjusted pairwise AUC comparisons. qSpot figures also display the BH-adjusted AUC interaction test for each target. The tracked presentation copies retain the established figure layout.
+The killing-test script assigns compact-letter groups from Holm-adjusted AUC comparisons, whereas the qSpot script uses BH-adjusted pairwise AUC comparisons. For every qSpot target, the script also calculates the AUC interaction contrast and a two-one-sided equivalence test for the background-mutant versus background-mutant-plus-`hH3-K4R` contrast. Equivalence is defined using an author-selected margin of +/-0.10 on dose-range-standardized AUC, corresponding to 10 percentage points in mean normalized spot coverage. The six target-specific equivalence-test p-values are BH-adjusted as one family, and qSpot figures display these adjusted equivalence results. AUC interaction results remain available in the output tables. The tracked presentation copies retain the established figure layout.
 
 Some presentation details require manual correction after regeneration. `tikzDevice` emits an oversized outer drawing region, can place endpoint group letters too close together, and does not preserve all gene-name italics. The corrected details include bounding boxes, clip regions, unit typography, overlapping letter coordinates, and gene-name typography.
 

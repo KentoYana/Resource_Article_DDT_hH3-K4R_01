@@ -1,0 +1,2 @@
+"target","background","plus_hH3_K4R","min_dose","max_dose","dose_range","equivalence_margin","standardized_estimate","standardized_SE","lower.CL.90","upper.CL.90","p.value.lower","p.value.upper","p.value.TOST.raw","p.value.TOST.BH","equivalent.raw","equivalent.BH"
+"recQ","qde-3-RIP recQ2 KO","qde-3-RIP recQ2 KO hH3-K4R",0,400,400,0.1,0.00318655919515642,0.0395425729339415,-0.0618551853142304,0.0682283037045433,0.00453366021399141,0.00717591971474821,0.00717591971474821,0.0430555182884893,TRUE,TRUE

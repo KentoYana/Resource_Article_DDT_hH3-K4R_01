@@ -18,6 +18,11 @@ here::i_am("04_quantitative_spot_test/script_qSpot_test.R")
 # Define directories
 output_dir  <- here("04_quantitative_spot_test", "output")
 
+# Equivalence is assessed on dose-range-standardized AUC. A margin of 0.10
+# corresponds to a difference of 10 percentage points in mean normalized spot
+# coverage over the target-specific UV-dose range.
+auc_equivalence_margin <- 0.10
+
 # Create output directory if it does not exist
 if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)
@@ -680,58 +685,6 @@ write.csv(
   row.names = FALSE
 )
 
-format_interaction_p <- function(p_value) {
-  if (p_value < 0.0001) {
-    "p < 0.0001"
-  } else if (p_value < 0.1) {
-    paste0("p = ", formatC(p_value, format = "f", digits = 4))
-  } else {
-    paste0("p = ", formatC(p_value, format = "f", digits = 3))
-  }
-}
-
-for (target_name in names(qspot_results)) {
-  result <- qspot_results[[target_name]]
-  if (is.null(result)) next
-  interaction_row <- auc_interaction_all %>% filter(target == target_name)
-  write.csv(
-    interaction_row,
-    file = here("04_quantitative_spot_test", "output", target_name, "auc_interaction.csv"),
-    row.names = FALSE
-  )
-  sink(
-    here("04_quantitative_spot_test", "output", target_name, "auc_analysis_summary.txt"),
-    append = TRUE
-  )
-  cat("\nFormal AUC interaction contrast; BH correction across the six target backgrounds.\n")
-  print(interaction_row)
-  sink()
-
-  p_label <- format_interaction_p(interaction_row$p.value.BH)
-  max_dose <- max(result$plot_prediction$dose)
-  annotated_plot <- result$plot +
-    annotate(
-      "text", x = max_dose * 0.04, y = 0.1875,
-      label = "Genetic interaction:", hjust = 0, size = 3.5
-    ) +
-    annotate(
-      "text", x = max_dose * 0.04, y = 0.0625,
-      label = p_label, hjust = 0, size = 3.5
-    )
-  tikz_file <- here(
-    "04_quantitative_spot_test", "output", target_name,
-    paste0("qSpot_", target_name, ".tex")
-  )
-  tikz(tikz_file, width = 2.75, height = 7, lwdUnit = 72.27 / 96)
-  tryCatch(plot(annotated_plot), finally = dev.off())
-}
-
-write.csv(
-  auc_summary_all,
-  file = here("04_quantitative_spot_test", "output", "auc_summary_all_targets.csv"),
-  row.names = FALSE
-)
-
 primary_contrasts <- tibble(
   target = c("mus-9", "uvs-2", "mei-3", "mus-11", "recQ", "mus-26-polh"),
   background = c(
@@ -753,15 +706,129 @@ auc_primary_contrasts <- auc_pairwise_all %>%
     lower.CL, upper.CL, p.value.raw, p.value.BH, significance.BH
   )
 
-write.csv(auc_primary_contrasts,
+dose_ranges <- auc_summary_all %>%
+  distinct(target, min_dose, max_dose) %>%
+  mutate(dose_range = max_dose - min_dose)
+
+auc_equivalence_all <- auc_primary_contrasts %>%
+  left_join(dose_ranges, by = "target") %>%
+  mutate(
+    equivalence_margin = auc_equivalence_margin,
+    standardized_estimate = estimate / dose_range,
+    standardized_SE = SE / dose_range,
+    lower.CL.90 = standardized_estimate - qnorm(0.95) * standardized_SE,
+    upper.CL.90 = standardized_estimate + qnorm(0.95) * standardized_SE,
+    p.value.lower = pnorm(
+      (standardized_estimate + equivalence_margin) / standardized_SE,
+      lower.tail = FALSE
+    ),
+    p.value.upper = pnorm(
+      (standardized_estimate - equivalence_margin) / standardized_SE
+    ),
+    p.value.TOST.raw = pmax(p.value.lower, p.value.upper),
+    p.value.TOST.BH = p.adjust(p.value.TOST.raw, method = "BH"),
+    equivalent.raw = p.value.TOST.raw < 0.05,
+    equivalent.BH = p.value.TOST.BH < 0.05
+  ) %>%
+  select(
+    target, background, plus_hH3_K4R, min_dose, max_dose, dose_range,
+    equivalence_margin, standardized_estimate, standardized_SE,
+    lower.CL.90, upper.CL.90, p.value.lower, p.value.upper,
+    p.value.TOST.raw, p.value.TOST.BH, equivalent.raw, equivalent.BH
+  )
+
+write.csv(
+  auc_primary_contrasts,
   file = here("04_quantitative_spot_test", "output", "auc_primary_contrasts.csv"),
-  row.names = FALSE)
+  row.names = FALSE
+)
+
+write.csv(
+  auc_equivalence_all,
+  file = here("04_quantitative_spot_test", "output", "auc_equivalence_all_targets.csv"),
+  row.names = FALSE
+)
+
+format_p_value <- function(p_value) {
+  if (p_value < 0.0001) {
+    "p < 0.0001"
+  } else if (p_value < 0.1) {
+    paste0("p = ", formatC(p_value, format = "f", digits = 4))
+  } else {
+    paste0("p = ", formatC(p_value, format = "f", digits = 3))
+  }
+}
+
+for (target_name in names(qspot_results)) {
+  result <- qspot_results[[target_name]]
+  if (is.null(result)) next
+  interaction_row <- auc_interaction_all %>% filter(target == target_name)
+  equivalence_row <- auc_equivalence_all %>% filter(target == target_name)
+  write.csv(
+    interaction_row,
+    file = here("04_quantitative_spot_test", "output", target_name, "auc_interaction.csv"),
+    row.names = FALSE
+  )
+  write.csv(
+    equivalence_row,
+    file = here("04_quantitative_spot_test", "output", target_name, "auc_equivalence.csv"),
+    row.names = FALSE
+  )
+  sink(
+    here("04_quantitative_spot_test", "output", target_name, "auc_analysis_summary.txt"),
+    append = TRUE
+  )
+  cat("\nFormal AUC interaction contrast; BH correction across the six target backgrounds.\n")
+  print(interaction_row)
+  cat("\nAUC equivalence test; margin = +/-0.10 on dose-range-standardized AUC.\n")
+  cat("TOST p-values are BH-adjusted across the six target backgrounds.\n")
+  print(equivalence_row)
+  sink()
+
+  p_label <- format_p_value(equivalence_row$p.value.TOST.BH)
+  max_dose <- max(result$plot_prediction$dose)
+  annotated_plot <- result$plot +
+    annotate(
+      "text", x = max_dose * 0.04, y = 0.1875,
+      label = "AUC equivalence:", hjust = 0, size = 3.5
+    ) +
+    annotate(
+      "text", x = max_dose * 0.04, y = 0.0625,
+      label = paste0("BH ", p_label), hjust = 0, size = 3.5
+    )
+  tikz_file <- here(
+    "04_quantitative_spot_test", "output", target_name,
+    paste0("qSpot_", target_name, ".tex")
+  )
+  tikz(tikz_file, width = 2.75, height = 7, lwdUnit = 72.27 / 96)
+  tryCatch(plot(annotated_plot), finally = dev.off())
+}
+
+write.csv(
+  auc_summary_all,
+  file = here("04_quantitative_spot_test", "output", "auc_summary_all_targets.csv"),
+  row.names = FALSE
+)
 
 writeLines(
   capture.output(sessionInfo()),
   here("04_quantitative_spot_test", "output", "sessionInfo.txt")
 )
 
+# R package print methods may pad lines with trailing spaces. Normalize all
+# tracked text summaries so reruns remain suitable for diff-based validation.
+text_outputs <- list.files(
+  output_dir,
+  pattern = "\\.txt$",
+  recursive = TRUE,
+  full.names = TRUE
+)
+invisible(lapply(text_outputs, function(path) {
+  lines <- readLines(path, warn = FALSE)
+  writeLines(sub("[ \\t]+$", "", lines), path)
+}))
+
 # Print combined summaries to console
 lrt_all
 auc_primary_contrasts
+auc_equivalence_all

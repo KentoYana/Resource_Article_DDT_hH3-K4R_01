@@ -1,0 +1,2 @@
+"target","background","plus_hH3_K4R","min_dose","max_dose","dose_range","equivalence_margin","standardized_estimate","standardized_SE","lower.CL.90","upper.CL.90","p.value.lower","p.value.upper","p.value.TOST.raw","p.value.TOST.BH","equivalent.raw","equivalent.BH"
+"mei-3","mei-3 KO","mei-3 KO hH3-K4R",0,200,200,0.1,0.180111804447979,0.0409186904678441,0.112806548021841,0.247417060874117,3.80856908300078e-12,0.974874967384617,0.974874967384617,0.999998297706109,FALSE,FALSE

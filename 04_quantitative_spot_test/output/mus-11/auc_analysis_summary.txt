@@ -32,3 +32,14 @@ Formal AUC interaction contrast; BH correction across the six target backgrounds
 1 mus-11 (double - ba… wild-type hH3-K4R mus-11 KO  mus-11 KO hH…    -44.8  8.36
 # ℹ 6 more variables: z.ratio <dbl>, lower.CL <dbl>, upper.CL <dbl>,
 #   p.value.raw <dbl>, p.value.BH <dbl>, significance.BH <chr>
+
+AUC equivalence test; margin = +/-0.10 on dose-range-standardized AUC.
+TOST p-values are BH-adjusted across the six target backgrounds.
+# A tibble: 1 × 17
+  target background plus_hH3_K4R min_dose max_dose dose_range equivalence_margin
+  <chr>  <chr>      <chr>           <dbl>    <dbl>      <dbl>              <dbl>
+1 mus-11 mus-11 KO  mus-11 KO h…        0      200        200                0.1
+# ℹ 10 more variables: standardized_estimate <dbl>, standardized_SE <dbl>,
+#   lower.CL.90 <dbl>, upper.CL.90 <dbl>, p.value.lower <dbl>,
+#   p.value.upper <dbl>, p.value.TOST.raw <dbl>, p.value.TOST.BH <dbl>,
+#   equivalent.raw <lgl>, equivalent.BH <lgl>

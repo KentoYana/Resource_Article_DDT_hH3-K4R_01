@@ -1,0 +1,2 @@
+"target","background","plus_hH3_K4R","min_dose","max_dose","dose_range","equivalence_margin","standardized_estimate","standardized_SE","lower.CL.90","upper.CL.90","p.value.lower","p.value.upper","p.value.TOST.raw","p.value.TOST.BH","equivalent.raw","equivalent.BH"
+"mus-9","mus-9(FK129)","mus-9(FK129) hH3-K4R",0,200,200,0.1,0.0282386024007596,0.0398834273988099,-0.0373637978114285,0.0938410026129477,0.000651460594870834,0.0359873103780748,0.0359873103780748,0.107961931134225,TRUE,FALSE

@@ -1,0 +1,2 @@
+"target","background","plus_hH3_K4R","min_dose","max_dose","dose_range","equivalence_margin","standardized_estimate","standardized_SE","lower.CL.90","upper.CL.90","p.value.lower","p.value.upper","p.value.TOST.raw","p.value.TOST.BH","equivalent.raw","equivalent.BH"
+"mus-26-polh","mus-26 polh dKO","mus-26 polh dKO hH3-K4R",0,50,50,0.1,-0.274642311273691,0.0375997918792207,-0.336488465318847,-0.212796157228534,0.999998297706109,1.09592716816885e-23,0.999998297706109,0.999998297706109,FALSE,FALSE
