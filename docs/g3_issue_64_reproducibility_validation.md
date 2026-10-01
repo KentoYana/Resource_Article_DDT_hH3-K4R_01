@@ -118,6 +118,21 @@ to `package_versions.csv`. The author approved adding those packages and their
 standard software citations to the manuscript's supplemental package table on
 2026-09-15; the Article repository records the change in commit `0062183`.
 
+## qSpot equivalence extension (2026-10-02)
+
+The qSpot workflow was rerun for all six target backgrounds after addition of
+the prespecified two-one-sided equivalence tests. The deposited
+`auc_equivalence_all_targets.csv` reproduced byte-for-byte in a separate local
+clone. All other numerical and tabular qSpot outputs also reproduced; the only
+working-tree differences were the generation timestamps in the six TikZ figure
+sources. The equivalence margin is +/-0.10 on dose-range-standardized AUC, and
+the six TOST p-values are adjusted together using the Benjamini-Hochberg method.
+
+A final tracked-file scan before release found no `.RData`, `.Rhistory`,
+`.DS_Store`, reviewer or editor source files, manuscript submission files, or
+obvious credential or token files. Local `.RData` and `.Rhistory` files remain
+ignored and are not part of the release.
+
 ## Sequence-validation data addition (#182)
 
 After the initial #64 integration, the author approved adding the unmodified

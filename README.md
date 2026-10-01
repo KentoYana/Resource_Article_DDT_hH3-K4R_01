@@ -9,7 +9,7 @@ This repository contains datasets, analysis scripts, and generated output files 
 This repository provides the input data, analysis scripts, and output files needed to inspect and reproduce the analyses reported in the manuscript. The files are organized by analysis.
 
 The resource version prepared for the revised manuscript is archived as
-[GitHub Release v1.1.4](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.4).
+[GitHub Release v1.1.6](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.6).
 
 ## Repository structure
 
