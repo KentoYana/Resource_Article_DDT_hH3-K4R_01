@@ -397,7 +397,7 @@ g <- ggplot(indel_plot_data) +
 
 plot(g)
 
-panel_levels <- c("Panel 1: Indel size", "Panel 2: Indel distribution")
+panel_levels <- c("Panel \\#1: Indel size", "Panel \\#2: Indel distribution")
 
 size_panel_data <- indel_plot_data %>%
   mutate(panel = factor(panel_levels[1], levels = panel_levels))
@@ -537,7 +537,7 @@ merge_plot <- ggplot() +
   theme(
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank(),
-    strip.text.x = element_text(face = "bold", size = 9),
+    strip.text.x = element_text(face = "plain", size = 8),
     legend.position = "bottom",
     legend.direction = "horizontal",
     plot.margin = margin(5.5, 3, 5.5, 0)
