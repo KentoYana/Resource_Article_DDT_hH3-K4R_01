@@ -1,9 +1,14 @@
-# Original images for Figures 1 and S1
+# Source images for Figures 1, 4, 5 and S1
 
 This directory contains 20 original image files corresponding to Figure 1a/b
 and Figure S1b/d. Files are preserved byte for byte as supplied by the authors.
 `SHA256SUMS` records their checksums. These files were added after v1.1.6 and
 are not included in that release.
+
+For Figures 4a and 5a, the [qSpot representative-image guide](qspot_representatives.md)
+links 24 existing original images and their SpotScanner CSV files in
+`04_quantitative_spot_test/dataset/`, with individual strain IDs from Table S4.
+Those qSpot images and CSV files are already included in v1.1.6; this guide is new.
 
 ## Figure-to-file correspondence
 

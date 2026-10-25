@@ -226,6 +226,10 @@ This directory contains 20 original images for Figure 1a/b (qualitative spot
 assays), Figure S1b (genomic PCR gel) and Figure S1d (conidial development).
 The README maps filenames to figure panels, treatment conditions, and rows or
 lanes. Images are preserved as supplied; `SHA256SUMS` verifies file integrity.
+The [qSpot representative-image guide](08_source_images/qspot_representatives.md)
+also maps Figures 4a and 5a to 24 existing original images and their SpotScanner
+CSV files in `04_quantitative_spot_test/dataset/`, including Table S4 strain IDs,
+row order, and initial concentrations. These qSpot files are linked, not duplicated.
 
 ### `91_cross_information`
 
