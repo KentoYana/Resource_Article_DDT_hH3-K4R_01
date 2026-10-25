@@ -12,7 +12,7 @@ are not included in that release.
 | 1a | `figure1/Spot230119/*.JPG` (9 files) | 2023-01-19 | wild type and hH3-K4R; upper two spot rows |
 | 1b | `figure1/Spot230126/*.JPG` (9 files) | 2023-01-26 | wild type and delta set-1; upper two spot rows |
 | S1b | `figureS1/Band211214a.jpg` | 2021-12-14 | marker, C1-T10-28a and KNT-Op3-87a |
-| S1d | `figureS1/P4173247.JPG` | 2024-04-17 | wild type, hH3-K4R and delta set-1; left to right |
+| S1d | `figureS1/conidiation_slants.JPG` | 2024-04-17 | wild type, hH3-K4R and delta set-1; left to right |
 
 Capture dates are the dates recorded by the cameras, not inferred inoculation
 or experiment-start dates. Figure labels refer to the manuscript's final-revision
@@ -65,7 +65,7 @@ files are in `../06_hH3_sequence_validation/`.
 
 ## Figure S1d: conidial development
 
-`P4173247.JPG` shows all three slants in one photograph. From left to right:
+`conidiation_slants.JPG` shows all three slants in one photograph. From left to right:
 wild type, hH3-K4R and delta set-1. The manuscript conditions are 10^5 conidia
 inoculated onto glycerol complete medium slants, incubated at 25 degrees C for
 seven days. The three slants correspond to the three images in Figure S1d.
