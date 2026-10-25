@@ -11,8 +11,9 @@ This repository provides the input data, analysis scripts, and output files need
 The resource version prepared for the revised manuscript is archived as
 [GitHub Release v1.1.6](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.6).
 
-The race-tube workflow in `07_race_tube` was added after v1.1.6 and is not
-contained in that fixed release.
+The race-tube workflow in `07_race_tube` and original images in
+`08_source_images` were added after v1.1.6 and are not contained in that fixed
+release.
 
 ## Repository structure
 
@@ -25,6 +26,7 @@ contained in that fixed release.
 ├── 05_public_H3K4
 ├── 06_hH3_sequence_validation
 ├── 07_race_tube
+├── 08_source_images
 ├── 91_cross_information
 └── 99_pan-2_identification
 ```
@@ -217,6 +219,13 @@ between numerical reproduction and the manuscript presentation copy.
 ```sh
 Rscript --vanilla 07_race_tube/script_race_tube.R
 ```
+
+### `08_source_images`
+
+This directory contains 20 original images for Figure 1a/b (qualitative spot
+assays), Figure S1b (genomic PCR gel) and Figure S1d (conidial development).
+The README maps filenames to figure panels, treatment conditions, and rows or
+lanes. Images are preserved as supplied; `SHA256SUMS` verifies file integrity.
 
 ### `91_cross_information`
 
