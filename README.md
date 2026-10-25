@@ -11,6 +11,9 @@ This repository provides the input data, analysis scripts, and output files need
 The resource version prepared for the revised manuscript is archived as
 [GitHub Release v1.1.6](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.6).
 
+The race-tube workflow in `07_race_tube` was added after v1.1.6 and is not
+contained in that fixed release.
+
 ## Repository structure
 
 ```text
@@ -21,6 +24,7 @@ The resource version prepared for the revised manuscript is archived as
 ├── 04_quantitative_spot_test
 ├── 05_public_H3K4
 ├── 06_hH3_sequence_validation
+├── 07_race_tube
 ├── 91_cross_information
 └── 99_pan-2_identification
 ```
@@ -202,6 +206,18 @@ author surname in the instrument plate identifier. Publication of the
 unmodified files was explicitly approved as a documented exception. The
 directory README records the interpretation limits and provenance.
 
+### `07_race_tube`
+
+This directory contains the original author-supplied CSV and a portable adaptation
+of the race-tube script for Figure S1e. It exports descriptive means and SEs,
+per-time sample counts, endpoint average rates, and PDF/TikZ growth curves.
+The directory README documents provenance, missing observations and the distinction
+between numerical reproduction and the manuscript presentation copy.
+
+```sh
+Rscript --vanilla 07_race_tube/script_race_tube.R
+```
+
 ### `91_cross_information`
 
 This directory contains the dataset and R script for segregation analysis related to `hH3-K4R`.
@@ -268,7 +284,9 @@ BiocManager::install(c("IRanges", "rtracklayer"))
 install.packages(c("digest", "jsonlite"))
 ```
 
-The scripts use the `here` package to locate files relative to the repository root. Run all commands from the repository root.
+Most scripts use the `here` package to locate files relative to the repository root.
+Run the commands below from the repository root. The race-tube script resolves
+paths relative to its own location and also supports an unrelated working directory.
 
 ### EMBOSS
 
@@ -330,6 +348,7 @@ Rscript 03_seq_analysis/script_rev_seq_analysis.R
 zsh 03_seq_analysis/run_clustalo_B36.zsh
 Rscript 04_quantitative_spot_test/script_qSpot_test.R
 Rscript 06_hH3_sequence_validation/script_hH3_sequence_validation.R
+Rscript --vanilla 07_race_tube/script_race_tube.R
 Rscript 91_cross_information/script_segregation_hH3-K4R.R
 zsh 99_pan-2_identification/run_clustalo_pan-2_analysis.zsh
 ```
