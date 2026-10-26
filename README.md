@@ -4,7 +4,6 @@ This repository contains datasets, analysis scripts, and generated output files 
 
 > Yanagisawa K, Tomoda Y, Yoshihara R, Hatakeyama S, and Tanaka S.
 > **Histone H3K4 methylation-related chromatin regulation modulates UV-induced mutagenic outcomes and RecQ-associated DNA damage tolerance in *Neurospora crassa***
-> Manuscript under revision.
 
 This repository provides the input data, analysis scripts, and output files needed to inspect and reproduce the analyses reported in the manuscript. The files are organized by analysis.
 
@@ -440,7 +439,6 @@ If you use the datasets, analysis scripts, or generated output files from this r
 
 > Yanagisawa K, Tomoda Y, Yoshihara R, Hatakeyama S, and Tanaka S.
 > **Histone H3K4 methylation-related chromatin regulation modulates UV-induced mutagenic outcomes and RecQ-associated DNA damage tolerance in *Neurospora crassa***
-> Manuscript under revision.
 
 The journal citation and DOI will be added after publication or preprint release.
 
