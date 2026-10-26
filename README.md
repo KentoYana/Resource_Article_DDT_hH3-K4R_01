@@ -8,12 +8,13 @@ This repository contains datasets, analysis scripts, and generated output files 
 
 This repository provides the input data, analysis scripts, and output files needed to inspect and reproduce the analyses reported in the manuscript. The files are organized by analysis.
 
-The resource version prepared for the revised manuscript is archived as
-[GitHub Release v1.1.6](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.6).
+The resource version prepared for the revised manuscript is
+[v1.1.7](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.7).
 
-The race-tube workflow in `07_race_tube` and original images in
-`08_source_images` were added after v1.1.6 and are not contained in that fixed
-release.
+Version v1.1.7 includes the race-tube workflow in `07_race_tube`, the original
+images in `08_source_images`, and the qSpot representative-image and strain-ID
+guide. These additions are absent from v1.1.6; the original analysis inputs,
+scripts and numerical outputs in the earlier workflows are unchanged.
 
 ## Repository structure
 
