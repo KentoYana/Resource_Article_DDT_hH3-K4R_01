@@ -3,7 +3,7 @@
 # Re-download and uniformly process selected public N. crassa datasets for
 # reporter-locus nucleosome occupancy and chromatin accessibility analysis.
 #
-# Approved datasets for G3 revision issue #69:
+# Selected datasets:
 #   Kamei et al. 2021: WT MNase-seq, three biological replicates
 #   Kamei et al. 2021: WT total-H3 ChIP-seq, two biological replicates
 #   Ferraro et al. 2021: WT ATAC-seq, two biological replicates

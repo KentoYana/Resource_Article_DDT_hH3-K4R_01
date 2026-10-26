@@ -20,8 +20,7 @@ Those qSpot images and CSV files are already included in v1.1.6; this guide is n
 | S1d | `figureS1/conidiation_slants.JPG` | 2024-04-17 | wild type, hH3-K4R and delta set-1; left to right |
 
 Capture dates are the dates recorded by the cameras, not inferred inoculation
-or experiment-start dates. Figure labels refer to the manuscript's final-revision
-figure numbering.
+or experiment-start dates. Figure labels refer to the manuscript's figure numbering.
 
 ## Figure 1a/b: qualitative spot assays
 

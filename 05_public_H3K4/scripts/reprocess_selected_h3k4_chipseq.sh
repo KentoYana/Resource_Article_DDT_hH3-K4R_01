@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Re-download and uniformly process the selected public N. crassa H3K4
-# ChIP-seq runs for G3 revision issue #69.
+# ChIP-seq runs.
 #
-# Selected datasets (approved 1/2/4/5/6 plan):
+# Selected datasets:
 #   Ferraro et al. 2021: H3K4me1/2/3 (SRR12229306-8)
 #   Sasaki et al. 2014: H3K4me2 (SRR1295547)
 #   Storck et al. 2020: H3K4me3 (SRR12202381)

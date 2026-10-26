@@ -101,7 +101,7 @@ panels.
 
 ### Ferraro-only manuscript display
 
-The revision manuscript uses the Ferraro et al. (2021) series as its primary
+The manuscript uses the Ferraro et al. (2021) series as its primary
 display because all three H3K4 marks were generated within that study. Generate
 the dedicated reporter-locus output without overwriting the cross-study
 sensitivity analysis:
@@ -129,7 +129,7 @@ dataset, for example
 
 ## Repair/DDT-related gene inspection
 
-For Reviewer 1's question about a possible indirect effect through repair-gene
+To examine the possibility of an indirect effect through repair-gene
 regulation, the same uniformly processed H3K4me tracks can be inspected at the
 eight genes tested directly in the genetic-interaction experiments: `mus-9`,
 `uvs-2`, `mus-26`, `polh`, `qde-3`, `recQ2`, `mei-3`, and `mus-11`. No new

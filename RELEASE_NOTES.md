@@ -1,6 +1,6 @@
 # v1.1.7
 
-Resource package for the revised manuscript by Yanagisawa and colleagues,
+Resource package for the manuscript by Yanagisawa and colleagues,
 "Histone H3K4 methylation-related chromatin regulation modulates UV-induced
 mutagenic outcomes and RecQ-associated DNA damage tolerance in Neurospora crassa".
 

@@ -7,7 +7,7 @@ This repository contains datasets, analysis scripts, and generated output files 
 
 This repository provides the input data, analysis scripts, and output files needed to inspect and reproduce the analyses reported in the manuscript. The files are organized by analysis.
 
-The resource version prepared for the revised manuscript is
+The resource version associated with the manuscript is
 [v1.1.7](https://github.com/KentoYana/Resource_Article_DDT_hH3-K4R_01/releases/tag/v1.1.7).
 
 Version v1.1.7 includes the race-tube workflow in `07_race_tube`, the original

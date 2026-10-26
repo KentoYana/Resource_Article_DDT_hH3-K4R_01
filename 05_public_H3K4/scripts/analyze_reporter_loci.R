@@ -1023,7 +1023,7 @@ format_percentile_range <- function(values) {
   sprintf("%.1f-%.1f", min(finite_values), max(finite_values))
 }
 
-# Write the repair/DDT-gene summary requested by Reviewer 1
+# Write the repair/DDT-gene summary
 write_repair_analysis_summary <- function(path, summary, targets) {
   connection <- file(path, open = "wt", encoding = "UTF-8")
   on.exit(close(connection), add = TRUE)
